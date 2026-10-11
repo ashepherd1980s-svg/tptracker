@@ -972,12 +972,14 @@ ICON.sstat='<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 1
 /* ===== Factory Reset (supervisor passcode) ===== */
 function rstView(){$("#mod").innerHTML=`<div class="mh"><h2>Factory Reset</h2></div><div class="rec hold"><b>This erases everything on this device</b><small>Units, tasks, hours, people and PINs, data sheets and scans, photos, FME records, orders, vendors, shop needs, JSAs and daily reports. The app returns to its first-time setup screen.</small><small>It cannot be undone. Export a backup first if you may need any of it.</small></div>
  <div class="row" style="padding:6px 16px"><button data-rs="bk">Export Backup First</button><button class="danger" data-rs="go">Factory Reset...</button></div>
+ <div class="rec"><b>Presentation demo data</b><small>Fills the app with one fictional week at the Houston shop: 11 people, 5 units, tasks, hours, orders, FME, JSA and daily reports. It replaces everything on this device. Sign-in PINs become Austin Shepherd 1001, Jason McKendree 1002, Sean Lewis 1003. Use Factory Reset afterward to start clean.</small></div><div class="row" style="padding:6px 16px"><button data-rs="demo">Load Demo Data...</button></div>
  <div class="hint" style="padding:0 16px 30px">You will be asked for your passcode and then to type ERASE to confirm. Five wrong passcodes lock the screen for 30 seconds.</div>`}
 async function rstWipe(){WIPING=true;try{const d=await idb;if(d)d.close()}catch(e){}
  try{localStorage.clear()}catch(e){}try{sessionStorage.clear()}catch(e){}
  try{await new Promise(r=>{const q=indexedDB.deleteDatabase("tp-photos");q.onsuccess=q.onerror=q.onblocked=()=>r()})}catch(e){}
  location.reload()}
 $("#mod").addEventListener("click",e=>{if(cur!=="reset")return;const b=e.target.closest("button[data-rs]");if(!b)return;
+ if(b.dataset.rs==="demo")return pcGate("Load Demo Data","This replaces ALL data on this device with fictional presentation data. Enter your 4-digit passcode to continue.",()=>{const F=$("#dDatF");F.innerHTML=`<h2>Confirm Demo Data</h2><div class="hint">Type <b>DEMO</b> to replace everything on this device with fictional data.</div><label>Type DEMO<input name="cf" autocomplete="off" autocapitalize="characters"></label><div class="row"><button type="button" id="dX">Cancel</button><button type="button" class="pri" id="dS">Load Demo Data</button></div>`;F.onchange=F.oninput=null;F.onclick=ev=>{const x=ev.target.closest("button");if(!x)return;if(x.id==="dX")return $("#dDat").close();if(x.id!=="dS")return;if(F.elements.cf.value.trim()!=="DEMO")return alert("Type DEMO exactly to continue.");$("#dDat").close();loadDemoData()};$("#dDat").showModal();setTimeout(()=>F.elements.cf.focus(),50)});
  if(b.dataset.rs==="bk")return pcGate("Export Backup","The backup contains all unit, crew and customer data. Enter your 4-digit sign-in passcode to continue.",()=>bkExport());
  pcGate("Factory Reset","This will permanently erase ALL data on this device. Enter your 4-digit passcode to continue.",()=>{const F=$("#dDatF");
   F.innerHTML=`<h2>Confirm Factory Reset</h2><div class="hint">Type <b>ERASE</b> to permanently delete everything on this device.</div><label>Type ERASE<input name="cf" autocomplete="off" autocapitalize="characters"></label><div class="row"><button type="button" id="dX">Cancel</button><button type="button" class="danger" id="dS">Erase Everything</button></div>`;F.onchange=F.oninput=null;
@@ -1416,6 +1418,193 @@ show("home");lockUI();
  const wp=window.print.bind(window);
  window.print=function(){const T=P("TPPrint");if(T&&T.printPage)T.printPage().catch(()=>{});else wp()};
 })();
+
+/* ===== DEMO SEED: one fictional week at the new Houston shop ===== */
+async function loadDemoData(){
+ let sd=7;const rnd=()=>{sd|=0;sd=sd+0x6D2B79F5|0;let t=Math.imul(sd^sd>>>15,1|sd);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+ const dayOf=n=>{const d=new Date();d.setDate(d.getDate()-n);return ymd(d)},D=[6,5,4,3,2,1,0].map(dayOf),TD=D[6],pad=n=>String(n).padStart(2,"0");
+ const stamp=(di,h,m)=>{const [y,mo,d]=D[di].split("-");return new Date(+y,+mo-1,+d,h,m).toLocaleString()};
+ const AUS="Austin Shepherd",JAS="Jason McKendree",SEA="Sean Lewis";
+ const J4=["Marcus Delgado","Tyler Brooks","Luis Herrera","Danny Whitfield"],A4=["Kevin Okafor","Ethan Cole","Jaylen Parker","Noah Fischer"],ALL=J4.concat(A4);
+ const [MD,TB,LH,DW,KO,EC,JP,NF]=ALL;
+ DB.people=[{title:AUS,role:"Project Manager",pin:"1001",phone:"713-555-0142",note:"Oversees Argon Oman 6B project. Cell and email on file."},{title:JAS,role:"Shop Supervisor",pin:"1002",phone:"713-555-0157",note:"Runs the Houston shop floor, JSAs and daily reports."},{title:SEA,role:"Technical Director",pin:"1003",phone:"713-555-0163",note:"GE 6B technical authority. Signs clearances and hold points."}].concat(
+  [[MD,"Journeyman Millwright","2001","Crew foreman. Rigging and signal person certified."],[TB,"Journeyman Millwright","2002","Rigging certified. Alignment specialist."],[LH,"Journeyman Millwright","2003","Casing and nozzle work."],[DW,"Journeyman Millwright","2004","Qualified crane operator. 10 year millwright."],[KO,"Apprentice Millwright","2005","3rd year apprentice."],[EC,"Apprentice Millwright","2006","2nd year apprentice."],[JP,"Apprentice Millwright","2007","1st year apprentice."],[NF,"Apprentice Millwright","2008","1st year apprentice."]].map(([n,r,p,t],i)=>({title:n,role:r,pin:p,phone:"713-555-02"+pad(10+i*7),note:t})));
+ U.length=0;[["Oman Unit 1","Oman: GE 6B Units 1 & 2"],["Oman Unit 2","Oman: GE 6B Units 1 & 2"],["Oman Unit 3","Oman: GE 6B Units 3, 4 & 5"],["Oman Unit 4","Oman: GE 6B Units 3, 4 & 5"],["Oman Unit 5","Oman: GE 6B Units 3, 4 & 5"]].forEach(([n,p],i)=>U.push({id:"seed"+i,name:n,customer:"Argon",project:p,serial:"",src:"",dest:"",eta:"",stage:0,checks:{},hold:"",done:false,log:[]}));
+ // reset data
+ ["tasks","safety","fme","data","costs","time","dsr_comp","dsr_tech","dsr_track","dsr_push","dsr_data","dsr_ewa","dsr_hseq","dsr_vend"].forEach(k=>DB[k]=[]);
+ DB.hours=[];DB.runs={};DB.dsrs={};DB.jsas=[];DB.tphotos=[];DB.pver={};DB.docs=[];DB.qnotes=[];DB.parts=[];DB.fmea=[];DB.closeouts=[];DB.orders=[];DB.vendors=[];DB.issues=[];DB.dsrHist={};
+ // ---------- helpers: images ----------
+ const cv=(w,h)=>{const c=document.createElement("canvas");c.width=w;c.height=h;return c};
+ const sigImg=(name)=>{const c=cv(320,90),x=c.getContext("2d");let h=0;for(const ch of name)h=(h*31+ch.charCodeAt(0))|0;const r=()=>{h=(h*1103515245+12345)|0;return((h>>>8)&1023)/1023};x.strokeStyle="#12203a";x.lineWidth=2.6;x.lineCap="round";x.beginPath();let px=10,py=50;x.moveTo(px,py);for(let i=0;i<7;i++){const nx=px+30+r()*20,cy=20+r()*50;x.bezierCurveTo(px+10,cy-25,nx-12,cy+25,nx,30+r()*35);px=nx}x.stroke();x.beginPath();x.moveTo(12,78);x.quadraticCurveTo(150,62+r()*10,300,74);x.stroke();return c.toDataURL("image/png")};
+ const SG={};const sig=n=>SG[n]||(SG[n]=sigImg(n));
+ const photoImg=(cap,seed)=>{const c=cv(800,600),x=c.getContext("2d");let h=seed|0;const r=()=>{h=(h*1103515245+12345)|0;return((h>>>8)&1023)/1023};const g=x.createLinearGradient(0,0,800,600);g.addColorStop(0,"#5a646e");g.addColorStop(1,"#2b3138");x.fillStyle=g;x.fillRect(0,0,800,600);
+  for(let i=0;i<9;i++){x.fillStyle=`rgba(${110+r()*60|0},${115+r()*60|0},${120+r()*60|0},.55)`;x.beginPath();x.ellipse(100+r()*600,80+r()*380,40+r()*110,30+r()*80,r()*3,0,6.28);x.fill()}
+  x.strokeStyle="rgba(230,230,230,.7)";x.lineWidth=5;for(let i=0;i<5;i++){x.beginPath();x.arc(150+i*120,300+Math.sin(i+seed)*60,36,0,6.28);x.stroke()}x.fillStyle="rgba(0,0,0,.6)";x.fillRect(0,540,800,60);x.fillStyle="#fff";x.font="22px Arial";x.fillText(cap,16,577);return c.toDataURL("image/jpeg",.7)};
+ const sheetPage=(title,rows,sub)=>{const c=cv(850,1100),x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,850,1100);x.fillStyle="#111";x.font="bold 30px Arial";x.fillText("TurbinePROs",50,70);x.font="bold 24px Arial";x.fillText(title,50,130);x.font="16px Arial";x.fillStyle="#333";x.fillText(sub,50,160);x.strokeStyle="#222";x.lineWidth=1.5;let y=200;rows.forEach((r,i)=>{x.strokeRect(50,y,750,44);r.forEach((t,j)=>{x.fillStyle=i?"#111":"#000";x.font=(i?"":"bold ")+"17px Arial";x.fillText(String(t),62+j*(750/r.length),y+28)});y+=44});x.fillStyle="#666";x.font="14px Arial";x.fillText("Recorded by hand on the shop floor. Scanned into the tracker.",50,y+40);return{d:c.toDataURL("image/jpeg",.75),w:850,h:1100}};
+ const addDoc=async(o,pages)=>{const blob=mkPDF(pages),id="d"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);await pPut(id,blob);DOCS().push(Object.assign({id,pages:pages.length,size:blob.size,type:"application/pdf",name:(o.title||"doc").replace(/[^\w\-]+/g,"_")+".pdf"},o));return id};
+ const addPhoto=async(cap,seed)=>{const id="p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)+seed;await pPut(id,photoImg(cap,seed));return id};
+ // ---------- units ----------
+ const lg=(u,di,m)=>u.log.unshift({t:stamp(di,7+Math.floor(rnd()*8),Math.floor(rnd()*60)),m});
+ const un=n=>U.find(u=>u.name==="Oman Unit "+n);
+ const S0=STAGES[0].c.map(()=>true);
+ [[1,"GE6B-285401",0,"Oman Unit 1 ETA"],[2,"GE6B-285417",1],[3,"GE6B-285422",3],[4,"GE6B-285430"],[5,"GE6B-285438"]].forEach(([n,sn,di])=>{const u=un(n);if(!u)return;u.serial=sn;u.src="Argon Oman site";u.dest="Argon data center";u.log=[];u.checks={};u.stage=0;u.hold="";u.done=false;lg(u,0,"Unit added")});
+ let u1=un(1),u2=un(2),u3=un(3),u4=un(4),u5=un(5);
+ u1.log=[];u1.stage=1;u1.checks[0]=S0.slice();u1.checks[1]=[true,true,true,false,false];lg(u1,0,"Arrived at Houston shop on lowboy trailer");lg(u1,0,"Receiving checklist complete: BOL matched, damage photos taken");lg(u1,2,"Moved to Teardown");lg(u1,6,"Checked: Hardware tagged and bagged");
+ u2.log=[];u2.checks[0]=[true,true,true,true,false];lg(u2,1,"Arrived at Houston shop");lg(u2,5,"Checked: Nameplate and serial number recorded");
+ u3.log=[];u3.checks[0]=[true,true,false,false,false];lg(u3,3,"Arrived at Houston shop");
+ [u4,u5].forEach((u,i)=>{u.hold="Not yet arrived. In transit from Oman, ETA "+dayOf(-3-i*2);u.eta=dayOf(-3-i*2);u.log=[];lg(u,0,"Unit added. Awaiting shipment from Oman")});
+ // ---------- tasks ----------
+ const phaseOf=t=>{for(const[p,l]of STEPS)if(l.includes(t))return p;return "Other"};
+ const SCH=[];const T=(di,un_,title,crew,exp,st,extra)=>SCH.push(Object.assign({di,un:"Oman Unit "+un_,title,crew,exp,st:st||"Done"},extra||{}));
+ const all8=ALL.slice();
+ T(0,1,"Receive unit and check against bill of lading",[MD,DW,TB],4);T(0,1,"Photo-document as-received condition",[KO,EC],3);T(0,1,"Verify nameplate and serial number",[EC],1);T(0,1,"Set up laydown area and tooling",[LH,JP,NF,TB],10);T(0,1,"Plant safety orientation and LOTO walkdown",all8,8);T(0,1,"Install scaffolding and access platforms",[LH,JP,NF,DW],12);
+ T(1,1,"Remove lagging and insulation",[TB,LH,JP,NF],16);T(1,1,"Tag and disconnect instrumentation and wiring",[MD,KO,EC],12);T(1,2,"Receive unit and check against bill of lading",[DW,MD],4);T(1,2,"Photo-document as-received condition",[KO],2);T(1,2,"Verify nameplate and serial number",[EC],1);
+ T(2,1,"Drain lube oil system",[TB,JP],6);T(2,1,"Remove inlet and exhaust expansion joints",[LH,NF,DW,KO],14);T(2,1,"Disconnect gas fuel and cooling air piping",[MD,EC],8);T(2,1,"Uncouple load coupling and remove guard",[TB,DW],6);T(2,2,"Set up laydown area and tooling",[LH,NF,JP],8);
+ T(3,1,"Remove combustion casing covers",[MD,TB,KO],8);T(3,1,"Remove and tag fuel nozzles",[EC,JP],6);T(3,1,"Remove combustion liners",[LH,NF],8);T(3,1,"Remove transition pieces",[DW,TB],6);T(3,1,"Remove crossfire tubes",[KO,EC],3);T(3,2,"Install scaffolding and access platforms",[JP,NF,LH],10);T(3,3,"Receive unit and check against bill of lading",[MD,DW],4);
+ T(4,1,"Record as-found bearing clearances",[MD,EC],6);T(4,1,"Record as-found rotor runout and axial position",[TB,KO],5);T(4,1,"Remove turbine shell horizontal joint bolting",[LH,JP,NF,DW],16);T(4,2,"Remove lagging and insulation",[TB,KO,EC],14);T(4,3,"Photo-document as-received condition",[JP],2);T(4,3,"Verify nameplate and serial number",[EC],1);
+ T(5,1,"Lift upper turbine shell",[DW,MD,TB,LH],8);T(5,1,"Remove upper half stage 1 nozzle",[KO,JP,NF],8);T(5,1,"Remove upper half stage 2 and 3 nozzles",[EC,TB],6);T(5,2,"Tag and disconnect instrumentation and wiring",[MD,KO],8);T(5,2,"Drain lube oil system",[JP,NF],5);T(5,3,"Set up laydown area and tooling",[LH,EC],6);
+ T(6,1,"Remove compressor casing horizontal joint bolting",[LH,JP,NF,KO],16,"Running",{banked:2.5,ago:50});T(6,1,"Lift upper compressor casing",[DW,MD,TB],8,"Open");T(6,1,"Disconnect and remove IGV linkage",[EC],4,"Open");
+ T(6,2,"Disconnect gas fuel and cooling air piping",[MD,EC],6,"Done",{full:true});T(6,2,"Remove inlet and exhaust expansion joints",[TB,DW],10,"Running",{banked:1.5,ago:35});T(6,3,"Remove lagging and insulation",[KO],6,"Paused",{banked:2});T(6,3,"Tag and disconnect instrumentation and wiring",[MD],5,"Open");
+ const bud={};const tasks=[];
+ SCH.forEach((o,i)=>{const t={id:"t"+(1000+i).toString(36),title:o.title,unit:o.un,who:o.crew.join(", "),due:D[o.di],st:o.st==="Running"?"In progress":o.st,note:phaseOf(o.title),exp:o.exp};if(o.st==="Done")t.doneAt=D[o.di];tasks.push(t);o._t=t});
+ // hours
+ SCH.forEach(o=>{const t=o._t,day=D[o.di];if(o.st==="Open")return;const per=o.exp/o.crew.length;o.crew.forEach(n=>{const k=n+day;bud[k]=bud[k]||0;let h;
+   if(o.st==="Done")h=Math.round(per*(0.82+rnd()*0.5)*4)/4;else h=o.banked||0;
+   if(o.full)h=Math.round(per*0.95*4)/4;h=Math.max(0,Math.min(h,10-bud[k]));if(o.st==="Done"&&h<0.5&&bud[k]<10)h=Math.min(0.5,10-bud[k]);if(h>0){bud[k]+=h;DB.hours.push({tid:t.id,title:t.title,unit:t.unit,phase:t.note,who:n,date:day,hrs:h,exp:t.exp})}})});
+ // fix: day 6 budgets for crew who run today
+ DB.tasks=tasks;
+ SCH.filter(o=>o.st==="Running").forEach(o=>{o.crew.forEach(n=>{DB.runs[n]={tid:o._t.id,since:Date.now()-o.ago*6e4}})});
+ SCH.filter(o=>o.st==="Paused").forEach(o=>{o._t.st="Paused"});
+ // notes
+ const NT=(title,unit,m,by,di,h)=>{const t=tasks.find(x=>x.title===title&&x.unit===unit);if(t)(t.notes=t.notes||[]).push({t:stamp(di,h,15),by,m})};
+ NT("Verify nameplate and serial number","Oman Unit 1","Nameplate matches paperwork: GE MS6001B, serial 285401. Photo taken of both plates.",EC,0,9);
+ NT("Remove lagging and insulation","Oman Unit 1","Insulation has moisture staining at the exhaust end. Bagged and disposed of as non-hazardous. Asbestos sample not required per Argon letter.",TB,1,14);
+ NT("Remove combustion liners","Oman Unit 1","Liner 4 has a crack at the cross-fire tube cutout. Photos taken. Sean notified.",LH,3,13);
+ NT("Record as-found bearing clearances","Oman Unit 1","No. 2 bearing clearance is above limit. Rechecked with plastigage and dial bore gauge. Recorded on the data sheet.",MD,4,11);
+ NT("Lift upper turbine shell","Oman Unit 1","Lift plan reviewed at pre-lift meeting. 4 point pick, level within 1/8 inch. Shell set on cribbing in bay 2.",DW,5,10);
+ NT("Remove compressor casing horizontal joint bolting","Oman Unit 1","Two hydraulic torque wrenches out of service (seal leaks). Using the rental tensioner. About 40 percent of studs are loose.",LH,6,10);
+ NT("Remove lagging and insulation","Oman Unit 3","Paused until scaffolding is signed off. Ethan will resume after lunch.",KO,6,11);
+ // photos (tasks)
+ const TPHS=[];const tp=async(title,unit,di,cap,by,ver,verBy)=>{const t=tasks.find(x=>x.title===title&&x.unit===unit);if(!t)return;const id=await addPhoto(unit+" - "+cap,TPHS.length*7+3);TPHS.push(id);const p={id,tid:t.id,unit:t.unit,ttl:t.title,date:D[di],cap,by};DB.tphotos.push(p);if(ver)DB.pver[id]={by:verBy,at:D[di]+" 15:"+pad(10+TPHS.length)}};
+ await tp("Photo-document as-received condition","Oman Unit 1",0,"As-received exhaust end",KO,true,JAS);await tp("Photo-document as-received condition","Oman Unit 1",0,"As-received inlet plenum",EC,true,JAS);
+ await tp("Remove combustion liners","Oman Unit 1",3,"Liner 4 crack at cross-fire cutout",LH,true,SEA);
+ await tp("Record as-found bearing clearances","Oman Unit 1",4,"No. 2 bearing lower half as found",MD,true,SEA);
+ await tp("Lift upper turbine shell","Oman Unit 1",5,"Upper shell lifted clear",DW,true,JAS);
+ await tp("Remove compressor casing horizontal joint bolting","Oman Unit 1",6,"Joint bolting loosened, studs tagged",LH,true,JAS);
+ await tp("Remove compressor casing horizontal joint bolting","Oman Unit 1",6,"Torque wrench seal leak",JP,true,JAS);
+ await tp("Remove compressor casing horizontal joint bolting","Oman Unit 1",6,"Rental bolt tensioner in use",NF,false);
+ await tp("Disconnect gas fuel and cooling air piping","Oman Unit 2",6,"Fuel gas flange capped and tagged",MD,true,JAS);
+ await tp("Disconnect gas fuel and cooling air piping","Oman Unit 2",6,"Open piping covered, FME tags installed",EC,true,JAS);
+ await tp("Remove inlet and exhaust expansion joints","Oman Unit 2",6,"Expansion joint removed",TB,false);
+ await tp("Remove lagging and insulation","Oman Unit 3",6,"Lagging removal started",KO,false);
+ // ---------- measurements ----------
+ const bt=(title,unit)=>tasks.find(x=>x.title===title&&x.unit===unit);
+ const MB=bt("Record as-found bearing clearances","Oman Unit 1"),MR=bt("Record as-found rotor runout and axial position","Oman Unit 1"),MC=bt("Remove compressor casing horizontal joint bolting","Oman Unit 1"),MS=bt("Lift upper turbine shell","Oman Unit 1");
+ const dm=(t,title,pos,proj,tol,uom,af,al,who,di,inst)=>DB.data.push({title,unit:t.unit,tid:t.id,ttl:t.title,proj,tol,uom,pos,af:af||"",al:al||"",inst:inst||"",who:who||"",date:D[di],note:""});
+ dm(MB,"Bearing #1 – Radial Clearance","Bottom","0.0100","0.0020","in","0.0112","",MD,4,"Micrometer M-114");
+ dm(MB,"Bearing #2 – Radial Clearance","Bottom","0.0100","0.0020","in","0.0141","",MD,4,"Micrometer M-114");
+ dm(MB,"Bearing #3 – Radial Clearance","Bottom","0.0100","0.0020","in","0.0108","",EC,4,"Micrometer M-114");
+ dm(MB,"Thrust Bearing – Clearance","Active side","0.0150","0.0030","in","0.0162","",EC,4,"Dial indicator D-22");
+ dm(MR,"Rotor – Runout at Compressor End","Journal","0.0010","0.0005","in","0.0008","",TB,4,"Dial indicator D-31");
+ dm(MR,"Rotor – Runout at Turbine End","Journal","0.0010","0.0005","in","0.0019","",TB,4,"Dial indicator D-31");
+ dm(MR,"Rotor – Axial Position (Thrust)","Thrust collar","0.0000-0.0040","","in","0.0025","",KO,4,"Dial indicator D-31");
+ dm(MS,"Turbine – Shell Horizontal Joint Gap","Joint","0.0050","0.0020","in","0.0040","",TB,5,"Feeler gauge set F-8");
+ dm(MC,"Compressor – Casing Horizontal Joint Gap","Joint","0.0050","0.0020","in","","","",6);
+ dm(MC,"Hardware – Stud Torque","Casing studs","1200","50","ft-lb","","","",6);
+ // quick notes
+ const qn=(t,comp,kind,note,who,di)=>DB.qnotes.push({id:"q"+DB.qnotes.length+Date.now().toString(36),unit:t.unit,tid:t.id,ttl:t.title,comp,kind,note,who,date:D[di],ts:Date.now()-(6-di)*864e5});
+ qn(MB,"No. 2 bearing top half babbitt","As Found",'Light scoring on top half, no lifting of babbitt. Photo on the task.',MD,4);
+ qn(bt("Remove combustion liners","Oman Unit 1"),"Liner 4 cross-fire cutout","As Found","Crack about 1.5 in long from cutout edge. Other liners show normal discoloration.",LH,3);
+ qn(MC,"Casing studs, bay side","As Found","Studs 12 to 18 heavily rusted. Used penetrating oil before loosening.",JP,6);
+ qn(bt("Remove inlet and exhaust expansion joints","Oman Unit 1"),"Exhaust expansion joint","As Found","Fabric torn at 3 o'clock for about 10 in. Will be replaced.",KO,2);
+ // data sheets (scanned)
+ const dsh=async(t,title,rows,sub,who,di)=>addDoc({title,cat:DCATS[0],unit:t.unit,tid:t.id,ttl:t.title,date:D[di],who,note:""},[sheetPage(title,rows,sub)]);
+ await dsh(MB,"Oman Unit 1 As-Found Bearing Clearances Data Sheet",[["Bearing","Spec (in)","As Found (in)","Result"],["#1 radial","0.0100 +/- 0.0020","0.0112","In spec"],["#2 radial","0.0100 +/- 0.0020","0.0141","Over limit"],["#3 radial","0.0100 +/- 0.0020","0.0108","In spec"],["Thrust","0.0150 +/- 0.0030","0.0162","In spec"]],"Unit: Oman Unit 1  Date: "+D[4]+"  Tech: Marcus Delgado",MD,4);
+ await dsh(MR,"Oman Unit 1 As-Found Rotor Runout Data Sheet",[["Location","Spec (in)","As Found (in)","Result"],["Compressor end","0.0010 +/- 0.0005","0.0008","In spec"],["Turbine end","0.0010 +/- 0.0005","0.0019","Over limit"],["Axial position","0.0000-0.0040","0.0025","In spec"]],"Unit: Oman Unit 1  Date: "+D[4]+"  Tech: Tyler Brooks",TB,4);
+ await dsh(MS,"Oman Unit 1 Turbine Shell Joint Gap Record",[["Location","Spec (in)","As Found (in)","Result"],["Horizontal joint","0.0050 +/- 0.0020","0.0040","In spec"]],"Unit: Oman Unit 1  Date: "+D[5]+"  Tech: Tyler Brooks",TB,5);
+ // ---------- parts received ----------
+ const part=(title,pn,sn,qty,cond,unit,src,loc,who,di,note)=>DB.parts.push({title,pn,sn,qty,cond,unit,src,loc,who,date:D[di],note:note||""});
+ part("Gasket and O-ring kit","GK-6B-0212","","4","New","Oman Unit 1","PO ARG-26-0102","Bin C-4",LH,4);
+ part("Hydraulic bolt tensioner (rental)","HT-M64","HT-7731","1","Good","Oman Unit 1","PO ARG-26-0105","Bay 2 cage",JAS,5,"Second tensioner not yet delivered.");
+ part("Fuel nozzle caps (set of 10)","FN-CAP-10","","1","New","Oman Unit 1","Shop stock","Bin A-2",EC,3);
+ part("Casing stud, spare","ST-6B-118","","6","Damaged","Oman Unit 1","Removed from unit","Quarantine rack",NF,6,"Threads galled on studs 14 to 18. Tagged for scrap decision.");
+ part("Instrument tag kit","IT-100","","2","New","Oman Unit 2","Shop stock","Bin B-1",KO,5);
+ part("Bearing shell, No. 2 (customer spare)","BRG-6B-02","SN-4471","1","Needs Repair","Oman Unit 1","Argon spare","Locked cage",SEA,5,"Customer spare. Babbitt chipped at edge.");
+ // ---------- vendors / orders / shop ----------
+ DB.vendors=[{id:"v1",name:"GE Parts and Repair",contact:"Rhonda Pruitt",phone:"713-555-0301",email:"rhonda.pruitt@example.com",acct:"TP-10442",note:"Combustion hardware"},{id:"v2",name:"Gulf Coast Gasket Co",contact:"Mike Tran",phone:"713-555-0322",email:"mtran@example.com",acct:"TP-20917",note:"Gaskets, O-rings, seals"},{id:"v3",name:"Boltworks Supply",contact:"Dana Ruiz",phone:"281-555-0344",email:"dana@example.com",acct:"TP-30018",note:"Studs, nuts, fasteners"},{id:"v4",name:"Houston Turbine Machining",contact:"Gary Hollis",phone:"713-555-0366",email:"ghollis@example.com",acct:"TP-40551",note:"Nozzle and shroud repair"},{id:"v5",name:"Hydro-Test Services",contact:"Priya Natarajan",phone:"281-555-0388",email:"priya@example.com",acct:"TP-50610",note:"Tensioner and wrench rentals"},{id:"v6",name:"Lone Star NDT",contact:"Chris Beal",phone:"713-555-0399",email:"chris@example.com",acct:"TP-60224",note:"NDT inspection"}];
+ const ord=(kind,vendor,desc,qty,po,ordered,due,st,extra)=>{const o=Object.assign({id:"o"+DB.orders.length+"x"+kind,kind,vendor,desc,qty,po,unit:"",tid:"",ttl:"",ordered,due,st,track:"",rec:[],fu:[],log:[],pri:"Normal",by:""},extra||{});o.log.push({t:stamp(Math.max(0,D.indexOf(ordered)),9,0),m:(kind==="shop"?"Requested ":"Ordered ")+ordered,by:AUS});DB.orders.push(o);return o};
+ const rcv=async(o,date,qty,cond,by,bolNo,carrier,done,pages)=>{const r={id:"r"+Math.random().toString(36).slice(2,7),date,qty,cond,by,bolNo,carrier,note:""};
+  if(bolNo){const pgs=[sheetPage("BILL OF LADING "+bolNo,[["Shipper",o.vendor],["Carrier",carrier],["Consignee","TurbinePros Houston Shop"],["Description",o.desc],["Quantity",String(qty)],["Date",date]],"Received at the Houston shop dock")];const id=await addDoc({title:"BOL "+bolNo+" - "+o.vendor,cat:"BOL / Bill of Lading",ord:o.id,unit:o.unit,tid:o.tid,ttl:o.ttl,date,who:by,note:""},pgs);r.bol=id}
+  o.rec.push(r);if(done){o.st="Received";o.recvd=date}else o.st="Partially Received";o.log.unshift({t:stamp(Math.max(0,D.indexOf(date)),10,30),m:"Received "+qty+" ("+cond+")"+(bolNo?" BOL "+bolNo:"")+(done?" - order complete":" - partial"),by})};
+ const o1=ord("vend","GE Parts and Repair","Combustion liners, set of 10 (replacement)","10","ARG-26-0101",D[1],D[5],"Shipped",{unit:"Oman Unit 1",tid:tasks.find(x=>x.title==="Remove combustion liners").id,ttl:"Remove combustion liners",track:"FedEx Freight 7712 0088 4410"});o1.fu.push({d:D[5],note:"Called Rhonda. Truck left Greenville on Thursday, new ETA Monday.",by:AUS},{d:D[6],note:"Emailed for tracking. Still ETA Monday.",by:AUS});o1.log.unshift({t:stamp(4,14,0),m:"Status: Ordered to Shipped",by:AUS});
+ const o2=ord("vend","Gulf Coast Gasket Co","Gasket and O-ring kit, Units 1 and 2","4","ARG-26-0102",D[1],D[4],"Ordered",{unit:"Oman Unit 1"});await rcv(o2,D[4],4,"Complete and undamaged",LH,"GC-55410","Gulf Coast Courier",true);
+ ord("vend","Boltworks Supply","Casing stud and nut sets, Unit 1","40","ARG-26-0103",D[2],D[6],"Confirmed",{unit:"Oman Unit 1",track:"Will call, ready 3 pm"});
+ ord("vend","Houston Turbine Machining","Repair of stage 1 nozzle segments, 18 segments","18","ARG-26-0104",D[3],dayOf(-5),"Ordered",{unit:"Oman Unit 1",note:"Pickup after teardown inspection."});
+ const o5=ord("vend","Hydro-Test Services","Hydraulic bolt tensioner rental, M64","2","ARG-26-0105",D[3],D[5],"Ordered",{unit:"Oman Unit 1"});await rcv(o5,D[5],1,"Complete and undamaged",JAS,"HT-88120","Hydro-Test Truck",false);o5.fu.push({d:D[6],note:"Second tensioner coming off another job Monday.",by:JAS});
+ ord("vend","Lone Star NDT","NDT of Unit 1 rotor (MT and PT)","1","ARG-26-0106",D[4],dayOf(-3),"Confirmed",{unit:"Oman Unit 1",track:"Tech on site Oct+3"});
+ const s1=ord("shop","","Rags, degreaser and absorbent pads","1 case","",D[1],D[2],"Requested",{pri:"Low",by:KO});await rcv(s1,D[2],1,"Complete and undamaged",KO,"","",true);
+ const s2=ord("shop","Boltworks Supply","Tool lanyards, 20 each","20","",D[4],D[5],"Ordered",{pri:"Urgent",by:MD});s2.fu.push({d:D[5],note:"Dana says backordered one day.",by:JAS});
+ ord("shop","","Headlamps, rechargeable, 8 each","8","",D[4],dayOf(-2),"Approved",{pri:"Normal",by:EC});
+ ord("shop","Calibration lab","Torque wrench calibration, 2 wrenches","2","",D[5],D[6],"Ordered",{pri:"Normal",by:TB});
+ ord("shop","","Crane rated shackles, 1 inch, 6 each","6","",D[6],dayOf(-1),"Requested",{pri:"Urgent",by:DW});
+ // ---------- issues ----------
+ const is=(unit,cat,title,tid,by,ts,eta)=>DB.issues.push({id:"i"+DB.issues.length+Date.now().toString(36),unit,cat,title,tid,ttl:(tasks.find(x=>x.id===tid)||{}).title||"",eta:eta||"",by,ts,st:"Open"});
+ is("Oman Unit 1","Tooling Issue","Two hydraulic torque wrenches leaking at the seals. Out of service. Using rental tensioner.",MC.id,JAS,Date.now()-26*36e5,"");
+ is("Oman Unit 1","Waiting on Parts","Replacement combustion liners (PO ARG-26-0101) are one day past promised date.",tasks.find(x=>x.title==="Remove combustion liners").id,AUS,Date.now()-40*36e5,dayOf(-1));
+ is("","Equipment or Crane","Bay 2 crane annual inspection due in 4 days. Scheduling the inspector before the compressor casing lift.","",JAS,Date.now()-70*36e5,dayOf(-4));
+ DB.issues.push({id:"ires1",unit:"Oman Unit 2",cat:"Waiting on Customer",title:"Argon approval for drawing revision on instrument tag list",tid:"",ttl:"",eta:"",by:AUS,ts:Date.now()-120*36e5,st:"Resolved",resAt:D[4]+" 10:12",resBy:AUS});
+ // ---------- FME ----------
+ const reqm=(a1,a2)=>{const r={};FREQ.forEach(([k])=>r[k]={a1:a1.includes(k)?"Y":"N",a2:a2.includes(k)?"Y":"N"});return r};
+ const ALLK=FREQ.map(x=>x[0]);
+ const fa=(unit,loc,cls,st,req,just)=>{const a={id:"f"+DB.fmea.length+"z",unit,loc,cls,st,req,just,cby:JAS,cdate:D[3],pre:{},items:[],devs:[],acc:[],scope:[],log:[]};DB.fmea.push(a);return a};
+ const fl=(a,di,h,m,by)=>a.log.unshift({t:stamp(di,h,m),m:by,by:""});
+ const A=fa("Oman Unit 1","Compressor inlet plenum","FMEA1","Open",reqm(ALLK.filter(k=>k!=="mach"),["log","scope","sou","clean","acl","bore","lan","sign"]),"Field machining is not planned at this location.");A.openedAt=D[6]+" 06:40";A.monitor="Danny Whitfield";
+ PRE.filter(([k])=>need(A,k)).forEach(([k],i)=>{A.pre[k]={by:JAS,at:"6:"+pad(10+i*4)+" AM"}});
+ A.log=[];A.log.unshift({t:stamp(6,6,20),m:"Classified FMEA1 (TP FME 1)",by:JAS});A.log.unshift({t:stamp(6,6,40),m:"FME area opened for entry",by:JAS});
+ [[EC,"6:45 AM","9:30 AM"],[KO,"6:50 AM","9:15 AM"],[EC,"10:05 AM","11:40 AM"],[KO,"10:10 AM","11:45 AM"],[MD,"12:30 PM","1:05 PM"],[KO,"1:10 PM",""]].forEach(([n,a,b],i)=>A.acc.push({id:"a"+i,name:n,sou:true,tin:a,tout:b||undefined}));
+ [["Flashlight","T-01","Tool"],["10 mm socket","T-02","Tool"],["Inspection mirror","T-03","Tool"],["Torque wrench, 1/2 in","T-04","Tool"],["Cleaning rags (bag of 10)","","Material"],["Borescope camera head","T-05","Tool"],["Pick set","T-06","Tool"]].forEach(([d,tag,ty],i)=>A.items.push({id:"i"+i,desc:d,type:ty,tag,qin:d.includes("bag")?10:1,qout:d==="Inspection mirror"?0:(d.includes("bag")?10:1),lany:ty==="Tool",by:EC,tin:"6:5"+i+" AM",tout:d==="Inspection mirror"?undefined:"11:50 AM"}));
+ A.devs.push({id:"d1",desc:"Inlet bell-mouth blank plate",loc:"Plenum entry",by:MD,tin:"6:45 AM"});
+ A.scope.push({res:"Clear - no foreign material",date:D[6],by:SEA,note:"Borescope of plenum floor and inlet screens, clear.",photos:[]});A.scope[0].photos=[await addPhoto("Unit 1 plenum borescope",91)];
+ const Bq=fa("Oman Unit 1","Combustion section liner bores","FMEA2","Closed",reqm(["log","scope","sou","clean","acl","bore","lan","sign"],["log","scope","sou","clean","acl","bore","lan","sign"]),"Fence, monitor, closure device and field machining not applicable inside the combustion casing.");Bq.cls="FMEA2";
+ Bq.openedAt=D[3]+" 07:10";PRE.filter(([k])=>need(Bq,k)).forEach(([k])=>{Bq.pre[k]={by:JAS,at:"7:00 AM"}});Bq.acc=[{id:"b1",name:LH,sou:true,tin:"7:15 AM",tout:"11:00 AM"},{id:"b2",name:NF,sou:true,tin:"7:15 AM",tout:"11:00 AM"}];Bq.items=[{id:"bi1",desc:"Liner puller",type:"Tool",tag:"T-21",qin:1,qout:1,lany:true,by:LH,tin:"7:20 AM",tout:"10:50 AM"},{id:"bi2",desc:"Flashlight",type:"Tool",tag:"T-22",qin:1,qout:1,lany:true,by:NF,tin:"7:20 AM",tout:"10:55 AM"}];Bq.scope=[{res:"Clear - no foreign material",date:D[3],by:SEA,note:"Clear after liner removal.",photos:[]}];
+ Bq.close={cust:"Argon Power Group, LLC",plant:"TurbinePros Houston Shop",addr:"12450 Industrial Pkwy, Houston, TX 77041",unit:"Oman Unit 1",loc:"Combustion section liner bores",desc:"Liners removed, bores borescoped and covered with FME covers",method:"Borescope and visual",sup:{print:JAS,sig:sig(JAS),date:D[3]},fore:{print:MD,sig:sig(MD),date:D[3]},cus:{print:"Carlos Mendes",sig:sig("Carlos Mendes"),date:D[3]}};Bq.closedAt=D[3]+" 11:30";Bq.log=[{t:stamp(3,11,30),m:"Closed out (TP-FME-6). Method: Borescope and visual",by:JAS},{t:stamp(3,7,10),m:"FME area opened for entry",by:JAS},{t:stamp(3,6,50),m:"Classified FMEA2 (TP FME 1)",by:JAS}];
+ const C3=fa("Oman Unit 2","Exhaust diffuser","FMEA1","Classified",reqm(ALLK,["log","sou","clean","acl","bore","lan","sign"]),"");C3.log=[{t:stamp(6,8,0),m:"Classified FMEA1 (TP FME 1)",by:JAS}];
+ // closeout forms
+ DB.closeouts=[{id:"c1",cust:"Argon Power Group, LLC",hdr:"Argon | Oman GE 6B Overhaul | Houston, Texas",plant:"TurbinePros Houston Shop",unit:"Oman Unit 1",job:"ARG-OM-2601",comp:"Combustion liners (10) removed and bores covered",loc:"Combustion section",date:D[3],shift:"Days",vis:true,dim:false,other:"",ref:"Borescope/Visual",wo:"WO-1103",finds:"Liner 4 has a crack at the cross-fire cutout. Remaining liners show normal wear. Bores clean. FME covers installed.",disp:"acc",exc:"",repRole:"Argon Representative",sup:{name:JAS,sig:sig(JAS),date:D[3]},rep:{name:"Carlos Mendes",sig:sig("Carlos Mendes"),date:D[3]}},
+  {id:"c2",cust:"Argon Power Group, LLC",hdr:"Argon | Oman GE 6B Overhaul | Houston, Texas",plant:"TurbinePros Houston Shop",unit:"Oman Unit 1",job:"ARG-OM-2601",comp:"Upper turbine shell lifted and set on cribbing",loc:"Turbine section, bay 2",date:D[5],shift:"Days",vis:true,dim:true,other:"",ref:"Photos on task",wo:"WO-1107",finds:"Shell joint gap recorded before lift. Joint faces clean. Shell stored on cribbing with covers.",disp:"",exc:"Awaiting customer review of joint face photos.",repRole:"Argon Representative",sup:{name:JAS,sig:sig(JAS),date:D[5]},rep:{name:"Carlos Mendes",sig:"",date:""}}];
+ // ---------- JSA ----------
+ {const r=jsaBlank();jsaPad(r);Object.assign(r,{id:"j"+Date.now(),loc:"Houston Shop",unit:"Oman Units 1, 2 and 3",date:TD,shift:"DS",foreman:MD,sup:JAS,manpower:"8",cust:"Argon",job:"ARG-OM-2601",pm:AUS,permits:"Hot work: none. Confined space: none (FME area permit for Unit 1 plenum). Crane lift plan on file for compressor casing lift.",affOut:"Crane use in bay 2 limits access to the east walkway for other vendors.",affIn:"Hydro-Test and Lone Star NDT traffic near bay 2 may interrupt work.",comm:"Yes",who:"Carlos Mendes (Argon), Gary Hollis (Houston Turbine Machining)",appr:"Yes"});
+  let bi=0;const gh={tools:[],haz:[],ctl:[],hz:[],ppe:[],em:[],se:[]},lifts=[];
+  [1,2,3].forEach(n=>{const un_="Oman Unit "+n,ts=tasks.filter(t=>t.unit===un_&&t.due===TD);if(!ts.length)return;const b=r.tasks[bi++],tl=[],hz=[],ct=[];
+   ts.forEach(t=>{const i=stepInfo(t.title);tl.push(i.tools.join(", "));hz.push(i.haz.join(", "));ct.push(i.ctl.join(", "));["hz","ppe","em","se"].forEach(k=>gh[k].push(...i[k]));if(i.crane)lifts.push(t.title)});
+   b.act=un_.replace("Oman ","")+": "+ts.map(t=>t.title).join("; ");b.tools=uq(tl);b.haz=uq(hz);b.ctl=uq(ct);b.auto=true;b.loto="Signed On"});
+  gh.hz.forEach(k=>{r.haz[k]=true});gh.ppe.forEach(n=>{r.ppe[n]=true});gh.em.forEach(n=>{r.em[n]=true});gh.se.forEach(n=>{r.se[n]=true});
+  ["Hard Hat","Safety Glasses","Leather Gloves","Safety Toed Boots","Hearing Protection","Long sleeves"].forEach(n=>r.ppe[n]=true);["Fire Extinguisher","First Aid Kit","Communication Sys"].forEach(n=>r.em[n]=true);
+  CATS.forEach(([c,l])=>{if(!l.some(n=>r.haz[c+"/"+n]))r.none["haz_"+c]=true});
+  [["ppe",PPEC],["em",EMC],["se",SEC2]].forEach(([k,g])=>{if(!g.some(col=>col.some(n=>r[k][n])))r.none[k]=true});
+  Object.assign(r.crane,{na:false,preop:true,vests:true,rigging:true,path:true,prelift:true,view:true,comms:true,op:DW,signal:TB,rig1:MD,rig2:LH});
+  r.crane.lifts[0]={item:"Lift upper compressor casing (Unit 1), compressor casing lift plan CL-0611",type:"Critical",sig:sig(DW)};r.crane.lifts[1]={item:"Move expansion joint to laydown (Unit 2)",type:"Non-Critical",sig:sig(DW)};r.crane.shown=2;
+  r.crew=ALL.concat([JAS]).map((n,i)=>({name:n,sig:sig(n),t:stamp(6,6,30+i)}));r.final=true;r.finalAt=stamp(6,6,55);J().push(r)}
+ // ---------- DSR ----------
+ {const d=ds();Object.assign(d.setup,{jobNo:"ARG-OM-2601",customer:"Argon Power Group, LLC",short:"Argon Oman GE 6B",unit:"GE 6B Gas Turbines, Units 1 to 5 (Oman)",sow:"Receive, tear down, inspect, overhaul, test and prep, and ship five GE 6B units for data center repurposing",date:TD,shift:"Days",plant:"TurbinePros Houston Shop, 12450 Industrial Pkwy, Houston, TX 77041",truck:"TurbinePros Houston Shop, Dock 2, 12450 Industrial Pkwy, Houston, TX 77041",sendTo:"dave.hunt@example.com\nproject.team@example.com\naustin.shepherd@example.com"});
+  Object.assign(d.contacts,{dPlant:"Rick Alvarado, Shop Manager",dCust:"Carlos Mendes, Argon Site Rep",dSup:JAS,dTd:SEA,dFore:MD,dCrew:"8",dLen:"10 hours",nPlant:"N/A",nCust:"N/A",nSup:"N/A",nTd:"N/A",nFore:"N/A",nCrew:"0",nLen:"N/A",oName:AUS+", Project Manager",oPh:"713-555-0142 / austin.shepherd@example.com",sName:"Priya Anand, Safety Lead",sPh:"713-555-0188 / safety@example.com",qName:"Glen Whitaker, Quality",qPh:"713-555-0191 / quality@example.com"});
+  Object.assign(d.comp,{pFed:true,pQual:true,pLoto:true,pCrane:true,pSwivel:true,pDate:D[0],craneOp:DW,craneSigned:D[0],preOp:TD,lotoSt:"Signed On",sat:"Yes",holder:JAS,release:dayOf(-5)});
+  Object.assign(d.brief,{notes:"Day 7 of shop operations. Units 1 to 3 on site, Units 4 and 5 arrive next week.\nUnit 1: compressor casing joint bolting about 60 percent loose. Casing lift planned for tomorrow after the bay 2 crane check.\nUnit 1 liner 4 has a crack at the cross-fire cutout. Photos with the TD. Replacement liners are one day late.\nTwo hydraulic torque wrenches are out of service. A rental tensioner is covering the work.\nUnit 2 fuel gas piping disconnected and capped. Expansion joints coming off.\nUnit 3 receiving: lagging removal started.",weather:"Houston: 84F, humid, 20 percent rain after 2 pm. Shop floor dry.",arrive:"6:00 AM",safety:"Pinch points and hand placement during casing lifts",quality:"FME tool accountability and tagging",permit:D[6]+" 6:15 AM"});
+  const cm=async(title,note,caps,seed)=>{const ph=[];for(let i=0;i<caps.length;i++)ph.push(await addPhoto(caps[i],seed+i*5));DB.dsr_comp.push({title,note,photos:ph})};
+  await cm("Unit 1 - Compressor Casing","Loosened horizontal joint bolting on the bay side and tagged studs.\nTorque wrenches out of service, rental tensioner used for studs 1 to 12.\nStuds 12 to 18 rusted, penetrating oil applied.\nFME area open at the inlet plenum with access log and tool tags.",["Unit 1 compressor casing joint","Unit 1 studs tagged"],11);
+  await cm("Unit 1 - Combustion Section","Cracked liner 4 documented and photographed.\nCustomer closeout form signed for liners and bores.\nReplacement liners due Monday.",["Unit 1 liner 4 crack"],41);
+  await cm("Unit 2 - Fuel Gas Piping and Expansion Joints","Fuel gas piping disconnected, flanges capped and tagged.\nFME tags installed on all open piping.\nExpansion joint removal in progress.",["Unit 2 fuel gas flange capped","Unit 2 expansion joint"],61);
+  await cm("Unit 3 - Receiving","Lagging removal started.\nWork paused until scaffolding sign-off.",["Unit 3 lagging removal"],81);
+  DB.dsr_tech=[{title:"Unit 1 / combustion liners / A. Shepherd",d1:D[3],desc:"Replacement liners, set of 10 (liner 4 cracked)",qty:"10",d2:D[5],d3:""},{title:"Unit 1 / casing studs / J. McKendree",d1:D[6],desc:"Studs 12 to 18 galled and rusted, replace",qty:"7",d2:dayOf(-2),d3:""},{title:"Unit 1 / gasket kit / L. Herrera",d1:D[1],desc:"Gasket and O-ring kit",qty:"4",d2:D[4],d3:D[4]}];
+  DB.dsr_track=[{title:"Unit 1 stage 1 nozzle segments (18)",owner:"Houston Turbine Machining",d1:dayOf(-1),d2:dayOf(-12),d3:""},{title:"Unit 1 bearing No. 2 (customer spare)",owner:"Argon",d1:"",d2:"",d3:""}];
+  DB.dsr_push=[{title:"Replacement liners one day late",d1:D[6],est:"1 day on combustion reassembly",plan:"Work stage 1 nozzles first, resequence liner install",comm:"No impact on ship date yet"}];
+  DB.dsr_data=[{title:"Unit 1 - Bearings 1 to 3 and thrust, as found",d1:D[4],desc:"As found bearing clearances recorded, No. 2 over limit",sup:JAS,td:SEA,cust:"Carlos Mendes"},{title:"Unit 1 - Rotor runout, as found",d1:D[4],desc:"Turbine end runout over limit, recheck planned",sup:JAS,td:SEA,cust:"Carlos Mendes"}];
+  DB.dsr_ewa=[{title:"ARG-OM-2601 / EWA-01",hrs:"24",desc:"Extra scaffolding at Unit 3 for lagging removal",status:"Submitted to customer",appr:"No",comm:"Awaiting Argon approval"},{title:"ARG-OM-2601 / EWA-02",hrs:"12",desc:"Rental tensioner support and torque wrench vendor visit",status:"Approved",appr:"Yes",comm:""}];
+  DB.dsr_hseq=[{title:"HSEQ-26-0412",d1:D[5],type:"Observation",desc:"Unsecured gas cylinder near bay 2 corrected on the spot",comm:"Closed same day"}];
+  DB.dsr_vend=[{title:"Lone Star NDT, Chris Beal, 713-555-0399",d1:dayOf(-3),d2:dayOf(-4),shift:"Day",comm:"MT and PT of Unit 1 rotor"},{title:"Houston Turbine Machining, Gary Hollis, 713-555-0366",d1:dayOf(-1),d2:dayOf(-1),shift:"Day",comm:"Pickup of nozzle segments"}]}
+ save();sv();try{localStorage.setItem("tp-seeded","1");localStorage.setItem("tp-demo-v1","1");sessionStorage.removeItem("tp-me")}catch(e){}
+ location.reload();
+}
 
 /* ===== Installable web app: offline cache + keep storage ===== */
 (function(){if(!/^https?:$/.test(location.protocol))return;
