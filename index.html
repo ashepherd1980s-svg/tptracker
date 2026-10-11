@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 11, 2026 &middot; Units in Progress update (v26)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 11, 2026 &middot; Weather and Damaged Tooling update (v27)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Shop Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Shop Needs</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="cust">Argon Project Info</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -2382,6 +2382,7 @@ window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
    ["s","truck","Truck receiving address","area","Daily Status Report"],
    ["q","gate","Gate and check-in instructions","area","Site info sheet"],
    ["q","hours","Site work hours","text","Site info sheet"],
+   ["q","wxLoc","Weather location (city, state or ZIP)","text","Weather bar, Daily Status Report weather"],
    ["s","shift","Default shift","sel",["Days","Nights"],"Daily Status Report, JSA, walking cards"]]],
   ["Customer and Plant Contacts","",[
    ["c","dCust","Customer site rep (day)","text","Daily Status Report, customer info"],
@@ -2589,6 +2590,132 @@ window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
  upBar();
 })();
 
+/* ===== Damaged Tooling ===== */
+(function(){
+ const E=esc,TL=()=>DB.dmgTools||(DB.dmgTools=[]);
+ const OWN=["TurbinePros","Vendor / Rental","Personal (employee)","Other Contractor","Customer"];
+ const CAT=["Hand Tool","Power Tool","Measuring / Precision (calibrated)","Torque Tool","Hydraulic Tool","Rigging / Lifting","Electrical / Test Equipment","Welding / Cutting","Cord / Hose / Air Line","Other"];
+ const CAUSE=["Normal wear","Dropped","Overloaded / used beyond rating","Wrong tool for the job","Struck by equipment or load","Electrical fault","Pinched / crushed","Weather / environment","Unknown","Other"];
+ const SEV=["Minor: still usable, needs repair","Out of service: tagged out","Destroyed: beyond repair"];
+ const DISP=["Under review","Repair","Replace","Return to owner as is","Scrap / dispose"];
+ const RESP=["TurbinePros","Vendor / Rental company","Customer back-charge","Employee","Other contractor","Not yet decided"];
+ const ST=["Reported","Tagged out","Under review","Repair or replacement ordered","Repaired / replaced","Returned to owner","Closed"];
+ const STC={Reported:"#c47a00","Tagged out":"#b3342b","Under review":"#c47a00","Repair or replacement ordered":"#3b82c4","Repaired / replaced":"#2f7d4a","Returned to owner":"#2f7d4a",Closed:"#5d686b"};
+ const money=n=>"$"+(+n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+ const shOf=r=>r.shift||"Day";
+ let TF={st:"open",own:"",sh:null,from:"",to:""},ED=null;
+ const open=r=>r.st!=="Closed";
+ /* demo examples */
+ try{if((ds().setup||{}).jobNo==="ARG-OM-2601"&&!DB.toolSeed){const d=n=>{const x=new Date();x.setDate(x.getDate()-n);return ymd(x)},T=DB.tasks.filter(t=>/Oman Unit (1|4)/.test(t.unit||""));
+  const tk=i=>T[i]?{tid:T[i].id,task:T[i].title,unit:T[i].unit}:{tid:"",task:"",unit:"Oman Unit 1"};
+  const mk=(o)=>Object.assign({id:"dt"+Math.random().toString(36).slice(2,8),qty:"1",photos:[],log:[],sigRep:"",sigSup:"",inj:false,fmeOk:true,missing:"",tag:"",calDate:"",calImpact:false},o);
+  DB.toolSeed=1;DB.dmgTools=[
+   mk(Object.assign(tk(0),{desc:"1 in. drive hydraulic torque wrench, 3,000 ft-lb",tagId:"TP-HT-0142",serial:"HYT-88213",cat:"Torque Tool",own:"TurbinePros",ownName:"TurbinePros tool crib",date:d(3),time:"14:20",by:"Marcus Delgado",shift:"Day",loc:"Unit 1 turbine end, horizontal joint",cause:"Overloaded / used beyond rating",what:"Reaction arm cracked at the weld while breaking loose a seized horizontal joint stud. Wrench unit still pumps but arm is unsafe.",sev:SEV[1],tag:"OOS-0315",disp:"Repair",resp:"TurbinePros",est:"1850",po:"PO-77410",ownNote:"Tool crib notified "+d(3),st:"Repair or replacement ordered",log:[{t:d(3)+" 14:35",m:"Reported and tagged out OOS-0315 by Marcus Delgado"},{t:d(2)+" 08:10",m:"Sent to Hytorc for reaction arm replacement, PO-77410"}]})),
+   mk(Object.assign(tk(2),{desc:"0 to 1 in. outside micrometer",tagId:"TP-MIC-0077",serial:"MT-55120",cat:"Measuring / Precision (calibrated)",own:"Personal (employee)",ownName:"Ethan Cole",date:d(5),time:"09:05",by:"Ethan Cole",shift:"Day",loc:"Bearing measurement bench",cause:"Dropped",what:"Dropped about 4 ft onto concrete. Anvil face nicked, zero no longer repeats.",sev:SEV[1],tag:"OOS-0311",calDate:d(40),calImpact:true,disp:"Replace",resp:"TurbinePros",est:"165",po:"",ownNote:"Employee personal tool. Replacement approved by supervisor.",st:"Under review",log:[{t:d(5)+" 09:15",m:"Reported. Readings taken on Unit 1 bearings that morning flagged for re-check."}]})),
+   mk(Object.assign(tk(3),{desc:"3/4 in. x 10 ft synthetic web sling",tagId:"BRD-SL-2231",serial:"",cat:"Rigging / Lifting",own:"Vendor / Rental",ownName:"Brand Scaffold & Rigging",date:d(1),time:"23:40",by:"Tony Reyes",shift:"Night",loc:"Unit 4 laydown, Bay 2",cause:"Struck by equipment or load",what:"Cut on the edge of the bearing cap during the lift. Red core yarn showing. Removed from service and cut so it can't be reused.",sev:SEV[2],tag:"OOS-0318",disp:"Scrap / dispose",resp:"Vendor / Rental company",est:"95",po:"Rental RA-5520",ownNote:"Brand notified by phone, damage noted on rental return",st:"Reported",fmeOk:true,log:[{t:d(1)+" 23:55",m:"Reported by Tony Reyes, night shift"}]})),
+   mk(Object.assign(tk(1),{desc:"18V cordless angle grinder",tagId:"",serial:"DW-2204417",cat:"Power Tool",own:"Other Contractor",ownName:"Lone Star NDT",date:d(9),time:"11:30",by:"Jason McKendree",shift:"Day",loc:"Unit 1 compressor case",cause:"Pinched / crushed",what:"Guard bent and switch housing cracked when the case half settled. Contractor took it back.",sev:SEV[1],disp:"Return to owner as is",resp:"Other contractor",est:"0",po:"",ownNote:"Returned to Lone Star NDT lead tech, signed for",st:"Closed",log:[{t:d(9)+" 11:40",m:"Reported"},{t:d(8)+" 07:30",m:"Returned to owner and closed"}]}))];sv()}}catch(e){}
+ const curSh=()=>(window.CURSHIFT&&CURSHIFT())||"Day";
+ function inF(r){return (TF.st==="all"||(TF.st==="open"?open(r):!open(r)))&&(!TF.own||r.own===TF.own)&&(!TF.sh||shOf(r)===TF.sh)&&(!TF.from||r.date>=TF.from)&&(!TF.to||r.date<=TF.to)}
+ window.toolView=function(){const ms=curSh();if(TF.for!==ms){TF.for=ms;TF.sh=ms}
+  const L=TL().filter(inF).sort((a,b)=>(b.date+b.time)>(a.date+a.time)?1:-1),all=TL(),oos=all.filter(r=>open(r)&&/Out of service|Destroyed/.test(r.sev||"")).length;
+  const chip=(k,v,l,cur)=>`<button class="chip${cur===v?" on":""}" data-tl="${k}" data-v="${v}">${l}</button>`;
+  $("#mod").innerHTML=`<div class="mh"><h2>Damaged Tooling</h2><button class="pri" data-tl="new">Report Damage</button></div>
+  <div class="stats"><span><b>${all.filter(open).length}</b>open</span><span><b>${oos}</b>out of service</span><span><b>${money(all.filter(open).reduce((a,r)=>a+(+r.est||0),0))}</b>open est. cost</span></div>
+  <div class="chips">${chip("st","open","Open",TF.st)}${chip("st","closed","Closed",TF.st)}${chip("st","all","All",TF.st)}</div>
+  <div class="chips" style="padding-top:0">${chip("sh",ms,"My shift ("+ms+")",TF.sh)}${chip("sh",ms==="Day"?"Night":"Day",(ms==="Day"?"Night":"Day")+" Shift",TF.sh)}${chip("sh","","Both shifts",TF.sh)}</div>
+  <div style="padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px"><label>Owner<select id="tlO"><option value="">All owners</option>${OWN.map(o=>`<option${TF.own===o?" selected":""}>${o}</option>`).join("")}</select></label><div></div><label>From<input type="date" id="tlF" value="${TF.from}"></label><label>To<input type="date" id="tlT" value="${TF.to}"></label></div>
+  <div class="row" style="padding:4px 16px"><button data-tl="print">Print Damaged Tooling Report</button></div>`+
+  (L.map(r=>`<div class="rec${/Out of service|Destroyed/.test(r.sev||"")&&open(r)?" hold":""}"><b>${E(r.desc||"Tool")}</b><span class="tag" style="background:${STC[r.st]||"#5d686b"}">${E(r.st)}</span>${r.inj?`<span class="tag" style="background:var(--bad)">Injury reported</span>`:""}${r.fmeOk===false?`<span class="tag" style="background:var(--bad)">FME: pieces missing</span>`:""}${r.calImpact?`<span class="tag">Check readings since last calibration</span>`:""}
+   <small>${E(r.own||"")}${r.ownName?": "+E(r.ownName):""}${r.tagId?" &middot; ID "+E(r.tagId):""}${r.serial?" &middot; S/N "+E(r.serial):""}</small>
+   <small>${E(r.date||"")} ${E(r.time||"")} &middot; ${E(shOf(r))} Shift &middot; Reported by ${E(r.by||"")}${r.unit?" &middot; "+E(r.unit):""}</small>
+   <small>${E((r.sev||"").split(":")[0])} &middot; ${E(r.cause||"")} &middot; Plan: ${E(r.disp||"Under review")}${+r.est?" &middot; Est. "+money(r.est):""}</small>${thumbs(r)}
+   <div class="row"><button data-tl="edit" data-id="${r.id}">Open</button><button data-tl="one" data-id="${r.id}">Print</button></div></div>`).join("")||`<div class="empty" style="padding:10px 16px">No damaged tooling ${TF.st==="open"?"open":"recorded"} for this filter.</div>`)+`<div style="height:60px"></div>`;
+  loadTh()};
+ /* report / edit form */
+ const dlg=document.createElement("dialog");dlg.id="dTool";dlg.innerHTML='<form class="dlg" id="tlForm" onsubmit="return false"></form>';document.body.appendChild(dlg);
+ const sel=(k,l,o,v)=>`<label>${l}<select data-tf="${k}">${o.map(x=>`<option${x===v?" selected":""}>${E(x)}</option>`).join("")}</select></label>`;
+ const inp=(k,l,v,t,ph)=>`<label>${l}<input data-tf="${k}" type="${t||"text"}" value="${E(v||"")}"${ph?` placeholder="${E(ph)}"`:""}${t==="number"?' step="any" inputmode="decimal"':""}></label>`;
+ const area=(k,l,v,ph)=>`<label>${l}<textarea data-tf="${k}" rows="3"${ph?` placeholder="${E(ph)}"`:""}>${E(v||"")}</textarea></label>`;
+ const chk=(k,l,v)=>`<label class="chk" style="color:inherit;font-size:15px"><input type="checkbox" data-tf="${k}"${v?" checked":""}><span>${l}</span></label>`;
+ const sec=t=>`<h3 style="margin-top:16px">${t}</h3>`;
+ function form(){const r=ED,sup=isSup(),isNew=!TL().some(x=>x.id===r.id),T=DB.tasks.filter(t=>t.st!=="Done"||t.id===r.tid);
+  $("#tlForm").innerHTML=`<h2>${isNew?"Report Damaged Tooling":"Damaged Tooling"}</h2>${isNew?`<div class="hint">Fill in what you know. A supervisor completes the disposition and cost.</div>`:""}`+
+  sec("The Tool")+inp("desc","Tool description",r.desc,"text","e.g. 1 in. drive impact wrench")+sel("cat","Type of tool",CAT,r.cat)+`<div class="gx" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${inp("tagId","Tool ID / asset tag",r.tagId)}${inp("serial","Serial number",r.serial)}</div>`+inp("qty","Quantity",r.qty,"number")+
+  sec("Owner")+sel("own","Who owns it",OWN,r.own)+inp("ownName","Owner name or company",r.ownName,"text","Employee, vendor or contractor name")+inp("po","Rental agreement, PO or claim number",r.po)+
+  sec("When and Where")+`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${inp("date","Date",r.date,"date")}${inp("time","Time",r.time,"time")}</div>`+
+  `<label>Unit and task in use<select data-tf="tid"><option value="">Not tied to a task</option>${T.map(t=>`<option value="${t.id}"${t.id===r.tid?" selected":""}>${E((t.unit||"No unit")+": "+t.title)}</option>`).join("")}</select></label>`+inp("loc","Location",r.loc,"text","e.g. Unit 4 laydown, Bay 2")+inp("by","Reported by",r.by)+
+  sec("What Happened")+sel("cause","Cause",CAUSE,r.cause)+area("what","Describe the damage and how it happened",r.what)+sel("sev","Condition",SEV,r.sev)+
+  sec("Safety, FME and Calibration")+inp("tag","Out of service tag number",r.tag,"text","Required if tagged out")+chk("inj","Someone was hurt or it was a near miss (file in HSEQ Reports)",r.inj)+
+  `<div class="hint">Turbine work: confirm every broken piece was found.</div>`+chk("fmeOk","All pieces of the tool are accounted for",r.fmeOk!==false)+inp("missing","If not, what is missing and where it was last seen",r.missing)+
+  chk("calImpact","Calibrated tool: readings taken with it since last calibration need re-checking",r.calImpact)+inp("calDate","Last calibration date",r.calDate,"date")+
+  `<div class="row"><button type="button" data-tb="photo">+ Take or Add Photos</button><input type="file" id="tlP" accept="image/*" capture="environment" multiple hidden></div><div>${(r.photos||[]).map(id=>`<img class="th" data-p="${id}" alt="Damage photo">`).join("")}</div>`+
+  sec("Disposition and Cost")+(sup?"":`<div class="hint">A supervisor completes this section.</div>`)+
+  `<fieldset style="border:0;padding:0;margin:0"${sup?"":" disabled"}>`+sel("st","Status",ST,r.st)+sel("disp","Plan",DISP,r.disp)+sel("resp","Responsible for cost",RESP,r.resp)+inp("est","Estimated repair or replacement cost ($)",r.est,"number")+inp("ownNote","Owner notified (who, when, how)",r.ownNote)+area("supNote","Supervisor notes",r.supNote)+`</fieldset>`+
+  sec("Signatures")+`<div class="row"><button type="button" data-tb="sig" data-k="sigRep">${r.sigRep?"Reporter signed ✓":"Reporter Sign"}</button><button type="button" data-tb="sig" data-k="sigSup" ${sup?"":"disabled"}>${r.sigSup?"Supervisor signed ✓":"Supervisor Sign"}</button></div>`+
+  ((r.log||[]).length?sec("History")+`<div class="log">${r.log.map(l=>`<div>${E(l.t)}: ${E(l.m)}</div>`).join("")}</div>`:"")+
+  `<div class="row" style="position:sticky;bottom:0;background:var(--card);padding:10px 0"><button type="button" data-tb="x">Cancel</button>${!isNew&&sup?`<button type="button" class="danger" data-tb="del">Delete</button>`:""}<button type="button" class="pri" data-tb="save">Save</button><button type="button" data-tb="savep">Save and Print</button></div>`;
+  if(!dlg.open)dlg.showModal();loadTh()}
+ function newRec(){const t=DB.tasks.find(x=>x.st==="In progress"&&(x.who||"").includes(ME?ME.title:"~"));const n=new Date();
+  return {id:"dt"+Date.now().toString(36),desc:"",cat:CAT[0],tagId:"",serial:"",qty:"1",own:OWN[0],ownName:"",po:"",date:ymd(n),time:String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0"),tid:t?t.id:"",unit:t?t.unit:"",task:t?t.title:"",loc:"",by:ME?ME.title:"",shift:curSh(),cause:CAUSE[0],what:"",sev:SEV[1],tag:"",inj:false,fmeOk:true,missing:"",calImpact:false,calDate:"",photos:[],disp:"Under review",resp:"Not yet decided",est:"",ownNote:"",supNote:"",st:"Reported",sigRep:"",sigSup:"",log:[]}}
+ dlg.addEventListener("input",e=>{const t=e.target,k=t.dataset&&t.dataset.tf;if(!k||!ED)return;ED[k]=t.type==="checkbox"?t.checked:t.value;
+  if(k==="tid"){const x=DB.tasks.find(y=>y.id===t.value);ED.unit=x?x.unit:"";ED.task=x?x.title:""}
+  if(k==="cat"&&/Measuring/.test(t.value)&&!ED.calImpact){ED.calImpact=true;const c=$('#tlForm [data-tf="calImpact"]');if(c)c.checked=true}
+  if(k==="sev"&&/Out of service|Destroyed/.test(t.value)&&ED.st==="Reported")ED.st="Tagged out"});
+ dlg.addEventListener("change",async e=>{if(e.target.id!=="tlP"||!ED)return;for(const f of [...e.target.files]){const d=await shrink(f);if(!d)continue;const pid="p"+Date.now()+Math.random().toString(36).slice(2,7);await pPut(pid,d);(ED.photos=ED.photos||[]).push(pid)}form()});
+ dlg.addEventListener("click",e=>{const b=e.target.closest("button[data-tb]");if(!b||!ED)return;const k=b.dataset.tb;
+  if(k==="x"){ED=null;return dlg.close()}
+  if(k==="photo")return $("#tlP").click();
+  if(k==="sig"){const s=b.dataset.k;return sigPad(s==="sigSup"?"Supervisor signature":"Reporter signature",d=>{ED[s]=d;form()})}
+  if(k==="del"&&isSup()&&confirm("Delete this damaged tooling record? This cannot be undone.")){DB.dmgTools=TL().filter(x=>x.id!==ED.id);(ED.photos||[]).forEach(pDel);sv();ED=null;dlg.close();return toolView()}
+  if(k==="save"||k==="savep"){const r=ED;if(!String(r.desc).trim())return alert("Describe the tool first.");if(/Out of service|Destroyed/.test(r.sev)&&!String(r.tag).trim()&&!confirm("This tool is out of service but has no tag number. Save anyway?"))return;
+   if(r.st==="Reported"&&/Out of service|Destroyed/.test(r.sev||"")&&String(r.tag||"").trim())r.st="Tagged out";const i=TL().findIndex(x=>x.id===r.id),old=i>=0?TL()[i]:null,now=new Date().toLocaleString();r.log=r.log||[];
+   if(!old)r.log.push({t:now,m:"Reported by "+(ME?ME.title:"")});else if(old.st!==r.st)r.log.push({t:now,m:"Status: "+r.st+" ("+(ME?ME.title:"")+")"});
+   if(i>=0)TL()[i]=r;else TL().push(r);sv();ED=null;dlg.close();toolView();if(k==="savep")printTools([r],true);
+   if(!old&&r.inj)alert("Injury or near miss: file it in HSEQ Reports (Safety tab) as well.")}});
+ /* printing: single record form, or summary with both shifts and totals */
+ const th="border:1px solid #000;padding:3px 5px;background:#ede9dc;font-weight:700;text-align:left",td="border:1px solid #000;padding:3px 5px;vertical-align:top";
+ const head=(t,sub)=>`<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:6px"><img src="${LOGO}" alt="" style="height:.5in"><div style="text-align:right"><div style="font:700 18px Arial,sans-serif">${t}</div><div>${E((typeof SITE==="function"?SITE():"Houston Shop"))}${typeof JOBNO==="function"&&JOBNO()?" &middot; Job "+E(JOBNO()):""}</div><div>${sub}</div></div></div>`;
+ function oneHTML(r){const row=(a,b,c,d)=>`<tr><td style="${th};width:1.5in">${a}</td><td style="${td}">${E(b||"")}</td>${c?`<td style="${th};width:1.4in">${c}</td><td style="${td}">${E(d||"")}</td>`:""}</tr>`;
+  const box=v=>v?"☒":"☐";
+  return `<div class="pg" style="padding:.4in .5in;font-size:11px">${head("Damaged Tooling Report","Printed "+E(new Date().toLocaleString()))}
+  <table style="width:100%;border-collapse:collapse;margin-top:10px">${row("Tool",r.desc,"Type",r.cat)}${row("Tool ID / tag",r.tagId,"Serial number",r.serial)}${row("Quantity",r.qty,"Status",r.st)}
+  ${row("Owner",r.own,"Owner name",r.ownName)}${row("Rental / PO / claim",r.po,"Owner notified",r.ownNote)}
+  ${row("Date and time",(r.date||"")+" "+(r.time||""),"Shift",shOf(r)+" Shift")}${row("Unit",r.unit,"Task",r.task)}${row("Location",r.loc,"Reported by",r.by)}
+  ${row("Cause",r.cause,"Condition",r.sev)}<tr><td style="${th}">What happened</td><td colspan="3" style="${td};white-space:pre-wrap;height:.7in">${E(r.what||"")}</td></tr>
+  ${row("Out of service tag",r.tag,"Injury / near miss",r.inj?"Yes, file in HSEQ Reports":"No")}
+  <tr><td style="${th}">FME</td><td colspan="3" style="${td}">${box(r.fmeOk!==false)} All pieces accounted for &nbsp; ${box(r.fmeOk===false)} Pieces missing${r.missing?": "+E(r.missing):""}</td></tr>
+  <tr><td style="${th}">Calibration</td><td colspan="3" style="${td}">${box(r.calImpact)} Readings since last calibration need re-checking${r.calDate?" &middot; Last calibration "+E(r.calDate):""}</td></tr>
+  ${row("Plan",r.disp,"Responsible for cost",r.resp)}${row("Estimated cost",+r.est?money(r.est):"","",null)}<tr><td style="${th}">Supervisor notes</td><td colspan="3" style="${td};white-space:pre-wrap;height:.5in">${E(r.supNote||"")}</td></tr></table>
+  ${(r.photos||[]).length?`<div style="font:700 13px Arial,sans-serif;margin:10px 0 4px">Photos</div><div class="ph">${r.photos.slice(0,4).map(p=>`<img data-p="${p}" alt="Damage photo" style="width:48%;max-height:2.3in;object-fit:contain">`).join("")}</div>`:""}
+  ${(r.log||[]).length?`<div style="font:700 13px Arial,sans-serif;margin:10px 0 4px">History</div>${r.log.slice(-6).map(l=>`<div>${E(l.t)}: ${E(l.m)}</div>`).join("")}`:""}
+  <div style="display:flex;gap:.4in;margin-top:18px">${[["Reported by",r.by,r.sigRep],["Supervisor","",r.sigSup],["Owner / vendor acknowledgment","",""]].map(([l,n,s])=>`<div style="flex:1"><div style="border-bottom:1px solid #000;height:.45in;display:flex;align-items:flex-end">${s?`<img src="${s}" alt="" style="max-height:.42in">`:""}</div>${l}${n?": "+E(n):""} &middot; Date</div>`).join("")}</div></div>`}
+ function sumHTML(L){const now=new Date().toLocaleString(),grp=(f)=>["Day","Night"].map(sh=>L.filter(r=>shOf(r)===sh&&f(r)));
+  const line=(l,f,costOnly)=>{const [d,n]=grp(f),a=L.filter(f),c=x=>x.reduce((s,r)=>s+(+r.est||0),0);return `<tr><td style="${td};font-weight:700">${l}</td><td style="${td}">${d.length} / ${money(c(d))}</td><td style="${td}">${n.length} / ${money(c(n))}</td><td style="${td};font-weight:700">${a.length} / ${money(c(a))}</td></tr>`};
+  const sum=`<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:10px"><tr><th style="${th}">Owner</th><th style="${th}">Day Shift (items / est.)</th><th style="${th}">Night Shift (items / est.)</th><th style="${th}">Combined total</th></tr>${OWN.map(o=>line(o,r=>r.own===o)).join("")}${line("All owners",()=>true)}</table>
+   <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:8px"><tr><th style="${th}">Status</th><th style="${th}">Day Shift</th><th style="${th}">Night Shift</th><th style="${th}">Combined total</th></tr>${["Open","Out of service","Injury / near miss","FME pieces missing","Closed"].map(l=>line(l,{"Open":open,"Out of service":r=>open(r)&&/Out of service|Destroyed/.test(r.sev||""),"Injury / near miss":r=>r.inj,"FME pieces missing":r=>r.fmeOk===false,"Closed":r=>!open(r)}[l])).join("")}</table>`;
+  const rows=L.map((r,i)=>`<tr><td style="${td}">${i+1}</td><td style="${td}">${E(r.date)}<br>${E(shOf(r))}</td><td style="${td}"><b>${E(r.desc)}</b>${r.tagId?"<br>ID "+E(r.tagId):""}${r.serial?"<br>S/N "+E(r.serial):""}</td><td style="${td}">${E(r.own)}${r.ownName?"<br>"+E(r.ownName):""}</td><td style="${td}">${E(r.cause)}<br>${E((r.sev||"").split(":")[0])}${r.tag?"<br>Tag "+E(r.tag):""}</td><td style="${td}">${E(r.disp||"")}<br>${E(r.resp||"")}</td><td style="${td};text-align:right">${+r.est?money(r.est):""}</td><td style="${td}">${E(r.st)}</td></tr>`);
+  const pages=[];pages.push(rows.slice(0,10));for(let i=10;i<rows.length;i+=16)pages.push(rows.slice(i,i+16));
+  const tbl=r=>`<table style="width:100%;border-collapse:collapse;font-size:10px;margin-top:10px"><tr><th style="${th}">#</th><th style="${th}">Date / shift</th><th style="${th}">Tool</th><th style="${th}">Owner</th><th style="${th}">Cause / condition</th><th style="${th}">Plan / cost to</th><th style="${th}">Est.</th><th style="${th}">Status</th></tr>${r.join("")||`<tr><td colspan="8" style="${td}">No damaged tooling for this period.</td></tr>`}</table>`;
+  const rng=(TF.from||TF.to?(TF.from||"start")+" to "+(TF.to||"today"):"All dates")+(TF.own?" &middot; "+E(TF.own)+" only":"")+" &middot; "+(TF.st==="open"?"Open items":TF.st==="closed"?"Closed items":"Open and closed");
+  return pages.map((r,i)=>`<div class="pg" style="padding:.4in .5in;font-size:11px">${head("Damaged Tooling Summary",rng+" &middot; Day Shift, Night Shift and combined &middot; Printed "+E(now)+" &middot; Page "+(i+1)+" of "+pages.length)}${i===0?sum:""}${tbl(r)}</div>`).join("")}
+ window.printTools=async function(L,one){fprev(one?L.map(oneHTML).join(""):sumHTML(L));try{await fillImgs()}catch(e){}};
+ /* screen events */
+ const MD=$("#mod");
+ MD.addEventListener("click",e=>{if(cur!=="tools")return;const b=e.target.closest("button[data-tl]");if(!b)return;const k=b.dataset.tl;
+  if(k==="new"){ED=newRec();return form()}
+  if(k==="st"||k==="sh"){TF[k]=b.dataset.v;return toolView()}
+  if(k==="print"){const s=TF.sh;TF.sh="";const L=TL().filter(inF).sort((a,b)=>a.date>b.date?1:-1);TF.sh=s;return printTools(L,false)}
+  const r=TL().find(x=>x.id===b.dataset.id);if(!r)return;
+  if(k==="edit"){ED=JSON.parse(JSON.stringify(r));return form()}
+  if(k==="one")return printTools([r],true)});
+ MD.addEventListener("change",e=>{if(cur!=="tools")return;const m={tlO:"own",tlF:"from",tlT:"to"}[e.target.id];if(m){TF[m]=e.target.value;toolView()}});
+ /* register tab */
+ M.tools={t:"Damaged Tooling",f:[],sum:()=>""};
+ const _m=mod;mod=function(k){if(k==="tools")return toolView();return _m.apply(this,arguments)};
+ const _s=show;show=function(v){const r=_s.apply(this,arguments);if(cur==="tools")$("#fab").hidden=true;return r};
+ try{const mm=document.querySelector("#dMore .more"),q=mm&&mm.querySelector('[data-k="delay"]');if(mm&&!mm.querySelector('[data-k="tools"]')){const x=document.createElement("button");x.dataset.k="tools";x.textContent="Damaged Tooling";x.style.fontWeight="700";if(q)q.after(x);else mm.insertBefore(x,mm.firstChild)}}catch(e){}
+})();
+
 /* ===== Task print + Safety Time Out walking cards ===== */
 (function(){
  const E=esc,ppl=()=>DB.people||[];
@@ -2690,7 +2817,7 @@ window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
  $("#mod").addEventListener("click",e=>{const b=e.target.closest("button[data-mvsh]");if(!b||cur!=="people"||!DAYSUP())return;const p=DB.people[+b.dataset.mvsh],o=SHIFT==="Day"?"Night":"Day";if(!p)return;
   if(confirm("Move "+p.title+" to the "+lab(o)+"? They will only be able to sign in on that shift.")){p.shift=o;split(SHIFT);sv();peopleView()}});
  /* backups and demo reload keep the full crew list */
- const _ld=loadDemoData;loadDemoData=function(){merge();DB.pplOther=[];DB.nightSeed=0;DB.nightHrs=0;DB.dlySeed=0;DB.dlyNight=0;DB.delays=[];try{sessionStorage.removeItem("tp-shift")}catch(e){}return _ld.apply(this,arguments)};
+ const _ld=loadDemoData;loadDemoData=function(){merge();DB.toolSeed=0;DB.dmgTools=[];DB.pplOther=[];DB.nightSeed=0;DB.nightHrs=0;DB.dlySeed=0;DB.dlyNight=0;DB.delays=[];try{sessionStorage.removeItem("tp-shift")}catch(e){}return _ld.apply(this,arguments)};
  const _bk=bkApply;bkApply=function(){const r=_bk.apply(this,arguments);try{if(Array.isArray(DB.pplOther)&&DB.pplOther.length)merge();sv()}catch(e){}return r};
  /* shift label on screen */
  const pill=document.createElement("span");pill.id="shPill";pill.style.cssText="flex:none;font-weight:700;font-size:13px;padding:4px 10px;border-radius:20px;color:#fff;white-space:nowrap";
@@ -2702,6 +2829,63 @@ window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
   const v=document.getElementById("appVer");if(v&&ME)v.dataset.sh=lab(SHIFT)}
  const _s=show;show=function(v){const r=_s.apply(this,arguments);upd();return r};
  if(ME){PICKED=false;upd();$("#lock").hidden=true}else{lockUI()}
+})();
+
+/* ===== Weather bar (always on top) + Daily Status Report weather ===== */
+(function(){
+ const E=esc,WX=()=>DB.wx||(DB.wx={});
+ const CODES={0:["Clear","sun"],1:["Mostly clear","sun"],2:["Partly cloudy","pcloud"],3:["Overcast","cloud"],45:["Fog","fog"],48:["Freezing fog","fog"],51:["Light drizzle","rain"],53:["Drizzle","rain"],55:["Heavy drizzle","rain"],56:["Freezing drizzle","rain"],57:["Freezing drizzle","rain"],61:["Light rain","rain"],63:["Rain","rain"],65:["Heavy rain","rain"],66:["Freezing rain","rain"],67:["Freezing rain","rain"],71:["Light snow","snow"],73:["Snow","snow"],75:["Heavy snow","snow"],77:["Snow grains","snow"],80:["Rain showers","rain"],81:["Rain showers","rain"],82:["Heavy showers","rain"],85:["Snow showers","snow"],86:["Snow showers","snow"],95:["Thunderstorms","storm"],96:["Thunderstorms with hail","storm"],99:["Severe thunderstorms","storm"]};
+ const ICON={sun:'<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>',pcloud:'<circle cx="9" cy="8" r="3.5"/><path d="M7 19h10a4 4 0 0 0 0-8 5 5 0 0 0-9.6 1.6A3.2 3.2 0 0 0 7 19z"/>',cloud:'<path d="M6.5 19h11a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4 2A3.5 3.5 0 0 0 6.5 19z"/>',fog:'<path d="M4 10h16M3 14h18M5 18h14"/>',rain:'<path d="M6.5 15h11a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.5 1.8A3.1 3.1 0 0 0 6.5 15z"/><path d="M8 18l-1 3M12 18l-1 3M16 18l-1 3"/>',snow:'<path d="M6.5 15h11a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.5 1.8A3.1 3.1 0 0 0 6.5 15z"/><path d="M8 19h.01M12 20h.01M16 19h.01"/>',storm:'<path d="M6.5 14h11a4 4 0 0 0 0-8 5.5 5.5 0 0 0-10.5 1.8A3.1 3.1 0 0 0 6.5 14z"/><path d="M12 14l-2 4h3l-2 4"/>'};
+ const DIRS=["N","NE","E","SE","S","SW","W","NW"],dir=d=>DIRS[Math.round((+d||0)/45)%8];
+ const nv=v=>{v=String(v==null?"":v).trim();return /^n\/?a$/i.test(v)?"":v};
+ /* bar */
+ const st=document.createElement("style");st.textContent=`#wxBar{position:sticky;top:0;z-index:9;display:flex;align-items:center;gap:8px;width:100%;min-height:40px;padding:4px 12px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:var(--card);color:var(--ink);font-size:14px;text-align:left;cursor:pointer}
+#wxBar svg{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#wxBar .t{font-weight:700;font-size:17px}#wxBar .m{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--mute)}
+#wxBar .sh{flex:none;font-weight:700;font-size:12px;padding:3px 9px;border-radius:20px;color:#fff}
+#wxBar.alert{background:#7a1d16;color:#fff}#wxBar.alert .m{color:#fff}
+header{top:40px!important}#shPill{display:none!important}`;document.head.appendChild(st);
+ const bar=document.createElement("button");bar.id="wxBar";bar.type="button";bar.setAttribute("aria-label","Current weather");document.body.insertBefore(bar,document.body.firstChild);
+ function line(w,long){if(!w||!w.cur)return "";const c=CODES[w.cur.code]||["",""],p=w.place||"Site";
+  return long?`${p}: ${Math.round(w.cur.t)}°F, ${c[0].toLowerCase()}, humidity ${Math.round(w.cur.hum)}%, wind ${Math.round(w.cur.wind)} mph ${dir(w.cur.wdir)}${w.cur.gust?" gusting "+Math.round(w.cur.gust):""}. Today high ${Math.round(w.day.hi)}°F, low ${Math.round(w.day.lo)}°F, ${Math.round(w.day.pop||0)}% chance of rain${(CODES[w.day.code]||[""])[0]&&w.day.code>=95?", thunderstorms possible":""}. (As of ${new Date(w.at).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})})`
+   :`${c[0]} · Wind ${Math.round(w.cur.wind)} mph${w.cur.gust>=25?" gusts "+Math.round(w.cur.gust):""} · H ${Math.round(w.day.hi)}° L ${Math.round(w.day.lo)}° · ${Math.round(w.day.pop||0)}% rain`}
+ window.WXLINE=()=>{const w=WX();return w.cur&&w.at&&ymd(new Date(w.at))===tdy()?line(w,true):""};
+ const alertOf=w=>!w||!w.cur?"":(w.cur.code>=95||w.day.code>=95)?"Thunderstorms: lightning risk":(w.cur.gust>=30||w.cur.wind>=25)?"High wind: check crane and lift limits":"";
+ function draw(){const w=WX(),sh=window.CURSHIFT&&CURSHIFT(),shH=sh&&ME?`<span class="sh" style="background:${sh==="Night"?"#33477a":"#b5761a"}">${sh.toUpperCase()}</span>`:"";
+  if(!w.cur){bar.innerHTML=`<svg viewBox="0 0 24 24">${ICON.pcloud}</svg><span class="m">${navigator.onLine===false?"Weather unavailable offline":"Loading weather…"}</span>${shH}`;bar.classList.remove("alert");return}
+  const c=CODES[w.cur.code]||["","cloud"],old=Date.now()-w.at>2*36e5,al=alertOf(w);bar.classList.toggle("alert",!!al);
+  bar.innerHTML=`<svg viewBox="0 0 24 24">${ICON[c[1]]||ICON.cloud}</svg><span class="t">${Math.round(w.cur.t)}°F</span><span class="m">${al?E(al)+" · ":""}${E(line(w))}${old?" · as of "+new Date(w.at).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):""}</span>${shH}`}
+ /* location: Quick Start weather location, ZIP in site address, device location, then Houston */
+ const locKey=()=>{const q=window.QSD?QSD():{},s=(ds().setup||{}),pick=nv(q.wxLoc)||"",lastZip=t=>{const m=String(t||"").match(/\b\d{5}(?:-\d{4})?\b/g);return m?m[m.length-1].slice(0,5):""},zip=lastZip(pick)||lastZip(nv(s.plant));return [pick,zip]};
+ async function geo(){const [pick,zip]=locKey();
+  const key=pick+"|"+zip,w=WX();if(w.lat&&w.key===key)return w;
+  try{if(zip){const r=await fetch("https://api.zippopotam.us/us/"+zip);if(r.ok){const j=await r.json(),p=j.places[0];return Object.assign(w,{lat:+p.latitude,lon:+p.longitude,place:p["place name"]+", "+p["state abbreviation"],key})}}
+   if(pick){const nm=pick.split(",")[0].trim(),stt=(pick.split(",")[1]||"").trim().toLowerCase();const r=await fetch("https://geocoding-api.open-meteo.com/v1/search?count=10&language=en&format=json&name="+encodeURIComponent(nm));if(r.ok){const j=await r.json(),L=j.results||[];const g=L.find(x=>stt&&((x.admin1||"").toLowerCase().startsWith(stt)||(x.admin1_code||"").toLowerCase()===stt))||L.find(x=>x.country_code==="US")||L[0];if(g)return Object.assign(w,{lat:g.latitude,lon:g.longitude,place:g.name+(g.admin1?", "+g.admin1:""),key})}}}catch(e){}
+  const dev=await new Promise(res=>{try{navigator.geolocation.getCurrentPosition(p=>res(p.coords),()=>res(null),{timeout:8000,maximumAge:36e5})}catch(e){res(null)}});
+  if(dev)return Object.assign(w,{lat:dev.latitude,lon:dev.longitude,place:nv(window.SITE?SITE():"")||"Current location",key});
+  return Object.assign(w,{lat:29.7604,lon:-95.3698,place:"Houston, TX",key})}
+ let busy=false;
+ async function refresh(force){if(busy)return;const w=WX(),k2=locKey().join("|");if(!force&&w.at&&w.key===k2&&Date.now()-w.at<12*6e4){draw();return}busy=true;
+  try{const g=await geo();const u=`https://api.open-meteo.com/v1/forecast?latitude=${g.lat}&longitude=${g.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=1`;
+   const r=await fetch(u);if(r.ok){const j=await r.json(),c=j.current,d=j.daily;Object.assign(w,{at:Date.now(),cur:{t:c.temperature_2m,hum:c.relative_humidity_2m,code:c.weather_code,wind:c.wind_speed_10m,wdir:c.wind_direction_10m,gust:c.wind_gusts_10m},day:{hi:d.temperature_2m_max[0],lo:d.temperature_2m_min[0],pop:d.precipitation_probability_max[0],code:d.weather_code[0]}});sv();fillDSR()}}catch(e){}
+  busy=false;draw()}
+ /* the Daily Status Report front page needs the day's weather */
+ function fillDSR(){try{const d=ds();if(d.setup.date!==tdy())return;if(!nv(d.brief.weather)&&WXLINE()){d.brief.weather=WXLINE();sv();if(cur==="dsr")dsrView()}}catch(e){}}
+ window.WXFILL=fillDSR;
+ const _pv=previewDSR;previewDSR=async function(){try{if(!PASTV){fillDSR();const b=ds().brief;if(!nv(b.weather)){alert("Weather is required on the front page of the Daily Status Report. It fills in automatically when the iPad is online. Type it in now.");return editSec("brief")}}}catch(e){}return _pv.apply(this,arguments)};
+ const _dv=dsrView;dsrView=function(){fillDSR();const r=_dv.apply(this,arguments);try{const b=ds().brief,x=document.querySelector('#mod [data-ds="brief"] small');if(x)x.innerHTML=nv(b.weather)?"Weather: "+E(b.weather):'<b style="display:inline;color:var(--bad)">Weather missing (required)</b>. High level notes and briefing'}catch(e){}return r};
+ try{SEC.brief[1].forEach(f=>{if(f[0]==="weather")f[1]="Weather (required, fills in automatically)"})}catch(e){}
+ /* details sheet */
+ const dlg=document.createElement("dialog");dlg.id="dWx";dlg.innerHTML='<div class="dlg" id="wxB"></div>';document.body.appendChild(dlg);
+ bar.onclick=()=>{const w=WX(),al=alertOf(w);$("#wxB").innerHTML=`<h2>Weather</h2>${w.cur?`<div class="big" style="font-size:56px">${Math.round(w.cur.t)}°F</div><p>${E(line(w,true))}</p>`:`<p>No weather yet. The iPad needs internet to get it.</p>`}${al?`<div class="rec hold"><b>${E(al)}</b><small>${/Thunder/.test(al)?"Lightning within 10 miles means a weather delay. Use the Delay Tracker to stop the affected tasks.":"Check crane and aerial lift wind limits before lifting."}</small>${/Thunder/.test(al)&&isSup()?`<div class="row"><button data-wx="delay">Open Delay Tracker</button></div>`:""}</div>`:""}
+  <div class="hint">Location: ${E(w.place||"not set")}. It uses the Weather location in Quick Start Setup, then the ZIP in the site address, then this iPad's location.</div>
+  <div class="row"><button data-wx="x">Close</button><button data-wx="qs">Change Location</button><button class="pri" data-wx="r">Refresh</button></div>`;dlg.showModal()};
+ dlg.addEventListener("click",e=>{const b=e.target.closest("button[data-wx]");if(!b)return;const k=b.dataset.wx;if(k==="x")dlg.close();if(k==="r"){WX().key="~";refresh(true).then(()=>{dlg.close();bar.click()})}if(k==="qs"){dlg.close();show("qs")}if(k==="delay"){dlg.close();show("delay")}});
+ /* add the location field to Quick Start */
+ try{if(window.QSD){const q=QSD();if(q.wxLoc===undefined)q.wxLoc=""}}catch(e){}
+ window.WXSHIFT=draw;
+ const _s=show;show=function(v){const r=_s.apply(this,arguments);draw();return r};
+ draw();refresh(false);setInterval(()=>refresh(false),15*6e4);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refresh(false)});addEventListener("online",()=>refresh(true));
 })();
 
 /* ===== Back button on every tab ===== */
