@@ -214,6 +214,25 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .rnb.home{margin:10px 24px;cursor:pointer;border:0;width:calc(100% - 48px);text-align:left;font:inherit;font-weight:700;font-size:16px;color:#fff;min-height:0}
 @keyframes rnb{to{transform:translateX(-100%)}}
 @media (prefers-reduced-motion:reduce){.rnb{white-space:normal;padding:9px 12px;line-height:1.3}.rnb span{padding-left:0;animation:none}}
+.hmh{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 0}.hmh h2{font-size:21px;padding:0}.hmh button{min-height:40px;padding:6px 14px}
+.hmt{margin:8px 16px 0;padding:10px 12px;border:1px dashed var(--accent);border-radius:14px}.hmt p{margin:0;font-size:14px;color:var(--mute)}.hmt .row{margin-top:8px}
+.tile{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;position:relative}
+.tile.ed{outline:2px dashed rgba(127,127,127,.55);outline-offset:-2px;cursor:pointer;display:flex;flex-direction:column}
+.tile.ed b{flex:1}
+.tile.sel{outline:3px solid var(--accent)}
+.tile .ck{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;border:2px solid var(--mute);display:grid;place-items:center;font-size:15px;color:transparent}
+.tile.sel .ck{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.hc{display:flex;gap:6px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.hc button{min-height:40px;padding:4px 10px;font-size:14px}
+.hc .grip{margin-left:auto;min-width:44px;min-height:44px;display:grid;place-items:center;font-size:22px;border:1px solid rgba(127,127,127,.4);border-radius:10px;touch-action:none;cursor:grab}
+.tile.drg{opacity:.3}
+.tile.ghost{position:fixed;z-index:80;pointer-events:none;opacity:.92;margin:0;box-shadow:0 18px 40px rgba(0,0,0,.55)}
+.tile.hb{box-shadow:-6px 0 0 var(--accent)}.tile.ha{box-shadow:6px 0 0 var(--accent)}.tile.hcx{outline:3px solid var(--brand);transform:scale(1.04)}
+.fi{border-radius:12px;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:6px}.fi svg{width:15px;height:15px}
+.hfr{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}.hfr .ti{width:34px;height:34px;margin:0;flex:0 0 auto}.hfr .ti svg{width:18px;height:18px}.hfr b{flex:1;min-width:0}.hfr button{min-height:40px;padding:4px 10px;font-size:14px;flex:0 0 auto}
+.hft{padding:10px 0 0}
+@media (min-width:820px){.hmh{padding-left:24px;padding-right:24px}.hmt{margin-left:24px;margin-right:24px}}
+@media (prefers-reduced-motion:no-preference){.tiles.editing .tile:not(.drg):not(.hcx){animation:hmw .32s ease-in-out infinite alternate}.tiles.editing .tile:nth-child(2n){animation-delay:-.16s}@keyframes hmw{from{transform:rotate(-.6deg)}to{transform:rotate(.6deg)}}}
 </style>
 <style id="pgsty"></style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -226,7 +245,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 </head>
 <body>
 <header><img class="logo sm" alt="TurbinePros" id="hLogo"><button id="hUnit" class="hUnit" type="button" style="margin-left:auto;flex:none;min-height:0;padding:6px 12px;font-size:14px;border-radius:8px">Job Info</button></header>
-<section id="home"><div class="hero" style="position:relative"><img class="logo lg" alt="TurbinePros"><button id="hUnit2" class="hUnit" type="button" style="position:absolute;top:10px;right:12px;min-height:0;padding:6px 12px;font-size:14px;border-radius:8px">Job Info</button></div><div class="sum" id="sum"></div><div id="attn"></div><h2 class="sec">Tools</h2><div class="tiles" id="tiles"></div></section>
+<section id="home"><div class="hero" style="position:relative"><img class="logo lg" alt="TurbinePros"><button id="hUnit2" class="hUnit" type="button" style="position:absolute;top:10px;right:12px;min-height:0;padding:6px 12px;font-size:14px;border-radius:8px">Job Info</button></div><div class="sum" id="sum"></div><div id="attn"></div><div id="hmBar"></div><div class="tiles" id="tiles"></div></section>
 <div id="prog" hidden><div class="tbar"><button id="add" class="pri">Add unit</button></div><div class="stats" id="stats"></div>
 <main class="board" id="board" aria-label="Workflow stages"></main></div>
 <section id="mod" hidden></section>
@@ -392,7 +411,7 @@ function home(){const td=ldate(),act=U.filter(u=>!u.done),avg=U.length?Math.roun
  $("#sum").innerHTML=U.length?`<div class="big">${act.length}<span> units in work</span></div><div class="prg"><i style="width:${avg}%"></i></div><small>${avg}% average completion, ${U.length-act.length} delivered</small>`:`<div class="big" style="font-size:54px">Houston Shop</div><small>Add your first unit to begin tracking.</small>`;
  ATT=[...U.filter(u=>u.hold&&!u.done).map(u=>["On hold",u.name+": "+u.hold,()=>{show("prog");ps=u.stage;render();openUnit(u.id)}]),...DB.tasks.filter(t=>t.st!=="Done"&&t.due&&t.due<td).map(t=>["Overdue task",t.title+" (due "+t.due+")",()=>show("tasks")]),...DB.fme.filter(r=>M.fme.flag(r)).map(r=>["FME count mismatch",r.title,()=>show("fme")]),...ordAtt(),...(DB.fmea||[]).filter(a=>a.st==="Open").map(a=>["FME area open",(a.unit||"")+" "+a.loc+": "+fmeGate(a).length+" item(s) before close out",()=>{show("fme");fmeArea(a.id)}]),...DB.safety.filter(r=>r.risk==="High"&&r.st!=="Closed").map(r=>["High-risk safety item",r.title,()=>show("safety")]),...(isSup()&&allPh().some(p=>!PV()[p.id])?[["Photos to verify",allPh().filter(p=>!PV()[p.id]).length+" task photo(s) awaiting your verification",()=>show("tasks")]]:[]),...DB.tasks.filter(t=>+t.exp>0&&t.st!=="Done"&&sumH(t.id)>+t.exp).map(t=>["Task over estimate",t.title+": "+sumH(t.id)+" of "+t.exp+" h",()=>show("tasks")])];
  $("#attn").innerHTML=ATT.length?`<h2>Needs attention</h2>`+ATT.slice(0,6).map((a,i)=>`<button class="att" data-i="${i}"><b>${a[0]}</b>${esc(a[1])}</button>`).join(""):(U.length?`<div class="ok">All clear. No holds, overdue tasks or FME mismatches.</div>`:"");
- document.querySelectorAll(".hUnit").forEach(b=>b.hidden=!isSup());$("#tiles").innerHTML=TL.filter(x=>x[0]!=="cust").filter(x=>(x[0]!=="costs"&&x[0]!=="dsr"&&x[0]!=="reset")||isSup()).map(([k,t])=>`<button class="tile" data-k="${k}"><span class="ti"><svg viewBox="0 0 24 24">${ICON[k]}</svg></span><b>${t}</b><em>${k==="prog"?U.length:(k==="vend"||k==="shop"?(ORD().filter(o=>o.kind===k&&oflag(o).late).length||""):k==="costs"?"":k==="fme"?((DB.fmea||[]).filter(a=>a.st!=="Closed").length||""):k==="status"?((DB.issues||[]).filter(i=>i.st!=="Resolved").length||""):k==="safety"?"":k==="rent"?((DB.rent||[]).filter(r=>!r.dOut||(r.qOut!==""&&r.qOut!=null&&+r.qOut<+r.qty)).length||""):(DB[k]?DB[k].length:""))}</em></button>`).join("")}
+ document.querySelectorAll(".hUnit").forEach(b=>b.hidden=!isSup());hmRender()}
 function show(v){if(typeof qStop==="function"&&v!=="qtools")qStop();if((v==="costs"||v==="cust"||v==="reset"||v.startsWith("dsr"))&&!isSup()){alert("This area is for supervisors only.");return}cur=v;$("#home").hidden=v!=="home";$("#prog").hidden=v!=="prog";$("#mod").hidden=!M[v];document.querySelectorAll("#tab button").forEach(b=>b.classList.toggle("on",b.dataset.k===v));$("#fab").hidden=!(v==="prog"||(!!M[v]&&(v!=="people"||isSup())&&v!=="dsr"&&v!=="cust"&&v!=="jsa"&&v!=="safety"&&v!=="data"&&v!=="status"&&v!=="qtools"&&v!=="rent"&&v!=="reset"&&v!=="sstat"&&v!=="fme"&&v!=="costs"&&v!=="vend"&&v!=="shop"));document.querySelector("header").hidden=v==="home";
  if(v==="home")home();
  if(M[v])mod(v);if(v==="prog")render();scrollTo(0,0)}
@@ -408,7 +427,7 @@ $("#mForm").onsubmit=e=>{if(cur==="people"&&!/^\d{4}$/.test(String(new FormData(
  if(files.length){r.photos=[];Promise.all(files.map(async x=>{const d=await shrink(x);if(!d)return;const id="p"+Date.now()+Math.random().toString(36).slice(2,7);await pPut(id,d);r.photos.push(id)})).then(()=>{sv();mod(cur)})}
  sv();mod(cur);
  if(cur==="safety"&&/Injury|Incident/.test(r.type||""))setTimeout(()=>alert("Tell your supervisor right away. Employers must report a work-related fatality to OSHA within 8 hours, and an in-patient hospitalization, amputation or loss of an eye within 24 hours. Call 1-800-321-6742."),400)};
-$("#home").onclick=e=>{const a=e.target.closest(".att");if(a){ATT[+a.dataset.i][2]();return}const t=e.target.closest(".tile");if(t)show(t.dataset.k)};
+$("#home").onclick=e=>{const a=e.target.closest(".att");if(a){ATT[+a.dataset.i][2]();return}if(hmClick(e))return;const t=e.target.closest(".tile");if(t){if(t.dataset.f)hmOpen(t.dataset.f);else show(t.dataset.k)}};
 $("#fab").onclick=()=>(cur==="prog"?$("#add"):$("#mAdd")).click();
 $("#hLogo").onclick=()=>show("home");
 $("#tabMore").onclick=()=>{$("#exp").hidden=$("#imp").hidden=!isSup();document.querySelectorAll('#dMore [data-k="reset"],#dMore [data-k="costs"],#dMore [data-k="dsr"],#dMore [data-k="cust"]').forEach(x=>x.hidden=!isSup());$("#dMore").showModal()};
@@ -1831,6 +1850,111 @@ async function loadDemoData(){
  location.reload();
 }
 document.querySelectorAll(".hUnit").forEach(b=>b.onclick=()=>show("cust"));
+
+/* ===== Home layout: rearrange, folders, rename (supervisors) ===== */
+if(!ICON.jsa)ICON.jsa='<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9zM9 13l2 2 4-4"/>';
+function HM(){return DB.home||(DB.home={order:[],folders:{},names:{}})}
+var HMED=HMED||false,HMSEL=HMSEL||new Set(),HMSKIP=false,HMOPEN=null;
+function HMORIG(k){const x=TL.find(t=>t[0]===k);return x?x[1]:k}
+function tName(k){return (DB.home&&DB.home.names&&DB.home.names[k])||HMORIG(k)}
+function hmIs(k){return TL.some(t=>t[0]===k)&&k!=="cust"}
+function hmVis(k){return hmIs(k)&&((k!=="costs"&&k!=="dsr"&&k!=="reset")||isSup())}
+function hmLayout(){const h=HM();h.folders=h.folders||{};h.names=h.names||{};
+ const used=new Set();Object.values(h.folders).forEach(f=>{f.items=(f.items||[]).filter(k=>hmIs(k)&&!used.has(k)&&used.add(k))});
+ const seen=new Set(),out=[];
+ (h.order||[]).forEach(x=>{if(seen.has(x))return;if(x.startsWith("f:")?h.folders[x.slice(2)]:hmIs(x)&&!used.has(x)){seen.add(x);out.push(x)}});
+ Object.keys(h.folders).forEach(id=>{if(!seen.has("f:"+id)){seen.add("f:"+id);out.push("f:"+id)}});
+ TL.forEach(([k])=>{if(hmIs(k)&&!seen.has(k)&&!used.has(k)){seen.add(k);out.push(k)}});
+ h.order=out;return out}
+function hmBadge(k){return (k==="prog"?U.length:(k==="vend"||k==="shop"?(ORD().filter(o=>o.kind===k&&oflag(o).late).length||""):k==="costs"?"":k==="fme"?((DB.fmea||[]).filter(a=>a.st!=="Closed").length||""):k==="status"?((DB.issues||[]).filter(i=>i.st!=="Resolved").length||""):k==="safety"?"":k==="rent"?((DB.rent||[]).filter(r=>!r.dOut||(r.qOut!==""&&r.qOut!=null&&+r.qOut<+r.qty)).length||""):(DB[k]?DB[k].length:"")))}
+function hmIco(k){return `<svg viewBox="0 0 24 24">${ICON[k]||""}</svg>`}
+function hmCtl(x){return `<span class="hc"><button type="button" data-hm="l" aria-label="Move earlier">&#9664;</button><button type="button" data-hm="r" aria-label="Move later">&#9654;</button><button type="button" data-hm="ren">Rename</button><span class="grip" aria-label="Drag to move" title="Drag to move">&#10303;</span></span>`}
+function hmTile(x){const ed=HMED,tag=ed?"div":"button",at=ed?'role="button" tabindex="0"':'type="button"';
+ if(x.startsWith("f:")){const id=x.slice(2),f=HM().folders[id],v=f.items.filter(hmVis);if(!v.length&&!ed)return "";
+  return `<${tag} ${at} class="tile fold${ed?" ed":""}" data-k="${x}" data-f="${id}"><span class="ti fi">${v.slice(0,4).map(hmIco).join("")}</span><b>${esc(f.name)}</b><em>${v.length} tool${v.length===1?"":"s"}</em>${ed?hmCtl(x):""}</${tag}>`}
+ if(!hmVis(x))return "";
+ return `<${tag} ${at} class="tile${ed?" ed":""}${HMSEL.has(x)?" sel":""}" data-k="${x}"><span class="ti">${hmIco(x)}</span><b>${esc(tName(x))}</b><em>${ed?"":hmBadge(x)}</em>${ed?`<span class="ck" aria-hidden="true">&#10003;</span>`+hmCtl(x):""}</${tag}>`}
+function hmRender(){if(!HMSEL)HMSEL=new Set();if(!isSup()){HMED=false;HMSEL.clear()}
+ const L=hmLayout(),n=HMSEL.size;
+ $("#hmBar").innerHTML=`<div class="hmh"><h2>Tools</h2>${isSup()?(HMED?`<button type="button" class="pri" data-hm="done">Done</button>`:`<button type="button" data-hm="edit">Edit Home</button>`):""}</div>`+
+  (HMED?`<div class="hmt"><p>Drag a tile by its grip &#10303; or use the arrows. Drop a tile in the middle of another to make a folder. Tap tiles to select them.</p><div class="row"><button type="button" class="pri" data-hm="nf"${n?"":" disabled"}>New Folder${n?" ("+n+")":""}</button><button type="button" data-hm="def">Restore Default</button></div></div>`:"");
+ $("#tiles").classList.toggle("editing",HMED);
+ $("#tiles").innerHTML=L.map(hmTile).join("");hmNames()}
+function hmNames(){document.querySelectorAll("#dMore .more button[data-k]").forEach(b=>{if(hmIs(b.dataset.k)||b.dataset.k==="cust")b.textContent=tName(b.dataset.k)})}
+function hmMove(x,d){const o=HM().order,i=o.indexOf(x),j=i+d;if(i<0||j<0||j>=o.length)return;o.splice(i,1);o.splice(j,0,x);sv();hmRender()}
+function hmNewFolder(items,at){const h=HM(),id=Date.now().toString(36);h.folders[id]={name:"New Folder",items:items.slice()};
+ h.order=h.order.filter(x=>!items.includes(x));h.order.splice(Math.min(at,h.order.length),0,"f:"+id);HMSEL.clear();sv();hmRender();hmRename("f:"+id,true)}
+function hmRename(x,isNew){const fo=x.startsWith("f:"),f=fo?HM().folders[x.slice(2)]:null,cur=fo?f.name:tName(x),D=$("#dHm");
+ $("#hmD").innerHTML=`<h2>${isNew?"Name this folder":fo?"Rename folder":"Rename tile"}</h2>${fo?"":`<div class="hint">Original name: ${esc(HMORIG(x))}</div>`}
+ <label>Name<input id="hmN" maxlength="40" value="${esc(cur)}" autocomplete="off"></label>
+ <div class="row">${!fo&&HM().names[x]?`<button type="button" data-hr="orig">Use Original Name</button>`:""}<button type="button" data-hr="x">Cancel</button><button type="button" class="pri" data-hr="ok">Save</button></div>`;
+ $("#hmD").onclick=e=>{const b=e.target.closest("button[data-hr]");if(!b)return;const a=b.dataset.hr,v=$("#hmN").value.trim().replace(/\s+/g," ");
+  if(a==="orig")delete HM().names[x];else if(a==="ok"){if(fo)f.name=v||f.name||"Folder";else if(!v||v===HMORIG(x))delete HM().names[x];else HM().names[x]=v}
+  if(a!=="x")sv();D.close();hmRender();if(HMOPEN&&!fo)hmOpen(HMOPEN)};
+ $("#hmD").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();$('#hmD [data-hr="ok"]').click()}};
+ if(D.open)D.close();D.showModal();const i=$("#hmN");i.focus();i.select()}
+function hmOpen(id){const h=HM(),f=h.folders[id];if(!f)return;HMOPEN=id;const ed=HMED&&isSup(),v=f.items.filter(ed?hmIs:hmVis);
+ $("#hmD").innerHTML=`<h2>${esc(f.name)}</h2>`+(ed?
+  (v.map((k,i)=>`<div class="hfr"><span class="ti">${hmIco(k)}</span><b>${esc(tName(k))}</b><button type="button" data-hf="up" data-k="${k}" aria-label="Move up"${i?"":" disabled"}>&#9650;</button><button type="button" data-hf="dn" data-k="${k}" aria-label="Move down"${i<v.length-1?"":" disabled"}>&#9660;</button><button type="button" data-hf="ren" data-k="${k}">Rename</button><button type="button" data-hf="out" data-k="${k}">Take Out</button></div>`).join("")||`<div class="empty">This folder is empty.</div>`)+
+  `<div class="row"><button type="button" data-hf="fren">Rename Folder</button><button type="button" class="danger" data-hf="fdel">Remove Folder</button><button type="button" class="pri" data-hf="x">Done</button></div><div class="hint">Remove Folder puts its tiles back on the home screen. Nothing is deleted.</div>`
+  :`<div class="tiles hft">${v.map(k=>`<button type="button" class="tile" data-hf="go" data-k="${k}"><span class="ti">${hmIco(k)}</span><b>${esc(tName(k))}</b><em>${hmBadge(k)}</em></button>`).join("")}</div><div class="row"><button type="button" class="pri" data-hf="x">Close</button></div>`);
+ $("#hmD").onclick=e=>{const b=e.target.closest("[data-hf]");if(!b)return;const a=b.dataset.hf,k=b.dataset.k,it=f.items,i=it.indexOf(k),D=$("#dHm");
+  if(a==="x"){HMOPEN=null;D.close();return}
+  if(a==="go"){HMOPEN=null;D.close();show(k);return}
+  if(a==="up"||a==="dn"){const vi=v.indexOf(k),o=v[vi+(a==="up"?-1:1)];if(o==null)return;const j=it.indexOf(o);it[i]=o;it[j]=k}
+  else if(a==="ren"){hmRename(k);return}
+  else if(a==="fren"){HMOPEN=null;hmRename("f:"+id);return}
+  else if(a==="out"){it.splice(i,1);const p=h.order.indexOf("f:"+id);h.order.splice(p+1,0,k)}
+  else if(a==="fdel"){if(!confirm("Remove the folder "+f.name+"? Its tiles go back on the home screen."))return;const p=h.order.indexOf("f:"+id);h.order.splice(p,1,...it);delete h.folders[id];sv();HMOPEN=null;D.close();hmRender();return}
+  sv();hmRender();hmOpen(id)};
+ if(!$("#dHm").open)$("#dHm").showModal()}
+function hmClick(e){if(HMSKIP){HMSKIP=false;e.preventDefault();return true}
+ const b=e.target.closest("#hmBar [data-hm],#tiles [data-hm]");
+ if(b){const a=b.dataset.hm,x=(b.closest(".tile")||{}).dataset;
+  if(a==="edit"){HMED=true;HMSEL.clear();hmRender()}
+  else if(a==="done"){HMED=false;HMSEL.clear();home()}
+  else if(a==="nf"){const o=HM().order,s=o.filter(k=>HMSEL.has(k));if(s.length)hmNewFolder(s,o.indexOf(s[0]))}
+  else if(a==="def"){if(confirm("Put every tile back in its original place and name, and remove all folders?")){DB.home={order:[],folders:{},names:{}};HMSEL.clear();sv();hmRender()}}
+  else if(a==="l"||a==="r")hmMove(x.k,a==="l"?-1:1);
+  else if(a==="ren")hmRename(x.k);
+  return true}
+ if(!HMED)return false;
+ const t=e.target.closest("#tiles .tile");if(!t)return true;
+ if(t.dataset.f)hmOpen(t.dataset.f);else{HMSEL.has(t.dataset.k)?HMSEL.delete(t.dataset.k):HMSEL.add(t.dataset.k);hmRender()}
+ return true}
+/* drag by grip; long-press a tile to enter edit mode */
+(function(){const T=$("#tiles");let D=null,LP=null,G=null;
+ const clr=()=>T.querySelectorAll(".hb,.ha,.hcx").forEach(x=>x.classList.remove("hb","ha","hcx"));
+ const zone=(el,x)=>{const r=el.getBoundingClientRect(),f=(x-r.left)/r.width;return f<.3?"b":f>.7?"a":"c"};
+ T.addEventListener("pointerdown",e=>{const t=e.target.closest(".tile");if(!t)return;
+  if(!HMED){if(!isSup()||t.dataset.f)return;const sx=e.clientX,sy=e.clientY;LP={sx,sy,tm:setTimeout(()=>{LP=null;HMSKIP=true;HMED=true;HMSEL.clear();try{navigator.vibrate&&navigator.vibrate(15)}catch(z){}hmRender();setTimeout(()=>HMSKIP=false,700)},650)};return}
+  if(!e.target.closest(".grip"))return;e.preventDefault();
+  D={k:t.dataset.k,el:t,x0:e.clientX,y0:e.clientY,on:false,tg:null,z:null};try{t.setPointerCapture(e.pointerId)}catch(z){}});
+ const end=()=>{if(LP){clearTimeout(LP.tm);LP=null}};
+ window.addEventListener("pointermove",e=>{
+  if(LP&&Math.hypot(e.clientX-LP.sx,e.clientY-LP.sy)>10)end();
+  if(!D)return;const dx=e.clientX-D.x0,dy=e.clientY-D.y0;
+  if(!D.on){if(Math.hypot(dx,dy)<6)return;D.on=true;const r=D.el.getBoundingClientRect();G=D.el.cloneNode(true);G.className+=" ghost";G.style.width=r.width+"px";G.style.left=r.left+"px";G.style.top=r.top+"px";document.body.appendChild(G);D.r=r;D.el.classList.add("drg")}
+  G.style.transform=`translate(${dx}px,${dy}px)`;
+  const y=e.clientY;if(y<70)window.scrollBy(0,-14);else if(y>innerHeight-140)window.scrollBy(0,14);
+  G.style.display="none";const u=document.elementFromPoint(e.clientX,e.clientY);G.style.display="";
+  const tg=u&&u.closest("#tiles .tile");clr();D.tg=null;
+  if(tg&&tg!==D.el){let z=zone(tg,e.clientX);if(z==="c"&&D.k.startsWith("f:"))z=e.clientX<tg.getBoundingClientRect().left+tg.offsetWidth/2?"b":"a";D.tg=tg.dataset.k;D.z=z;tg.classList.add(z==="b"?"hb":z==="a"?"ha":"hcx")}});
+ const up=()=>{end();if(!D)return;const d=D;D=null;if(G){G.remove();G=null}clr();if(!d.on)return;d.el.classList.remove("drg");HMSKIP=true;setTimeout(()=>HMSKIP=false,350);
+  if(!d.tg){hmRender();return}
+  const h=HM(),o=h.order;
+  if(d.z==="c"){if(d.tg.startsWith("f:")){h.folders[d.tg.slice(2)].items.push(d.k);h.order=o.filter(x=>x!==d.k);HMSEL.delete(d.k);sv();hmRender();return}
+   const at=Math.min(o.indexOf(d.tg),o.indexOf(d.k));hmNewFolder([d.tg,d.k],at);return}
+  o.splice(o.indexOf(d.k),1);const j=o.indexOf(d.tg)+(d.z==="a"?1:0);o.splice(j,0,d.k);sv();hmRender()};
+ window.addEventListener("pointerup",up);window.addEventListener("pointercancel",()=>{end();if(D){if(G){G.remove();G=null}clr();D.el.classList.remove("drg");D=null}});
+ T.addEventListener("contextmenu",e=>{if(e.target.closest(".tile"))e.preventDefault()});
+ T.addEventListener("keydown",e=>{if(HMED&&(e.key==="Enter"||e.key===" ")&&e.target.matches(".tile")){e.preventDefault();e.target.click()}});
+})();
+(function(){const d=document.createElement("dialog");d.id="dHm";d.innerHTML='<div class="dlg" id="hmD"></div>';document.body.appendChild(d);d.addEventListener("close",()=>{HMOPEN=null})})();
+{const _show=show;show=function(v){if(v!=="home"&&HMED){HMED=false;HMSEL.clear()}return _show.apply(this,arguments)}}
+/* renamed tiles: use the new name as the screen title too */
+new MutationObserver(()=>{if(!cur||!DB.home||!DB.home.names||!DB.home.names[cur])return;const h=$("#mod .mh h2");if(!h)return;const t=h.textContent.trim(),n=tName(cur);if(t!==n&&(t===HMORIG(cur)||(M[cur]&&t===M[cur].t)))h.textContent=n}).observe($("#mod"),{childList:true});
+hmNames();
 
 /* ===== Installable web app: offline cache + keep storage ===== */
 (function(){if(!/^https?:$/.test(location.protocol))return;
