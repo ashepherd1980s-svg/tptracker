@@ -1128,7 +1128,7 @@ const RENT=()=>DB.rent||(DB.rent=[]);let RNF="out",RNQ="",RNEDIT=null,RNDEL=[];
 const rDays=r=>{const a=r.dIn?new Date(r.dIn+"T00:00"):null,b=r.dOut?new Date(r.dOut+"T00:00"):new Date(ldate()+"T00:00");return a?Math.max(0,Math.round((b-a)/864e5)):0};
 const rShort=r=>r.dOut&&r.qOut!==""&&r.qOut!=null&&+r.qOut<+r.qty?(+r.qty)-(+r.qOut):0;
 const rMB=n=>(n/1048576).toFixed(2)+" MB";
-const rMon=()=>new Date().getDay()===1;
+const rMon=()=>new Date().getDay()===1||!!DB.demo;
 function rentHome(){let b=$("#rnHome");const out=RENT().filter(r=>!r.dOut||rShort(r));
  if(!rMon()||!out.length){if(b)b.remove();return}
  if(!b){b=document.createElement("button");b.id="rnHome";b.type="button";b.className="rnb home";b.onclick=()=>show("rent");$("#sum").before(b)}
@@ -1823,6 +1823,7 @@ async function loadDemoData(){
  // ---------- Rentals ----------
  {const rp=async(caps,seed)=>{const o=[];for(let i=0;i<caps.length;i++)o.push(await addPhoto(caps[i],seed+i*7));return o};
   const invB=await (await fetch(photoImg("Sunbelt invoice 88412",97))).blob(),invId="ri"+Date.now().toString(36);await pPut(invId,invB);
+  DB.demo=true;
   DB.rent=[{id:"r1",desc:"Hydraulic stud tensioner kit, 1-1/2 in, with pump and hoses",qty:"1",vend:"Sunbelt Rentals",ref:"88412",unit:"Oman Unit 1",dIn:dayOf(5),by:MD,note:"Weekly rate. Used on compressor casing studs 1 to 12.",dOut:"",qOut:"",rby:"",inPh:await rp(["Tensioner kit as received","Pump gauge as received"],101),outPh:[],inv:{id:invId,name:"Sunbelt-88412.jpg",type:invB.type||"image/png",size:invB.size},log:[{t:dayOf(5)+" 07:40",m:"Received "+dayOf(5)}]},
    {id:"r2",desc:"LED light tower, towable",qty:"2",vend:"United Rentals",ref:"UR-55190",unit:"",dIn:dayOf(4),by:JAS,note:"Bay 2 night lighting.",dOut:"",qOut:"",rby:"",inPh:await rp(["Light towers as received"],121),outPh:[],inv:null,log:[{t:dayOf(4)+" 08:10",m:"Received "+dayOf(4)}]},
    {id:"r3",desc:"Scaffold frames and planks, Unit 3 lagging access",qty:"24",vend:"Brand Scaffold",ref:"BS-7731",unit:"Oman Unit 3",dIn:dayOf(6),by:JAS,note:"",dOut:dayOf(1),qOut:"24",rby:MD,inPh:await rp(["Scaffold delivered"],141),outPh:await rp(["Scaffold loaded for return"],151),inv:null,log:[{t:dayOf(1)+" 15:20",m:"Returned "+dayOf(1)+" (24 of 24)"}]}]}
