@@ -2481,6 +2481,104 @@ try{if(cur==="home")home()}catch(e){}
  applyDefaults();
 })();
 
+/* ===== Delay Tracker: weather, customer, crane ===== */
+(function(){
+ const CATS={weather:{n:"Weather",c:"#3b82c4",hint:"Lightning, high wind, heat, rain"},customer:{n:"Customer",c:"#c47a00",hint:"Waiting on approvals, access, permits, parts or decisions"},crane:{n:"Crane Malfunction",c:"#b3342b",hint:"Crane down, failed inspection, rigging out of service"}};
+ const DL=()=>DB.delays||(DB.delays=[]);const E=esc;
+ const act=()=>DL().find(d=>!d.end);
+ const hrs=d=>Math.max(0,((d.end||Date.now())-d.start)/36e5);
+ const crewN=d=>Math.max(1,(d.crew||[]).length);
+ const mh=d=>hrs(d)*((d.crew||[]).length);
+ const fmtT=ms=>new Date(ms).toLocaleString([],{month:"numeric",day:"numeric",hour:"numeric",minute:"2-digit"});
+ const h2=n=>(Math.round(n*100)/100).toFixed(2);
+ const dkey=ms=>ymd(new Date(ms));
+ let DF={from:"",to:"",cat:"all"},tick=0;
+ /* demo examples */
+ try{if(!(DB.delays||[]).length&&!DB.dlySeed&&(ds().setup||{}).jobNo==="ARG-OM-2601"&&DB.tasks.length){DB.dlySeed=1;const now=Date.now(),day=864e5,T=DB.tasks.filter(t=>/Oman Unit (1|4)/.test(t.unit||"")).slice(0,6),pk=(a,b)=>T.slice(a,b).map(t=>({tid:t.id,title:t.title,unit:t.unit,who:(t.who||"").split(/,\s*/).filter(Boolean).slice(0,3)}));
+  const mk=(id,cat,d,h,m,dur,note,ts,by)=>{const s=new Date(now-d*day);s.setHours(h,m,0,0);const crew=[...new Set(ts.flatMap(x=>x.who))];return {id,cat,start:+s,end:+s+dur*36e5,note,tasks:ts,crew,by,endBy:by,resumed:true}};
+  const sup=(DB.people.find(p=>SUPR.includes(p.role))||{}).title||"";
+  DB.delays=[mk("dl1","customer",9,8,0,4.5,"Waiting on Argon written approval to proceed with compressor side repairs.",pk(0,2),sup),mk("dl2","crane",5,13,15,3,"Bay 1 overhead crane hoist brake fault. Crane tagged out until the service tech reset the brake.",pk(2,4),sup),mk("dl3","weather",2,14,40,1.75,"Lightning within 10 miles. Crew pulled from the outdoor laydown area per site rules.",pk(4,6),sup)];sv()}}catch(e){}
+ /* banner shown on every screen while a delay runs */
+ const bar=document.createElement("button");bar.id="dlyBar";bar.type="button";bar.hidden=true;
+ bar.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:7;min-height:48px;border:0;border-radius:14px;color:#fff;font-weight:700;font-size:15px;box-shadow:0 8px 22px rgba(0,0,0,.45)";
+ document.body.appendChild(bar);bar.onclick=()=>show("delay");
+ function upBar(){const d=act();if(!d||!ME){bar.hidden=true;return}bar.hidden=false;bar.style.background=CATS[d.cat].c;bar.textContent=CATS[d.cat].n.toUpperCase()+" DELAY RUNNING  "+elap(Date.now()-d.start)+"  ·  "+d.tasks.length+" task"+(d.tasks.length===1?"":"s")+" stopped";
+  if(cur==="delay"){const x=document.getElementById("dlyRun");if(x)x.textContent=elap(Date.now()-d.start)}}
+ setInterval(upBar,15000);
+ /* start dialog */
+ const dlg=document.createElement("dialog");dlg.id="dDly";dlg.innerHTML='<div class="dlg" id="dlyB"></div>';document.body.appendChild(dlg);
+ let PICK=new Set(),PCAT="",SHOWALL=false;
+ function pickView(){const c=CATS[PCAT],run=DB.tasks.filter(t=>runners(t).length),opn=DB.tasks.filter(t=>t.st!=="Done"&&!runners(t).length);
+  const row=t=>`<label class="chk" style="margin:0;color:inherit;font-size:15px"><input type="checkbox" data-dt="${t.id}" ${PICK.has(t.id)?"checked":""}><span><b style="display:block;font-size:16px">${E(t.title)}</b><small style="color:var(--mute)">${E(t.unit||"No unit")} &middot; ${runners(t).length?E(runners(t).join(", "))+" on the clock":"Assigned: "+E(t.who||"no one")}</small></span></label>`;
+  $("#dlyB").innerHTML=`<h2 style="color:${c.c}">${E(c.n)} Delay</h2><div class="hint">Select every task this delay is affecting. When you tap Start, the ${E(c.n.toLowerCase())} delay timer starts and every task timer stops.</div>
+  <h3 style="margin-top:12px">Tasks in progress now (${run.length})</h3>${run.map(row).join("")||'<div class="hint">No task timers are running right now.</div>'}
+  ${opn.length?`<details${SHOWALL?" open":""} id="dlyAll" style="margin-top:10px"><summary>Other open tasks (${opn.length})</summary>${opn.map(row).join("")}</details>`:""}
+  <label>What is causing the delay?<textarea id="dlyN" rows="2" placeholder="${E(c.hint)}"></textarea></label>
+  <div class="row"><button type="button" data-dl="x">Cancel</button><button type="button" class="pri" data-dl="go" id="dlyGo" style="background:${c.c};color:#fff" ${PICK.size?"":"disabled"}>Start ${E(c.n)} Delay (${PICK.size} task${PICK.size===1?"":"s"})</button></div>`}
+ function openPick(cat){if(!isSup())return alert("Only supervisors can start a delay.");const a=act();
+  if(a&&!confirm("A "+CATS[a.cat].n.toLowerCase()+" delay is already running. End it and start a "+CATS[cat].n.toLowerCase()+" delay?"))return;
+  PCAT=cat;SHOWALL=false;PICK=new Set(DB.tasks.filter(t=>runners(t).length).map(t=>t.id));pickView();if(!dlg.open)dlg.showModal()}
+ dlg.addEventListener("change",e=>{const t=e.target;if(t.dataset.dt){t.checked?PICK.add(t.dataset.dt):PICK.delete(t.dataset.dt);const n=$("#dlyN").value,o=$("#dlyAll");SHOWALL=!!(o&&o.open);pickView();$("#dlyN").value=n}});
+ dlg.addEventListener("click",e=>{const b=e.target.closest("button[data-dl]");if(!b)return;if(b.dataset.dl==="x")return dlg.close();
+  if(b.dataset.dl==="go"&&PICK.size){const note=$("#dlyN").value.trim(),a=act();if(a)endDelay(a,false);
+   const ts=[...PICK].map(id=>DB.tasks.find(t=>t.id===id)).filter(Boolean),ran={};ts.forEach(t=>ran[t.id]=runners(t));
+   const crew=[...new Set(ts.flatMap(t=>ran[t.id].length?ran[t.id]:(t.who||"").split(/,\s*/).filter(Boolean)))];
+   Object.keys(RUN()).forEach(bank);DB.tasks.forEach(fixSt);
+   DL().push({id:"dl"+Date.now().toString(36),cat:PCAT,start:Date.now(),end:0,note,tasks:ts.map(t=>({tid:t.id,title:t.title,unit:t.unit||"",who:ran[t.id]})),crew,by:ME?ME.title:""});
+   sv();dlg.close();upBar();show("delay")}});
+ function endDelay(d,resume){d.end=Date.now();d.endBy=ME?ME.title:"";d.resumed=!!resume;
+  if(resume)d.tasks.forEach(x=>{const t=DB.tasks.find(y=>y.id===x.tid);if(!t||t.st==="Done")return;(x.who||[]).forEach(n=>{if(!RUN()[n])RUN()[n]={tid:t.id,since:Date.now()}});fixSt(t)});
+  sv();upBar()}
+ /* filters and summary */
+ function inF(d){const k=dkey(d.start);return (DF.cat==="all"||d.cat===DF.cat)&&(!DF.from||k>=DF.from)&&(!DF.to||k<=DF.to)}
+ function sums(L){const o={};Object.keys(CATS).forEach(k=>{const l=L.filter(d=>d.cat===k);o[k]={n:l.length,h:l.reduce((a,d)=>a+hrs(d),0),m:l.reduce((a,d)=>a+mh(d),0)}});return o}
+ window.delayView=function(){const a=act(),sup=isSup(),L=DL().filter(inF).slice().sort((x,y)=>y.start-x.start),S=sums(L),tot=L.reduce((s,d)=>s+hrs(d),0),totM=L.reduce((s,d)=>s+mh(d),0);
+  $("#mod").innerHTML=`<div class="mh"><h2>Delay Tracker</h2><button data-dly="print">Print Report</button></div>`+
+  (a?`<div class="rec" style="border:2px solid ${CATS[a.cat].c};box-shadow:0 0 0 1px ${CATS[a.cat].c}"><b style="color:${CATS[a.cat].c}">${E(CATS[a.cat].n)} delay running</b><div class="big" style="font-size:48px" id="dlyRun">${elap(Date.now()-a.start)}</div><small>Started ${E(fmtT(a.start))} by ${E(a.by||"")}${a.note?" &middot; "+E(a.note):""}</small><small>Tasks stopped: ${E(a.tasks.map(t=>t.title+" ("+t.unit+")").join("; "))}</small><small>Crew affected: ${E((a.crew||[]).join(", ")||"none recorded")}</small>
+   ${sup?`<label class="chk" style="color:inherit;font-size:15px;margin-top:8px"><input type="checkbox" id="dlyRes" checked><span>Restart the stopped task timers for the same crew</span></label><div class="row"><button class="pri" data-dly="end" style="flex:1">End Delay</button></div>`:""}</div>`:"")+
+  `<div class="hint" style="padding:6px 16px 0">${sup?"Tap a category to start a delay. You pick the tasks it is affecting, then every task timer stops and the delay timer runs.":"Only supervisors can start or end a delay."}</div>
+  <div class="qg" style="grid-template-columns:1fr">${Object.entries(CATS).map(([k,c])=>`<button class="qb" data-dly="start" data-c="${k}" style="border:2px solid ${c.c}${a&&a.cat===k?";box-shadow:0 0 0 2px "+c.c:""}"><b style="font-size:20px;display:block;color:${c.c}">${E(c.n)}</b><small style="color:var(--mute)">${E(c.hint)}</small></button>`).join("")}</div>
+  <h2 class="sec">Report</h2><div style="padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px"><label>From<input type="date" id="dlyF" value="${DF.from}"></label><label>To<input type="date" id="dlyT" value="${DF.to}"></label></div>
+  <div class="chips">${[["all","All"]].concat(Object.entries(CATS).map(([k,c])=>[k,c.n])).map(([k,l])=>`<button class="chip${DF.cat===k?" on":""}" data-dly="cat" data-c="${k}">${E(l)}</button>`).join("")}</div>
+  <div class="stats"><span><b>${L.length}</b>delays</span><span><b>${h2(tot)}</b>hours</span><span><b>${h2(totM)}</b>crew hours lost</span></div>
+  <div class="stats" style="padding-top:0">${Object.entries(CATS).map(([k,c])=>`<span style="color:${c.c}"><b>${h2(S[k].h)}</b>h ${E(c.n.toLowerCase())}</span>`).join("")}</div>`+
+  (L.map(d=>`<div class="rec" style="border-left:5px solid ${CATS[d.cat].c}"><b>${E(CATS[d.cat].n)} &middot; ${d.end?h2(hrs(d))+" h":"running"}</b><small>${E(fmtT(d.start))} to ${d.end?E(fmtT(d.end)):"now"} &middot; ${(d.crew||[]).length} crew &middot; ${h2(mh(d))} crew hours</small>${d.note?`<small style="color:var(--ink)">${E(d.note)}</small>`:""}<small>Tasks: ${E(d.tasks.map(t=>t.title+" ("+t.unit+")").join("; "))}</small><small>Started by ${E(d.by||"")}${d.end?" &middot; ended by "+E(d.endBy||"")+(d.resumed?", timers restarted":""):""}</small>${sup&&d.end?`<div class="row"><button data-dly="edit" data-id="${d.id}">Edit</button><button class="danger" data-dly="del" data-id="${d.id}">Delete</button></div>`:""}</div>`).join("")||`<div class="empty" style="padding:10px 16px">No delays recorded${DF.from||DF.to||DF.cat!=="all"?" for this filter":""}.</div>`)+`<div style="height:60px"></div>`;
+  clearInterval(tick);tick=setInterval(()=>{if(cur!=="delay")return clearInterval(tick);upBar()},15000)}
+ /* edit a recorded delay */
+ const loc=ms=>{const d=new Date(ms),p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"T"+p(d.getHours())+":"+p(d.getMinutes())};
+ function editD(d){$("#dlyB").innerHTML=`<h2>Edit ${E(CATS[d.cat].n)} Delay</h2><label>Category<select id="deC">${Object.entries(CATS).map(([k,c])=>`<option value="${k}"${k===d.cat?" selected":""}>${E(c.n)}</option>`).join("")}</select></label><label>Started<input type="datetime-local" id="deS" value="${loc(d.start)}"></label><label>Ended<input type="datetime-local" id="deE" value="${loc(d.end)}"></label><label>Cause<textarea id="deN" rows="3">${E(d.note||"")}</textarea></label><label>Crew affected (comma separated)<input id="deW" value="${E((d.crew||[]).join(", "))}"></label><div class="row"><button type="button" data-de="x">Cancel</button><button type="button" class="pri" data-de="ok">Save</button></div>`;
+  $("#dlyB").onclick=e=>{const b=e.target.closest("button[data-de]");if(!b)return;if(b.dataset.de==="ok"){const s=new Date($("#deS").value).getTime(),en=new Date($("#deE").value).getTime();if(!(en>s))return alert("The end time must be after the start time.");Object.assign(d,{cat:$("#deC").value,start:s,end:en,note:$("#deN").value.trim(),crew:$("#deW").value.split(/,\s*/).map(x=>x.trim()).filter(Boolean)});sv();delayView()}$("#dlyB").onclick=null;dlg.close()};
+  if(!dlg.open)dlg.showModal()}
+ dlg.addEventListener("close",()=>{$("#dlyB").onclick=null});
+ const MD=$("#mod");
+ MD.addEventListener("click",e=>{if(cur!=="delay")return;const b=e.target.closest("button[data-dly]");if(!b)return;const k=b.dataset.dly;
+  if(k==="start")return openPick(b.dataset.c);
+  if(k==="end"){const a=act();if(a&&isSup()){endDelay(a,$("#dlyRes")&&$("#dlyRes").checked);delayView()}return}
+  if(k==="cat"){DF.cat=b.dataset.c;return delayView()}
+  if(k==="print")return fprev(dlyHTML());
+  const d=DL().find(x=>x.id===b.dataset.id);if(!d)return;
+  if(k==="edit")return editD(d);
+  if(k==="del"&&confirm("Delete this delay record? This cannot be undone.")){DB.delays=DL().filter(x=>x!==d);sv();delayView()}});
+ MD.addEventListener("change",e=>{if(cur!=="delay")return;if(e.target.id==="dlyF"){DF.from=e.target.value;delayView()}else if(e.target.id==="dlyT"){DF.to=e.target.value;delayView()}});
+ /* printable report */
+ window.dlyHTML=function(){const L=DL().filter(inF).slice().sort((x,y)=>x.start-y.start),S=sums(L),now=new Date().toLocaleString(),site=typeof SITE==="function"?SITE():"Houston Shop",job=typeof JOBNO==="function"?JOBNO():"",cust=(ds().setup||{}).customer||"";
+  const th="border:1px solid #000;padding:3px 5px;background:#ede9dc;font-weight:700;text-align:left",td="border:1px solid #000;padding:3px 5px;vertical-align:top";
+  const range=DF.from||DF.to?(DF.from||"start")+" to "+(DF.to||"today"):"All dates";
+  const head=(pg,n)=>`<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:6px"><img src="${LOGO}" alt="" style="height:.5in"><div style="text-align:right"><div style="font:700 18px Arial,sans-serif">Delay Report</div><div>${E(site)}${job?" &middot; Job "+E(job):""}${cust?" &middot; "+E(cust):""}</div><div>${E(range)}${DF.cat!=="all"?" &middot; "+E(CATS[DF.cat].n)+" only":""} &middot; Printed ${E(now)} &middot; Page ${pg} of ${n}</div></div></div>`;
+  const rows=L.map((d,i)=>`<tr><td style="${td}">${i+1}</td><td style="${td};color:${CATS[d.cat].c};font-weight:700">${E(CATS[d.cat].n)}</td><td style="${td}">${E(fmtT(d.start))}</td><td style="${td}">${d.end?E(fmtT(d.end)):"Running"}</td><td style="${td};text-align:right">${h2(hrs(d))}</td><td style="${td};text-align:right">${(d.crew||[]).length}</td><td style="${td};text-align:right">${h2(mh(d))}</td><td style="${td}">${E(d.note||"")}<div style="color:#444;margin-top:2px">Tasks: ${E(d.tasks.map(t=>t.title+" ("+t.unit+")").join("; "))}</div><div style="color:#444">Crew: ${E((d.crew||[]).join(", "))}</div></td></tr>`);
+  const pages=[];const first=8,per=11;pages.push(rows.slice(0,first));for(let i=first;i<rows.length;i+=per)pages.push(rows.slice(i,i+per));
+  const tbl=r=>`<table style="width:100%;border-collapse:collapse;font-size:10px;margin-top:8px"><tr><th style="${th}">#</th><th style="${th}">Type</th><th style="${th}">Start</th><th style="${th}">End</th><th style="${th}">Hours</th><th style="${th}">Crew</th><th style="${th}">Crew hrs</th><th style="${th};width:3.1in">Cause, tasks and crew</th></tr>${r.join("")||`<tr><td colspan="8" style="${td}">No delays recorded for this period.</td></tr>`}</table>`;
+  const sumT=`<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:10px"><tr><th style="${th}">Category</th><th style="${th}">Delays</th><th style="${th}">Hours</th><th style="${th}">Crew hours lost</th></tr>${Object.entries(CATS).map(([k,c])=>`<tr><td style="${td};font-weight:700;color:${c.c}">${E(c.n)}</td><td style="${td}">${S[k].n}</td><td style="${td}">${h2(S[k].h)}</td><td style="${td}">${h2(S[k].m)}</td></tr>`).join("")}<tr><td style="${td};font-weight:700">Total</td><td style="${td};font-weight:700">${L.length}</td><td style="${td};font-weight:700">${h2(L.reduce((a,d)=>a+hrs(d),0))}</td><td style="${td};font-weight:700">${h2(L.reduce((a,d)=>a+mh(d),0))}</td></tr></table>`;
+  const sig=`<div style="display:flex;gap:.4in;margin-top:24px;font-size:11px">${["TurbinePros Supervisor","Customer Representative"].map(l=>`<div style="flex:1"><div style="border-bottom:1px solid #000;height:.35in"></div>${l} &nbsp; Signature / Date</div>`).join("")}</div>`;
+  return pages.map((r,i)=>`<div class="pg" style="padding:.4in .5in">${head(i+1,pages.length)}${i===0?sumT:""}${tbl(r)}${i===pages.length-1?sig:""}</div>`).join("")};
+ /* register tab */
+ M.delay={t:"Delay Tracker",f:[],sum:()=>""};
+ const _m=mod;mod=function(k){if(k==="delay")return delayView();return _m.apply(this,arguments)};
+ const _s=show;show=function(v){const r=_s.apply(this,arguments);if(cur==="delay")$("#fab").hidden=true;upBar();return r};
+ try{const mm=document.querySelector("#dMore .more"),q=mm&&mm.querySelector('[data-k="qs"]');if(mm&&!mm.querySelector('[data-k="delay"]')){const x=document.createElement("button");x.dataset.k="delay";x.textContent="Delay Tracker";x.style.fontWeight="700";if(q)q.after(x);else mm.insertBefore(x,mm.firstChild)}}catch(e){}
+ upBar();
+})();
+
 /* ===== Task print + Safety Time Out walking cards ===== */
 (function(){
  const E=esc,ppl=()=>DB.people||[];
