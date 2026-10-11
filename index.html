@@ -249,6 +249,8 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 #tab #favEdit{display:none}
 @media (max-width:819px){#tab .fv:nth-child(n+5){display:none}#tab .fv{min-width:0}}
 @media (min-width:820px){.hs{margin:16px 24px 0}#tab #favEdit{display:flex;margin-top:auto;min-height:44px!important;font-size:15px!important;color:var(--mute);border:1px dashed rgba(255,255,255,.2)!important}#favEdit svg{width:20px!important;height:20px!important}}
+/* quick start */
+#mod .fsec{min-width:0}#mod .fsec label{min-width:0}#mod .fsec input,#mod .fsec select,#mod .fsec textarea{box-sizing:border-box;width:100%;max-width:100%}#mod .fsec summary{gap:8px}
 /* back button on every tab */
 header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 #hBack{flex:none;display:inline-flex;align-items:center;gap:4px;min-height:44px;min-width:92px;padding:6px 14px 6px 10px;border-radius:12px;font-size:17px;font-weight:700;background:var(--accent);color:var(--accent-ink);border:0}
@@ -428,7 +430,7 @@ const fold=a=>a.slice(0,4).join("")+(a.length>4?`<details><summary>More details<
 function pre(){const td=ldate();M[cur].f.forEach(([n,l,t])=>{const el=$("#mForm").elements[n];if(!el)return;if(t==="date")el.value=td;else if(t==="person")el.value=ME?ME.title:(LAST[t]||"");else if(t==="unit")el.value=LAST[t]||""});if(cur==="safety"&&SPRE){$("#mForm").elements["type"].value=SPRE;SPRE=""}if(cur==="dsr_data"){const c=ds().contacts,z=$("#mForm").elements;[["sup","dSup"],["td","dTd"],["cust","dCust"]].forEach(([n,k])=>{if(z[n])z[n].value=c[k]||""})}}
 const ICON={dsr:'<path d="M7 3h8l4 4v14H7z"/><path d="M14 3v5h5M10 12h6M10 16h6"/>',prog:'<path d="M12 3 3 8l9 5 9-5z"/><path d="m3 13 9 5 9-5"/>',tasks:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/>',people:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6"/><path d="M16 5a3 3 0 0 1 0 6M18 14c2 1 3 3 3 6"/>',safety:'<path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z"/>',fme:'<circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/>',data:'<path d="M5 20V10M12 20V4M19 20v-7"/>',costs:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'};
 function home(){const td=ldate(),act=U.filter(u=>!u.done),avg=U.length?Math.round(U.reduce((a,u)=>a+pct(u),0)/U.length):0;
- $("#sum").innerHTML=U.length?`<div class="big">${act.length}<span> units in work</span></div><div class="prg"><i style="width:${avg}%"></i></div><small>${avg}% average completion, ${U.length-act.length} delivered</small>`:`<div class="big" style="font-size:54px">Houston Shop</div><small>Add your first unit to begin tracking.</small>`;
+ $("#sum").innerHTML=U.length?`<div class="big">${act.length}<span> units in work</span></div><div class="prg"><i style="width:${avg}%"></i></div><small>${avg}% average completion, ${U.length-act.length} delivered</small>`:`<div class="big" style="font-size:54px">${esc(typeof SITE==="function"?SITE():"Houston Shop")}</div><small>Add your first unit to begin tracking.</small>`;
  ATT=[...U.filter(u=>u.hold&&!u.done).map(u=>["On hold",u.name+": "+u.hold,()=>{show("prog");ps=u.stage;render();openUnit(u.id)}]),...DB.tasks.filter(t=>t.st!=="Done"&&t.due&&t.due<td).map(t=>["Overdue task",t.title+" (due "+t.due+")",()=>show("tasks")]),...DB.fme.filter(r=>M.fme.flag(r)).map(r=>["FME count mismatch",r.title,()=>show("fme")]),...ordAtt(),...(DB.fmea||[]).filter(a=>a.st==="Open").map(a=>["FME area open",(a.unit||"")+" "+a.loc+": "+fmeGate(a).length+" item(s) before close out",()=>{show("fme");fmeArea(a.id)}]),...DB.safety.filter(r=>r.risk==="High"&&r.st!=="Closed").map(r=>["High-risk safety item",r.title,()=>show("safety")]),...(isSup()&&allPh().some(p=>!PV()[p.id])?[["Photos to verify",allPh().filter(p=>!PV()[p.id]).length+" task photo(s) awaiting your verification",()=>show("tasks")]]:[]),...DB.tasks.filter(t=>+t.exp>0&&t.st!=="Done"&&sumH(t.id)>+t.exp).map(t=>["Task over estimate",t.title+": "+sumH(t.id)+" of "+t.exp+" h",()=>show("tasks")])];
  $("#attn").innerHTML=ATT.length?`<h2>Needs attention</h2>`+ATT.slice(0,6).map((a,i)=>`<button class="att" data-i="${i}"><b>${a[0]}</b>${esc(a[1])}</button>`).join(""):(U.length?`<div class="ok">All clear. No holds, overdue tasks or FME mismatches.</div>`:"");
  document.querySelectorAll(".hUnit").forEach(b=>b.hidden=!isSup());hmRender()}
@@ -648,7 +650,7 @@ function stView(){const D=stData(),S=D.sum,dot={Completed:"#4fbf7a",Running:"#3f
  const rs=ISS().filter(i=>i.st==="Resolved").slice(-8).reverse();
  if(rs.length)h+=`<details style="padding:0 16px 30px"><summary>Recently resolved (${rs.length})</summary>${rs.map(i=>`<small style="display:block;margin:4px 0">${esc(i.unit||"General")}: ${esc(i.cat)} - ${esc(i.title)} &middot; resolved ${esc(i.resAt||"")}${i.resBy?" by "+esc(i.resBy):""}</small>`).join("")}</details>`;
  $("#mod").innerHTML=h}
-function stText(){const D=stData(),S=D.sum,o=[];o.push("TURBINEPROS LIVE STATUS REPORT - "+STAMP());o.push("Houston Shop | Customer: "+((ds().setup||{}).customer||"Argon"));
+function stText(){const D=stData(),S=D.sum,o=[];o.push("TURBINEPROS LIVE STATUS REPORT - "+STAMP());o.push(SITE()+" | Customer: "+((ds().setup||{}).customer||"Argon"));
  o.push("");o.push(`SUMMARY: ${S.units} units in work, ${S.hold} on hold | Tasks today: ${S.done} done, ${S.run} running, ${S.pause} paused, ${S.not} not started | ${f2(S.hrs)} h logged | ${S.crew} on the clock | ${S.iss} open issues`);
  D.L.forEach(x=>{o.push("");o.push(x.n.toUpperCase()+(x.u?" - "+(STAGES[x.u.stage]?STAGES[x.u.stage].n:"Delivered")+", "+pct(x.u)+"% complete"+(x.u.hold?" [ON HOLD: "+x.u.hold+"]":""):""));
   if(x.u||x.ts.length)o.push("  Today:");(x.ts.length?x.ts.map(t=>`   [${t.st.toUpperCase()}] ${t.t.title} - ${t.t.who||"unassigned"} - ${f2(t.hrs)}${+t.t.exp?" of "+f2(t.t.exp):""} h`+(t.run.length?" (on the clock: "+t.run.join(", ")+")":"")):(x.u?["   No tasks for today."]:[])).forEach(l=>o.push(l));
@@ -733,7 +735,7 @@ function fme6HTML(a){const E=esc,c=a.close||{sup:{},fore:{},cus:{}},ln=(l,v,w)=>
 const fprev=h=>{RPW=816;$("#pgsty").textContent="";$("#rptb").innerHTML=h;$("#rptw").hidden=false;fit()};
 /* close out */
 const sigRow=(k,l)=>{const o=CL[k];return `<div class="rec"><b>${l}</b><label>Print Name<input data-cl="${k}.print" value="${esc(o.print)}"></label><label>Date<input type="date" data-cl="${k}.date" value="${esc(o.date)}"></label>${o.sig?`<img src="${o.sig}" alt="Signature" style="background:#fff;border-radius:8px;height:50px">`:""}<div class="row"><button type="button" data-fm="sig" data-k="${k}">${o.sig?"Sign Again":"Sign"}</button></div></div>`};
-function clForm(id){const a=FA().find(x=>x.id===id),s=ds().setup,F=$("#dDatF");if(!CL||CL.id!==id)CL={id,cust:s.customer||"",plant:"",addr:s.plant||"",unit:a.unit,loc:a.loc,desc:"",method:"",sup:{print:ME?ME.title:"",sig:"",date:tdy()},fore:{print:"",sig:"",date:tdy()},cus:{print:"",sig:"",date:tdy()}};
+function clForm(id){const a=FA().find(x=>x.id===id),s=ds().setup,F=$("#dDatF");if(!CL||CL.id!==id)CL={id,cust:s.customer||"",plant:SITE(),addr:s.plant||"",unit:a.unit,loc:a.loc,desc:"",method:"",sup:{print:ME?ME.title:"",sig:"",date:tdy()},fore:{print:"",sig:"",date:tdy()},cus:{print:"",sig:"",date:tdy()}};
  F.innerHTML=`<h2>TP-FME-6 FME Close Out Form</h2>`+[["cust","Customer"],["plant","Plant Name"],["addr","Address"],["unit","Unit"],["loc","Location of Close Out"],["desc","Description"]].map(([k,l])=>`<label>${l}<input data-cl="${k}" value="${esc(CL[k])}"></label>`).join("")+`<label>Method Used (visual, borescope, etc.)<input data-cl="method" list="fmeM" value="${esc(CL.method)}"><datalist id="fmeM"><option value="Visual"><option value="Borescope"><option value="See Snake"><option value="Visual and Borescope"></datalist></label>`+sigRow("sup","Supervisor")+sigRow("fore","Foreman / TD")+sigRow("cus","Customer")+`<div class="row"><button type="button" id="dX">Cancel</button><button type="button" class="pri" id="dS">Close Out Area</button></div>`;
  F.oninput=e=>{const k=e.target.dataset&&e.target.dataset.cl;if(!k)return;if(k.includes(".")){const[a1,b1]=k.split(".");CL[a1][b1]=e.target.value}else CL[k]=e.target.value};F.onchange=null;
  F.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="dX"){CL=null;return $("#dDat").close()}
@@ -764,7 +766,7 @@ $("#mod").addEventListener("click",e=>{if(cur==="fme")fmeClick(e)});
 /* ===== Customer Closeout Forms (per component) ===== */
 const COL=()=>DB.closeouts||(DB.closeouts=[]);
 let COS=new Set();
-const coBlank=()=>{const s=ds().setup,last=COL()[COL().length-1]||{};return{id:"c"+Date.now().toString(36),cust:last.cust||s.customer||"",hdr:last.hdr||"",plant:last.plant||"",unit:last.unit||LAST.unit||"",job:last.job||s.jobNo||"",comp:"",loc:last.loc||"",date:tdy(),shift:"",vis:false,dim:false,other:"",ref:last.ref||"Borescope/Visual",wo:"",finds:"",disp:"",exc:"",repRole:last.repRole||"",sup:{name:ME?ME.title:"",sig:"",date:""},rep:{name:"",sig:"",date:""}}};
+const coBlank=()=>{const s=ds().setup,last=COL()[COL().length-1]||{};return{id:"c"+Date.now().toString(36),cust:last.cust||s.customer||"",hdr:last.hdr||QSHDR(),plant:last.plant||SITE(),unit:last.unit||LAST.unit||"",job:last.job||s.jobNo||"",comp:"",loc:last.loc||"",date:tdy(),shift:"",vis:false,dim:false,other:"",ref:last.ref||"Borescope/Visual",wo:"",finds:"",disp:"",exc:"",repRole:last.repRole||"",sup:{name:ME?ME.title:"",sig:"",date:""},rep:{name:"",sig:"",date:""}}};
 function coView(){const L=COL().slice().reverse();
  $("#mod").innerHTML=fmeTabs()+`<div class="hint" style="padding:0 16px">Customer closeout forms, one per component, in the TurbinePROs customer closeout format. Print or save as PDF.</div><div class="row" style="padding:6px 16px"><button class="pri" data-co="new">New Closeout Form</button><button data-co="printsel">Print Selected (${COS.size})</button></div>`+
  (L.map(c=>`<div class="rec"><label class="chk" style="color:inherit"><input type="checkbox" data-co="sel" data-id="${c.id}" ${COS.has(c.id)?"checked":""}><span><b style="display:inline">${esc(c.comp||"Untitled component")}</b></span></label><small>${esc(c.cust)} &middot; ${esc(c.unit||"No unit")} &middot; ${esc(c.date||"")}</small><small>${c.disp==="acc"?"Accepted for closure":c.disp==="hold"?"Hold / further action required":"No customer disposition yet"}${c.sup.sig&&c.rep.sig?" &middot; Signed by both":c.sup.sig||c.rep.sig?" &middot; One signature":" &middot; Not signed"}</small><div class="row"><button class="pri" data-co="print" data-id="${c.id}">Print or Save PDF</button><button data-co="edit" data-id="${c.id}">Edit</button><button data-co="dup" data-id="${c.id}">Duplicate</button>${isSup()?`<button class="danger" data-co="del" data-id="${c.id}">Delete</button>`:""}</div></div>`).join("")||`<div class="empty">No closeout forms yet. Tap New Closeout Form.</div>`)}
@@ -996,13 +998,13 @@ function ssView(){const{S,sm}=ssData(),n=S.reduce((a,x)=>a+x.rows.length,0);
  <div class="stats"><span><b>${sm.units}</b>units in shop</span><span><b>${sm.avg}%</b>average complete</span><span><b>${sm.hold}</b>on hold</span><span><b>${sm.tOpen}</b>open tasks</span><span><b>${sm.tOver}</b>overdue tasks</span><span><b>${sm.iss}</b>open issues</span><span><b>${sm.vo}</b>orders open</span><span><b>${sm.late}</b>late orders and needs</span><span><b>${sm.sn}</b>shop needs open</span><span><b>${sm.fme}</b>FME areas open</span><span><b>${f2(sm.hrs)}</b>hours to date</span></div>`;
  h+=S.map((x,i)=>`<details class="ssd" ${i<2||x.rows.some(r=>r.flag)?"open":""} style="margin:6px 16px"><summary><b>${esc(x.title)}</b> (${x.rows.length})</summary>`+(x.rows.map(r=>{const c=r.c;return `<div class="rec${r.flag?" hold":""}"><b>${esc(c[0])}</b><small>${c.slice(1).filter(Boolean).map(esc).join(" &middot; ")}</small></div>`}).join("")||`<div class="empty">Nothing open.</div>`)+`</details>`).join("");
  $("#mod").innerHTML=h}
-function ssText(){const{S,sm}=ssData(),o=["TURBINEPROS TO-DATE SHOP STATUS REPORT - "+STAMP(),"Houston Shop | Customer: "+((ds().setup||{}).customer||"Argon"),"",`SUMMARY: ${sm.units} units, ${sm.avg}% average complete, ${sm.hold} on hold, ${sm.tOpen} open tasks (${sm.tOver} overdue), ${sm.iss} open issues, ${sm.vo} orders open, ${sm.sn} shop needs open (${sm.late} late), ${sm.fme} FME areas open, ${f2(sm.hrs)} hours to date`];
+function ssText(){const{S,sm}=ssData(),o=["TURBINEPROS TO-DATE SHOP STATUS REPORT - "+STAMP(),SITE()+" | Customer: "+((ds().setup||{}).customer||"Argon"),"",`SUMMARY: ${sm.units} units, ${sm.avg}% average complete, ${sm.hold} on hold, ${sm.tOpen} open tasks (${sm.tOver} overdue), ${sm.iss} open issues, ${sm.vo} orders open, ${sm.sn} shop needs open (${sm.late} late), ${sm.fme} FME areas open, ${f2(sm.hrs)} hours to date`];
  S.forEach(x=>{o.push("","== "+x.title.toUpperCase()+" ("+x.rows.length+") ==");x.rows.forEach(r=>o.push("- "+r.c.filter(Boolean).join(" | ")))});return o.join("\n")}
 function ssPrint(){const{S,sm}=ssData(),now=new Date().toLocaleString(),CAP=48;
  const hd=(t,sub)=>`<div style="display:flex;justify-content:space-between;align-items:flex-start;height:.8in"><img src="${LOGO}" style="height:.5in" alt=""><div style="text-align:right"><div style="font:700 17px Calibri,Carlito,Arial,sans-serif;margin-top:.12in">${t}</div><div style="font-size:11px">${sub}</div></div></div>`,
  th="border:1px solid #000;padding:3px 5px;background:#ede9dc;text-align:left;font-size:10.5px",td="border:1px solid #000;padding:3px 5px;vertical-align:top;font-size:10.5px",pages=[];
  const wt=r=>Math.max(1,Math.ceil(Math.max(...r.c.map(v=>String(v).length/(r.c.length>5?22:r.c.length>3?34:55)))));
- const sub="Houston Shop &middot; "+esc((ds().setup||{}).customer||"Argon")+" &middot; "+esc(now);
+ const sub=esc(SITE())+" &middot; "+esc((ds().setup||{}).customer||"Argon")+" &middot; "+esc(now);
  const stat=[["Units in shop",sm.units],["Average complete",sm.avg+"%"],["On hold",sm.hold],["Open tasks",sm.tOpen],["Overdue tasks",sm.tOver],["Open issues",sm.iss],["Orders open",sm.vo],["Late orders and needs",sm.late],["Shop needs open",sm.sn],["FME areas open",sm.fme],["Hours to date",f2(sm.hrs)],["Crew on roster",sm.crew]];
  let cur="",used=0,first=true;const flush=()=>{if(cur)pages.push(cur);cur="";used=0;first=false};
  const open=()=>{cur=hd("To-Date Shop Status Report",sub);used=0};
@@ -1855,7 +1857,7 @@ async function loadDemoData(){
  DB.vendors=[{id:"v1",name:"GE Parts and Repair",contact:"Rhonda Pruitt",phone:"713-555-0301",email:"rhonda.pruitt@example.com",acct:"TP-10442",note:"Combustion hardware, buckets"},{id:"v2",name:"Gulf Coast Gasket Co",contact:"Mike Tran",phone:"713-555-0322",email:"mtran@example.com",acct:"TP-20917",note:"Gaskets, O-rings, seals"},{id:"v3",name:"Boltworks Supply",contact:"Dana Ruiz",phone:"281-555-0344",email:"dana@example.com",acct:"TP-30018",note:"Studs, nuts, fasteners"},{id:"v4",name:"Houston Turbine Machining",contact:"Gary Hollis",phone:"713-555-0366",email:"ghollis@example.com",acct:"TP-40551",note:"Nozzle, shroud and transition piece repair"},{id:"v5",name:"Hydro-Test Services",contact:"Priya Natarajan",phone:"281-555-0388",email:"priya@example.com",acct:"TP-50610",note:"Tensioner and wrench rentals"},{id:"v6",name:"Lone Star NDT",contact:"Chris Beal",phone:"713-555-0399",email:"chris@example.com",acct:"TP-60224",note:"NDT inspection"},{id:"v7",name:"Bayou Rotor Services",contact:"Hank Doucet",phone:"281-555-0411",email:"hdoucet@example.com",acct:"TP-70135",note:"Rotor repair, bucket replacement, balancing"},{id:"v8",name:"Precision Bearing Repair",contact:"Linda Cho",phone:"713-555-0422",email:"lcho@example.com",acct:"TP-80211",note:"Babbitt and bearing repair"},{id:"v9",name:"Gulf Valve and Controls",contact:"Tony Reyes",phone:"281-555-0433",email:"treyes@example.com",acct:"TP-90377",note:"Gas control and stop/ratio valves"},{id:"v10",name:"Texas Crane Service",contact:"Bill Haynes",phone:"713-555-0444",email:"bhaynes@example.com",acct:"TP-11408",note:"Crane inspection and repair"}];
  const ord=(kind,vendor,desc,qty,po,ordered,due,st,extra)=>{const o=Object.assign({id:"o"+DB.orders.length+"x"+kind,kind,vendor,desc,qty,po,unit:"",tid:"",ttl:"",ordered,due,st,track:"",rec:[],fu:[],log:[],pri:"Normal",by:""},extra||{});o.log.push({t:(ordered+" 09:00"),m:(kind==="shop"?"Requested ":"Ordered ")+ordered,by:AUS});DB.orders.push(o);return o};
  const rcv=async(o,date,qty,cond,by,bolNo,carrier,done)=>{const r={id:"r"+Math.random().toString(36).slice(2,7),date,qty,cond,by,bolNo,carrier,note:""};
-  if(bolNo){const pgs=[sheetPage("BILL OF LADING "+bolNo,[["Shipper",o.vendor],["Carrier",carrier],["Consignee","TurbinePros Houston Shop"],["Description",o.desc],["Quantity",String(qty)],["Date",date]],"Received at the Houston shop dock")];const id=await addDoc({title:"BOL "+bolNo+" - "+o.vendor,cat:"BOL / Bill of Lading",ord:o.id,unit:o.unit,tid:o.tid,ttl:o.ttl,date,who:by,note:""},pgs);r.bol=id}
+  if(bolNo){const pgs=[sheetPage("BILL OF LADING "+bolNo,[["Shipper",o.vendor],["Carrier",carrier],["Consignee",(QSGET("q","co")||"TurbinePros")+" "+SITE()],["Description",o.desc],["Quantity",String(qty)],["Date",date]],"Received at the Houston shop dock")];const id=await addDoc({title:"BOL "+bolNo+" - "+o.vendor,cat:"BOL / Bill of Lading",ord:o.id,unit:o.unit,tid:o.tid,ttl:o.ttl,date,who:by,note:""},pgs);r.bol=id}
   o.rec.push(r);if(done){o.st="Received";o.recvd=date}else o.st="Partially Received";o.log.unshift({t:date+" 10:30",m:"Received "+qty+" ("+cond+")"+(bolNo?" BOL "+bolNo:"")+(done?" - order complete":" - partial"),by})};
  const tk=(t)=>t?{tid:t.id,ttl:t.title}:{};
  const fu=(o,n,note,by)=>o.fu.push({d:dayOf(n),note,by:by||AUS});
@@ -2279,7 +2281,7 @@ function mcView(){
  const row=r=>`<button type="button" class="rec mcr${late(r)?" hold":""}" data-mcopen="${r.date}"><span class="sw" style="background:${r.auto?"#9aa2a8":MCC[r.color]?MCC[r.color][1]:"#1c1f22"}"></span><span class="dt">${esc(shortD(r.date))}</span><span class="tx"><b style="font-size:18px">${esc(r.text)}</b><small>${esc(r.unit||"Shop / General")}${r.auto?" &middot; from Unit Progress Tracker":""}</small></span></button>`;
  $("#mod").innerHTML=`<div class="mh"><h2>Milestone Board</h2></div>
  <div class="wbt"><button type="button" data-mcnav="-1" aria-label="Previous month">&#9664;</button><button type="button" data-mcnav="0">Today</button><button type="button" data-mcnav="1" aria-label="Next month">&#9654;</button><span class="sp"></span>${sup()?`<button type="button" class="pri" data-mcnew="1">Write a Milestone</button>`:""}</div>
- <div class="wbf"><div class="wb"><div class="wbm">${MCMON[MCM]} ${MCY}<small>Houston Shop milestones</small></div>
+ <div class="wbf"><div class="wb"><div class="wbm">${MCMON[MCM]} ${MCY}<small>${esc(SITE())} milestones</small></div>
  <div class="wbg">${MCDAY.map(x=>`<div class="wh">${x}</div>`).join("")}${cells}</div>
  <div class="wbn">${sup()?"Pick a marker below, then tap any day to write on it.":"Tap a day to read it. Supervisors write the milestones."}</div></div></div>
  <div class="tray" role="radiogroup" aria-label="Marker color">${Object.keys(MCC).map(k=>`<button type="button" class="pen${MCPEN===k?" on":""}" role="radio" aria-checked="${MCPEN===k}" data-mcpen="${k}" style="--pc:${MCC[k][1]}"><b></b><span class="pen-l">${MCC[k][0]}</span></button>`).join("")}</div>
@@ -2342,6 +2344,186 @@ try{FAV_SHORT.mcal="Milestones"}catch(e){}
  $("#attn").innerHTML=`<h2>Needs attention</h2>`+ATT.slice(0,6).map((a,i)=>`<button class="att" data-i="${i}"><b>${a[0]}</b>${esc(a[1])}</button>`).join("")}catch(e){}}}
 try{favRender()}catch(e){}
 try{if(cur==="home")home()}catch(e){}
+})();
+
+/* ===== Quick Start Setup: enter job info once, used everywhere ===== */
+(function(){
+ const QD={site:"Houston Shop",co:"TurbinePros",em:"911",unitCust:"Argon"};
+ window.QSD=()=>{if(!DB.qs||typeof DB.qs!=="object")DB.qs=Object.assign({},QD);return DB.qs};
+ const nv=v=>{v=String(v==null?"":v).trim();return /^n\/?a$/i.test(v)?"":v};
+ window.SITE=()=>nv(QSD().site)||"Houston Shop";
+ window.JOBNO=()=>nv((ds().setup||{}).jobNo);
+ window.SUPNOW=()=>{const d=ds(),c=d.contacts,n=d.setup.shift==="Nights";return nv(n?c.nSup:c.dSup)||nv(c.dSup)};
+ window.EMLINE=()=>{const q=QSD(),p=[];p.push("Emergency: "+(nv(q.em)||"911"));if(nv(q.siteEm))p.push("Site: "+nv(q.siteEm));if(nv(q.muster))p.push("Muster: "+nv(q.muster));if(nv(q.hosp))p.push("Hospital: "+nv(q.hosp)+(nv(q.hospPh)?" "+nv(q.hospPh):""));return p.join("  |  ")};
+ /* demo example values: only when the demo job is loaded and Quick Start was never filled */
+ try{const q0=DB.qs||{};if((ds().setup||{}).jobNo==="ARG-OM-2601"&&!q0.hosp&&!q0.po){DB.qs={site:"Houston Shop",co:"TurbinePros",unitCust:"Argon",po:"APG-PO-44871",start:"2026-11-02",end:"2027-06-30",gate:"Check in at the front office. Visitors sign the log and get the site safety video before going on the floor.",hours:"Mon to Sat, 6:00 AM to 4:30 PM",custPh:"346-305-0750 / carlos.mendes@example.com",bill:"Argon Power Group, LLC, 233 Wilshire Blvd, Suite 650, Santa Monica, CA 90401",ap:"Brian Spitz, Accounts Payable",apPh:"440-933-8936 / spitz@argonpowergroup.com",plantPh:"713-555-0100",ctrl:"N/A (shop job)",coAddr:"12450 Industrial Pkwy, Houston, TX 77041",pm:"Austin Shepherd",em:"911",siteEm:"713-555-0111 (shop office)",muster:"Front parking lot by the flagpole",hosp:"Houston Methodist West Hospital",hospAddr:"18500 Katy Fwy, Houston, TX 77094",hospPh:"832-522-1000",clinic:"Concentra Urgent Care, Northwest Houston",aed:"AED and first aid kit at the tool crib. Eye wash at Bay 2 and the parts wash station.",hseq:"Priya Anand, Safety Lead (report in HSEQ Reports within 1 hour)",notes:"Overhead crane Bay 1 is 30 ton, Bay 2 is 15 ton. Forklift keys at the tool crib."};sv()}}catch(e){}
+ QSD();
+ /* fields: [store, key, label, type, used in] store s=report setup, c=contacts, m=compliance, q=quick start */
+ const U_ALL="Daily Status Report, JSA, task sheets, walking cards, FME and customer close-out forms";
+ const SECS=[
+  ["Job and Site","The basics for every form at a new plant or shop.",[
+   ["q","site","Shop or plant name","text","Home screen, report headers, task sheets, walking cards, close-out forms"],
+   ["s","jobNo","Job number","text",U_ALL],
+   ["q","po","Customer PO number","text","Customer info"],
+   ["s","customer","Customer (full legal name)","text","Daily Status Report, JSA, close-out forms"],
+   ["s","short","Customer short name for report headers","text","Daily Status Report header, JSA location"],
+   ["q","unitCust","Customer name on new units","text","Add Unit form"],
+   ["s","unit","Units and equipment","text","Daily Status Report"],
+   ["s","sow","Scope of work","area","Daily Status Report"],
+   ["q","start","Job start","date","Customer info"],
+   ["q","end","Planned finish","date","Customer info"],
+   ["s","plant","Site address","area","Daily Status Report, FME close-out"],
+   ["s","truck","Truck receiving address","area","Daily Status Report"],
+   ["q","gate","Gate and check-in instructions","area","Site info sheet"],
+   ["q","hours","Site work hours","text","Site info sheet"],
+   ["s","shift","Default shift","sel",["Days","Nights"],"Daily Status Report, JSA, walking cards"]]],
+  ["Customer and Plant Contacts","",[
+   ["c","dCust","Customer site rep (day)","text","Daily Status Report, customer info"],
+   ["q","custPh","Customer rep phone / email","text","Customer info, site info sheet"],
+   ["c","nCust","Customer site rep (night)","text","Daily Status Report"],
+   ["q","bill","Customer billing address","area","Customer info"],
+   ["q","ap","Accounts payable contact","text","Customer info"],
+   ["q","apPh","Accounts payable phone / email","text","Customer info"],
+   ["c","dPlant","Plant contact (day)","text","Daily Status Report"],
+   ["q","plantPh","Plant contact phone","text","Site info sheet"],
+   ["c","nPlant","Plant contact (night)","text","Daily Status Report"],
+   ["q","ctrl","Control room phone","text","Site info sheet"]]],
+  ["TurbinePros Team","",[
+   ["q","co","Company name","text","Receiving paperwork, site info sheet"],
+   ["q","coAddr","Shop / office address","area","Site info sheet"],
+   ["q","pm","Project manager","text","JSA, site info sheet"],
+   ["c","oName","Office contact","text","Daily Status Report"],
+   ["c","oPh","Office phone / email","text","Daily Status Report"],
+   ["c","dSup","Day supervisor","text","Daily Status Report, JSA, walking cards"],
+   ["c","nSup","Night supervisor","text","Daily Status Report, walking cards"],
+   ["c","dTd","Day technical director","text","Daily Status Report"],
+   ["c","nTd","Night technical director","text","Daily Status Report"],
+   ["c","dFore","Day foreman","text","Daily Status Report, JSA"],
+   ["c","nFore","Night foreman","text","Daily Status Report"],
+   ["c","dCrew","Day crew size","text","Daily Status Report, JSA manpower"],
+   ["c","nCrew","Night crew size","text","Daily Status Report"],
+   ["c","dLen","Day shift length","text","Daily Status Report"],
+   ["c","nLen","Night shift length","text","Daily Status Report"]]],
+  ["Safety and Emergency","Prints on every walking card and the site info sheet.",[
+   ["q","em","Emergency number","text","Walking cards, site info sheet"],
+   ["q","siteEm","Site emergency or security phone","text","Walking cards, site info sheet"],
+   ["q","muster","Muster point","text","Walking cards, site info sheet"],
+   ["q","hosp","Nearest hospital","text","Walking cards, site info sheet"],
+   ["q","hospAddr","Hospital address","text","Site info sheet"],
+   ["q","hospPh","Hospital phone","text","Walking cards, site info sheet"],
+   ["q","clinic","Occupational clinic or urgent care","text","Site info sheet"],
+   ["q","aed","First aid, AED and eye wash locations","area","Site info sheet"],
+   ["c","sName","Safety contact","text","Daily Status Report, site info sheet"],
+   ["c","sPh","Safety phone / email","text","Daily Status Report, site info sheet"],
+   ["q","hseq","Incident reporting contact","text","Site info sheet"],
+   ["c","qName","Quality contact","text","Daily Status Report"],
+   ["c","qPh","Quality phone / email","text","Daily Status Report"],
+   ["m","holder","Primary LOTO holder (plant)","text","Daily Status Report"],
+   ["m","craneOp","Crane operator","text","Daily Status Report"]]],
+  ["Reports","",[
+   ["s","sendTo","Send daily reports to (one email per line)","area","Daily Status Report"],
+   ["q","notes","Other site notes","area","Site info sheet"]]]];
+ const fld=f=>f[3]==="sel"?{st:f[0],k:f[1],l:f[2],t:"sel",o:f[4],u:f[5]}:{st:f[0],k:f[1],l:f[2],t:f[3],u:f[4]};
+ const ALL=[];SECS.forEach(s=>s[2].forEach(f=>ALL.push(fld(f))));
+ const obj=st=>st==="q"?QSD():st==="s"?ds().setup:st==="c"?ds().contacts:ds().comp;
+ const get=f=>{const v=obj(f.st)[f.k];return v==null?"":String(v)};
+ window.QSGET=(st,k)=>nv(obj(st)[k]);
+ let qsTimer=0,OPEN={};
+ function applyDefaults(){try{const c=document.querySelector('#fAdd [name="customer"]');if(c){c.defaultValue=nv(QSD().unitCust)||"Argon";if(!document.getElementById("dAdd").open)c.value=c.defaultValue}
+  const s=document.querySelector('#fAdd [name="src"]');if(s&&!s.defaultValue&&nv(QSD().site))s.placeholder=nv(QSD().site)}catch(e){}}
+ function filled(){return ALL.filter(f=>nv(get(f))).length}
+ window.qsView=function(){const sup=isSup(),E=esc,n=filled();
+  $("#mod").innerHTML=`<div class="mh"><h2>Quick Start Setup</h2></div>
+  <div class="hint" style="padding:0 16px">Enter the job and site information once. The Daily Status Report, JSA, task sheets, walking cards, close-out forms and customer info all fill in from here. Change anything here at any time, or edit it on the form itself, and both stay in step.</div>
+  <div class="sum" style="padding:12px 16px 2px"><small><b id="qsN" style="display:inline;font-size:16px;color:var(--ink)">${n}</b> of ${ALL.length} filled in</small><div class="prg"><i id="qsBar" style="width:${Math.round(100*n/ALL.length)}%"></i></div><small id="qsSaved" style="color:var(--done)"></small></div>
+  ${sup?"":`<div class="rec hold"><b>View only</b><small>Only supervisors can change Quick Start Setup.</small></div>`}
+  <div class="row" style="padding:0 16px"><button class="pri" data-qs="print">Print Site Info Sheet</button>${sup?`<button class="danger" data-qs="clear">Clear for New Job</button>`:""}</div>
+  <div style="padding:0 16px 30px">`+SECS.map(([t,h,fs],si)=>{const F=fs.map(fld),c=F.filter(f=>nv(get(f))).length;
+   return `<details class="fsec" data-si="${si}"${(OPEN[si]===undefined?si===0:OPEN[si])?" open":""}><summary>${E(t)} <span style="margin-left:auto;font-weight:600;color:var(--mute);font-size:14px" data-sc="${si}">${c} of ${F.length}</span></summary>${h?`<div class="hint">${E(h)}</div>`:""}`+
+   F.map(f=>{const id="qs_"+f.st+"_"+f.k,v=get(f),ro=sup?"":" readonly disabled";
+    const inp=f.t==="area"?`<textarea id="${id}" data-q="${f.st}.${f.k}" rows="2"${ro}>${E(v)}</textarea>`:f.t==="sel"?`<select id="${id}" data-q="${f.st}.${f.k}"${ro}>${f.o.map(o=>`<option${v===o?" selected":""}>${o}</option>`).join("")}</select>`:`<input id="${id}" data-q="${f.st}.${f.k}" type="${f.t==="date"?"date":"text"}" value="${E(v)}"${ro}>`;
+    return `<label for="${id}">${E(f.l)}${inp}<span style="display:block;font-size:12px;color:var(--mute);margin-top:2px">Used in: ${E(f.u)}</span></label>`}).join("")+`</details>`}).join("")+
+  `<details class="fsec"><summary>Crew (${DB.people.length})</summary><div class="hint">Employees, roles and PINs are kept in Employee &amp; Supervision Entry. Task assignment, hours, the JSA crew list and walking cards all use that list.</div>${DB.people.slice(0,40).map(p=>`<small style="display:block;padding:3px 0">${E(p.title)} &middot; ${E(p.role||"")}</small>`).join("")}<div class="row"><button data-qs="crew">Open Employee &amp; Supervision Entry</button></div></details></div>`}
+ const M0=$("#mod");
+ const onQ=e=>{const t=e.target;if(cur!=="qs"||!t.dataset||!t.dataset.q||!isSup())return;const[st,k]=t.dataset.q.split(".");obj(st)[k]=t.value;
+  clearTimeout(qsTimer);qsTimer=setTimeout(()=>{sv();applyDefaults();const n=filled(),N=$("#qsN"),B=$("#qsBar"),S=$("#qsSaved");if(N)N.textContent=n;if(B)B.style.width=Math.round(100*n/ALL.length)+"%";if(S)S.textContent="Saved";
+   SECS.forEach(([t,h,fs],si)=>{const x=document.querySelector(`[data-sc="${si}"]`);if(x)x.textContent=fs.map(fld).filter(f=>nv(get(f))).length+" of "+fs.length})},350)};
+ M0.addEventListener("input",onQ);M0.addEventListener("change",onQ);
+ M0.addEventListener("toggle",e=>{const d=e.target;if(cur==="qs"&&d.dataset&&d.dataset.si!==undefined)OPEN[d.dataset.si]=d.open},true);
+ M0.addEventListener("click",e=>{const b=e.target.closest("button[data-qs]");if(!b||cur!=="qs")return;const k=b.dataset.qs;
+  if(k==="crew")return show("people");
+  if(k==="print")return fprev(qsHTML());
+  if(k==="clear"&&isSup()&&confirm("Clear the job, site, contact and emergency information for a new job? Company name, crew and all unit and task records stay.")){const keep={co:QSD().co||"TurbinePros",em:"911",unitCust:QSD().unitCust||"Argon",coAddr:QSD().coAddr||"",pm:QSD().pm||""};
+   ALL.forEach(f=>{if(f.st!=="q"&&f.k!=="shift")obj(f.st)[f.k]=""});DB.qs=Object.assign({},QD,keep,{site:""});sv();applyDefaults();qsView()}});
+ /* printable one-page site information sheet */
+ window.qsHTML=function(){const E=esc,q=QSD(),now=new Date().toLocaleString(),row=(l,v)=>`<tr><td style="border:1px solid #000;padding:3px 6px;width:2.1in;background:#ede9dc;font-weight:700">${E(l)}</td><td style="border:1px solid #000;padding:3px 6px;white-space:pre-wrap">${E(v||"")}</td></tr>`;
+  const dt=v=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(v))return v;const x=new Date(v+"T12:00:00");return x.toLocaleDateString(undefined,{month:"long",day:"numeric",year:"numeric"})};const sec=(t,fs)=>`<div style="font:700 13px Arial,sans-serif;margin:10px 0 3px">${t}</div><table style="width:100%;border-collapse:collapse;font-size:11px">${fs.map(f=>row(f.l,f.t==="date"?dt(nv(get(f))):nv(get(f)))).join("")}</table>`;
+  const pick=ks=>ks.map(k=>ALL.find(f=>f.k===k)).filter(Boolean);
+  return `<div class="pg" style="padding:.4in .5in"><div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:6px"><img src="${LOGO}" alt="" style="height:.5in"><div style="text-align:right"><div style="font:700 18px Arial,sans-serif">Site Information Sheet</div><div>${E(SITE())}${JOBNO()?" &middot; Job "+E(JOBNO()):""} &middot; Printed ${E(now)}</div></div></div>
+  <div style="border:3px solid #b00;margin-top:10px;padding:6px 10px;font:700 13px Arial,sans-serif">IN AN EMERGENCY CALL ${E(nv(q.em)||"911")}${nv(q.siteEm)?" &middot; THEN SITE "+E(nv(q.siteEm)):""}<div style="font:12px Arial,sans-serif;margin-top:3px">Muster point: ${E(nv(q.muster)||"________________")} &middot; Hospital: ${E(nv(q.hosp)||"________________")}${nv(q.hospAddr)?", "+E(nv(q.hospAddr)):""}${nv(q.hospPh)?", "+E(nv(q.hospPh)):""}</div></div>`+
+  sec("Job and Site",pick(["site","jobNo","po","customer","unit","sow","start","end","plant","truck","gate","hours","shift"]))+
+  sec("Contacts",pick(["dCust","custPh","dPlant","plantPh","ctrl","pm","oName","oPh","dSup","nSup","dFore","dTd"]))+
+  sec("Safety",pick(["clinic","aed","sName","sPh","hseq","holder","craneOp"]))+(nv(q.notes)?sec("Notes",pick(["notes"])):"")+`</div>`};
+ /* register the tab */
+ M.qs={t:"Quick Start Setup",f:[],sum:()=>""};
+ const _m=mod;mod=function(k){if(k==="qs")return qsView();return _m.apply(this,arguments)};
+ const _s=show;show=function(v){const r=_s.apply(this,arguments);if(cur==="qs")$("#fab").hidden=true;return r};
+ try{const mm=document.querySelector("#dMore .more");if(mm&&!mm.querySelector('[data-k="qs"]')){const x=document.createElement("button");x.dataset.k="qs";x.textContent="Quick Start Setup";x.style.fontWeight="700";mm.insertBefore(x,mm.firstChild)}}catch(e){}
+ /* autofill into the rest of the app */
+ const _nj=newJSA;newJSA=function(){const r=_nj.apply(this,arguments);try{const j=J()[J().length-1];if(j&&!nv(j.pm)&&nv(QSD().pm)){j.pm=nv(QSD().pm);sv();if(typeof jsaEdit==="function")jsaEdit(j.id)}}catch(e){}return r};
+ const _cv=custView;custView=function(){const r=_cv.apply(this,arguments);try{const q=QSD(),s=ds().setup,c=ds().contacts,E=esc,L=[];
+  if(nv(s.customer)||nv(c.dCust)||nv(q.bill)){const h=document.querySelector("#mod .mh");const d=document.createElement("div");
+   d.innerHTML=`<h2 class="sec">Current Job (from Quick Start)</h2><div class="rec"><b>${E(nv(s.customer)||"Customer not set")}</b>${nv(s.jobNo)?`<small>Job ${E(s.jobNo)}${nv(q.po)?" &middot; PO "+E(q.po):""}</small>`:""}${nv(q.bill)?`<small>Billing: ${E(q.bill)}</small>`:""}${nv(q.start)||nv(q.end)?`<small>Dates: ${E(nv(q.start)||"?")} to ${E(nv(q.end)||"?")}</small>`:""}</div>`+
+   (nv(c.dCust)?`<div class="rec"><b>${E(c.dCust)}</b><small>Customer site rep</small>${nv(q.custPh)?`<small>${E(q.custPh)}</small>`:""}</div>`:"")+(nv(q.ap)?`<div class="rec"><b>${E(q.ap)}</b>${nv(q.apPh)?`<small>${E(q.apPh)}</small>`:""}</div>`:"")+
+   (nv(c.dPlant)?`<div class="rec"><b>${E(c.dPlant)}</b><small>Plant contact</small>${nv(q.plantPh)?`<small>${E(q.plantPh)}</small>`:""}</div>`:"")+`<h2 class="sec">Customer Directory</h2>`;
+   if(h)h.after(d)}}catch(e){}return r};
+ window.QSHDR=()=>{const sh=nv(ds().setup.short),si=nv(QSD().site);return sh?sh+(si?" | "+si:""):""};
+ applyDefaults();
+})();
+
+/* ===== Task print + Safety Time Out walking cards ===== */
+(function(){
+ const E=esc,ppl=()=>DB.people||[];
+ const isMW=n=>{const p=ppl().find(x=>x.title===n);return !!p&&/millwright/i.test(p.role||"")};
+ const supName=()=>SUPNOW()||(isSup()&&ME?ME.title:"")||((ppl().find(p=>SUPR.includes(p.role))||{}).title||"");
+ const fmtD=d=>{if(!d)return "";const x=new Date(d+"T12:00:00");return isNaN(x)?d:x.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric",year:"numeric"})};
+ const cut=(v,n)=>{v=String(v||"");return v.length>n?v.slice(0,n-1).replace(/[,;\s]+\S*$/,"")+"…":v};
+ function info(t){const i=stepInfo(t.title||"");return {tools:t.tools||i.tools.join(", "),haz:t.haz||i.haz.join(", "),ctl:t.ctl||i.ctl.join(", "),ppe:uq(i.ppe),crane:!!i.crane}}
+ const crew=t=>(t.who||"").split(/,\s*/).filter(Boolean);
+ const CHK=["I know the job steps and my part in this task","Energy is isolated, locked and verified at zero (LOTO)","Today's JSA is reviewed and signed by me","FME area controls are in place and tools are logged","Tools, rigging and equipment are inspected and right for the job","I am out of the line of fire, pinch points and drop zones","Required PPE is on and in good condition","I know the muster point and who to call in an emergency"];
+ const CS="font:11.5px/1.3 Calibri,Carlito,Arial,sans-serif";
+ function card(t,name){const f=info(t),sup=supName();
+  return `<div style="height:5.15in;border:2px solid #000;padding:.12in .16in;display:flex;flex-direction:column;gap:.06in;${CS}">
+<div style="display:flex;align-items:center;gap:.14in;border-bottom:2px solid #000;padding-bottom:.05in"><img src="${LOGO}" alt="" style="height:.34in"><div style="flex:1"><div style="font:700 19px Arial,sans-serif;letter-spacing:.4px">SAFETY TIME OUT &middot; WALKING CARD</div><div style="font-size:10.5px">Run this checklist before you start and any time conditions change.</div></div><div style="border:2px solid #000;padding:2px 6px;font:700 10px Arial,sans-serif;text-align:center;line-height:1.1">STOP WORK<br>AUTHORITY</div></div>
+<table style="width:100%;border-collapse:collapse;font-size:12px"><tr><td style="border:1px solid #000;padding:2px 5px;width:50%"><b>Millwright:</b> ${name?E(name):"______________________"}</td><td style="border:1px solid #000;padding:2px 5px"><b>Unit:</b> ${E(t.unit||"")}</td></tr>
+<tr><td style="border:1px solid #000;padding:2px 5px"><b>Work date:</b> ${E(fmtD(t.due))}</td><td style="border:1px solid #000;padding:2px 5px"><b>Supervisor:</b> ${sup?E(sup):"______________________"}</td></tr>
+<tr><td colspan="2" style="border:2px solid #b00;padding:2px 5px;font-weight:700;font-size:10.5px">${E(EMLINE())}</td></tr><tr><td colspan="2" style="border:1px solid #000;padding:2px 5px"><b>Task:</b> ${E(cut(t.title,120))}${t.note?` <span style="color:#444">(${E(t.note)})</span>`:""}</td></tr></table>
+<div style="display:flex;gap:.12in;flex:1 0 auto">
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:.06in"><div><b style="font-size:13px;display:block;margin-bottom:1px">HAZARDS</b><div>${E(cut(f.haz,150))}</div></div><div><b style="font-size:13px;display:block;margin-bottom:1px">CONTROLS</b><div>${E(cut(f.ctl,170))}</div></div><div><b style="font-size:13px;display:block;margin-bottom:1px">PPE</b><div>${E(cut(f.ppe,140))}</div></div></div>
+<div style="flex:1.15;min-width:0"><b style="font-size:13px;display:block;margin-bottom:1px">TIME OUT CHECKLIST</b>${CHK.map(c=>`<div style="display:flex;gap:7px;align-items:flex-start;margin-top:3px"><span style="flex:none;width:13px;height:13px;border:1.5px solid #000;margin-top:1px"></span><span>${c}</span></div>`).join("")}<div style="margin-top:5px;font-weight:700">If any box can't be checked: STOP, call a time out, tell your supervisor.</div>${f.crane?`<div style="border:1px solid #000;padding:2px 4px;margin-top:5px;font-weight:700">LIFT TASK: pre-lift meeting, inspected rigging, tag lines. Never under the load.</div>`:""}</div></div>
+<table style="width:100%;border-collapse:collapse;font-size:11px"><tr><th style="border:1px solid #000;padding:1px 4px;width:.7in">Time</th><th style="border:1px solid #000;padding:1px 4px">Time out called: what changed or stopped the work</th><th style="border:1px solid #000;padding:1px 4px;width:1.2in">Cleared by</th><th style="border:1px solid #000;padding:1px 4px;width:.6in">Initials</th></tr>${[1,2].map(()=>`<tr><td style="border:1px solid #000;height:.22in"></td><td style="border:1px solid #000"></td><td style="border:1px solid #000"></td><td style="border:1px solid #000"></td></tr>`).join("")}</table>
+<div style="display:flex;justify-content:space-between;gap:.2in;font-size:11px"><span>Anyone can call a time out. No one is disciplined for stopping unsafe work.</span><span style="white-space:nowrap">Reviewed before start: ________________</span></div>
+</div>`}
+ function sheet(ts){const now=new Date().toLocaleString(),pages=[];for(let i=0;i<ts.length;i+=5)pages.push(ts.slice(i,i+5));
+  return pages.map((g,pi)=>`<div class="pg" style="padding:.4in .5in"><div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:6px"><img src="${LOGO}" alt="" style="height:.5in"><div style="text-align:right"><div style="font:700 18px Arial,sans-serif">Task Assignment</div><div>${E(SITE())}${JOBNO()?" &middot; Job "+E(JOBNO()):""} &middot; Printed ${E(now)} &middot; Page ${pi+1} of ${pages.length}</div></div></div>`+
+  g.map(t=>{const f=info(t),c=crew(t),mw=c.filter(isMW);return `<div style="border:1px solid #000;margin-top:10px;padding:6px 8px;font-size:11px;break-inside:avoid"><div style="font:700 14px Arial,sans-serif">${E(t.title)}</div>
+<div style="margin:2px 0 4px">${E(t.unit||"No unit")}${t.note?" &middot; "+E(t.note):""} &middot; Work date ${E(fmtD(t.due)||"not set")} &middot; Expected ${t.exp?f2(t.exp)+" crew hours":"not set"}</div>
+<table style="width:100%;border-collapse:collapse"><tr><td style="border:1px solid #000;padding:2px 5px;width:1.2in"><b>Assigned</b></td><td style="border:1px solid #000;padding:2px 5px">${c.length?E(c.join(", ")):"No one assigned"}</td></tr>
+<tr><td style="border:1px solid #000;padding:2px 5px"><b>Tools / equipment</b></td><td style="border:1px solid #000;padding:2px 5px">${E(f.tools)}</td></tr><tr><td style="border:1px solid #000;padding:2px 5px"><b>Hazards</b></td><td style="border:1px solid #000;padding:2px 5px">${E(f.haz)}</td></tr><tr><td style="border:1px solid #000;padding:2px 5px"><b>Controls</b></td><td style="border:1px solid #000;padding:2px 5px">${E(f.ctl)}</td></tr></table>
+<div style="margin-top:3px;font-size:10px">Walking cards: ${mw.length?mw.length+" (one each for "+E(mw.join(", "))+")":"1 blank card (no millwright assigned)"}</div></div>`}).join("")+`</div>`).join("")}
+ window.taskPrintHTML=function(ts){const cards=[];ts.forEach(t=>{const mw=crew(t).filter(isMW);(mw.length?mw:[""]).forEach(n=>cards.push(card(t,n)))});
+  let h=sheet(ts);for(let i=0;i<cards.length;i+=2)h+=`<div class="pg" style="padding:.3in .4in;display:flex;flex-direction:column;justify-content:space-between">${cards[i]}${cards[i+1]?`<div style="border-top:1px dashed #000;position:relative;margin:0 -.4in"><span style="position:absolute;left:50%;transform:translate(-50%,-55%);background:#fff;padding:0 6px;font-size:9px">cut here</span></div>${cards[i+1]}`:""}</div>`;
+  return h};
+ window.printTasks=function(ts){ts=ts.filter(Boolean);if(!ts.length)return;fprev(taskPrintHTML(ts))};
+ /* task detail: Print button */
+ const _td=taskDetail;taskDetail=function(id){const r=_td.apply(this,arguments);try{const x=document.querySelector('#tdB [data-td="x"]');if(x&&!document.querySelector('#tdB [data-td="tprint"]')){const b=document.createElement("button");b.type="button";b.className="pri";b.dataset.td="tprint";b.textContent="Print Task + Walking Cards";x.parentNode.insertBefore(b,x)}}catch(e){}return r};
+ $("#dTask").addEventListener("click",e=>{const b=e.target.closest('button[data-td="tprint"]');if(!b)return;const t=DB.tasks.find(x=>x.id===TDID);if(!t)return;$("#dTask").close();printTasks([t])});
+ /* task list: Print on each task */
+ const _tv=tasksView;tasksView=function(){const r=_tv.apply(this,arguments);try{document.querySelectorAll("#mod .rec").forEach(rec=>{const b=rec.querySelector("button[data-id]");const row=rec.querySelector(".row");if(!b||!row||row.querySelector("[data-tprint]"))return;const p=document.createElement("button");p.type="button";p.dataset.tprint=b.dataset.id;p.textContent="Print";row.appendChild(p)})}catch(e){}return r};
+ $("#mod").addEventListener("click",e=>{const b=e.target.closest("button[data-tprint]");if(!b||cur!=="tasks")return;e.stopPropagation();printTasks([DB.tasks.find(x=>x.id===b.dataset.tprint)])},true);
+ /* after new tasks are created: open the print preview */
+ let before=null;const _sp=stepPicker;stepPicker=function(){before=new Set(DB.tasks.map(t=>t.id));return _sp.apply(this,arguments)};
+ const _at=afterTasks;afterTasks=function(){const fresh=before?DB.tasks.filter(t=>!before.has(t.id)):[];before=null;const r=_at.apply(this,arguments);if(fresh.length)setTimeout(()=>printTasks(fresh),0);return r};
 })();
 
 /* ===== Back button on every tab ===== */
