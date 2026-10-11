@@ -2036,6 +2036,183 @@ function srGo(n){const r=SRH[n];if(!r)return;$("#hsQ").value="";$("#hsR").hidden
  $("#hsX").onclick=()=>{i.value="";srRun();i.focus()}})();
 favRender();
 
+/* ===== Milestone Board: whiteboard calendar, supervisors write milestone dates ===== */
+(function(){
+const MCC={blk:["Black","#1c1f22"],blu:["Blue","#1446a8"],red:["Red","#c4161c"],grn:["Green","#137a2e"]};
+const MCPICK=["Unit arrives","Teardown starts","Inspection complete","Findings to customer","Parts due in","Hold point / witness","Reassembly starts","Test complete","Ready to ship","Ship date","Customer visit","Crane / rigging day"];
+const MCMON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const MCDAY=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const MCDAYL=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MC=()=>DB.mcal||(DB.mcal=[]);
+let MCY,MCM,MCPEN="blu",MCDAYSEL="",MCEDIT=null;
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const pd=s=>new Date(s+"T00:00");
+const addD=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return iso(d)};
+const longD=s=>{const d=pd(s);return MCDAYL[d.getDay()]+", "+MCMON[d.getMonth()]+" "+d.getDate()};
+const shortD=s=>{const d=pd(s);return MCDAY[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate()};
+const sup=()=>typeof isSup==="function"&&isSup();
+const label=r=>(r.unit?r.unit+": ":"")+r.text;
+/* Unit ETAs from the tracker show on the board automatically (gray, read only) */
+function mcAuto(){return U.filter(u=>u.eta&&!u.done&&(u.stage||0)===0).map(u=>({id:"eta-"+u.id,date:u.eta,unit:u.name,text:"Expected arrival",color:"auto",auto:true}))}
+function mcAll(){return MC().concat(mcAuto())}
+function mcOn(day){return mcAll().filter(r=>r.date===day).sort((a,b)=>(a.done?1:0)-(b.done?1:0)||(a.auto?1:0)-(b.auto?1:0))}
+const late=r=>!r.auto&&!r.done&&r.date<ldate();
+
+/* demo milestones for presentations */
+if(DB.demo&&!DB.mcal){const T=ldate(),n=U.map(u=>u.name),u=i=>n[i]||("Unit "+(i+1));
+ DB.mcal=[[-9,u(0),"Teardown starts","blk",1],[-4,u(1),"Teardown starts","blk",1],[-2,u(0),"Findings to customer","red",0],[0,u(2),"Hold point / witness","red",0],[1,"","Crane / rigging day","grn",0],[3,u(0),"Parts due in","blu",0],[6,u(3),"Unit arrives","blk",0],[8,u(4),"Unit arrives","blk",0],[10,"","Customer visit","grn",0],[13,u(0),"Reassembly starts","blu",0],[21,u(1),"Inspection complete","blu",0],[34,u(0),"Ship date","red",0]]
+  .map(([o,un,t,c,dn],i)=>({id:"mc"+i,date:addD(T,o),unit:un,text:t,color:c,note:"",done:!!dn,by:"Demo",at:T}));
+ sv()}
+
+const css=`
+.wbt{display:flex;align-items:center;gap:8px;padding:10px 16px 0;flex-wrap:wrap}
+.wbt .sp{flex:1}
+.wbt button{min-width:48px;font-weight:700}
+.wbf{margin:10px 12px 0;padding:11px;border-radius:10px;background:linear-gradient(180deg,#eef0f2,#aab1b6 48%,#d8dcdf 52%,#8f979c);box-shadow:0 10px 26px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.8)}
+.wb{position:relative;background:linear-gradient(115deg,#fbfcfc 0%,#f2f5f5 38%,#ffffff 46%,#f3f6f6 58%,#fcfdfd 100%);border-radius:3px;padding:10px 8px 6px;color:#1c1f22;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12),inset 0 2px 6px rgba(0,0,0,.12);overflow:hidden}
+.wb::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(160px 50px at 22% 62%,rgba(120,130,140,.07),transparent 70%),radial-gradient(220px 60px at 78% 30%,rgba(120,130,140,.06),transparent 70%)}
+.wbm,.wbg .wh,.wd .dn,.wd .wi,.mci .mt,.pen-l,.wbn{font-family:"Marker Felt","Noteworthy","Chalkboard SE","Segoe Print","Comic Sans MS",cursive}
+.wbm{position:relative;text-align:center;font-size:34px;line-height:1.1;color:#1446a8;margin:2px 0 8px;font-weight:700}
+.wbm small{display:block;font-size:14px;color:#5b6570;font-weight:400;font-family:inherit}
+.wbg{position:relative;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:2px solid rgba(20,70,168,.5);border-left:2px solid rgba(20,70,168,.5)}
+.wbg .wh{text-align:center;font-size:15px;padding:4px 0;color:#1446a8;border-right:2px solid rgba(20,70,168,.5);border-bottom:2px solid rgba(20,70,168,.5);background:rgba(20,70,168,.05)}
+.wd{all:unset;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;min-height:104px;padding:3px 4px 4px;border-right:2px solid rgba(20,70,168,.5);border-bottom:2px solid rgba(20,70,168,.5);cursor:pointer;min-width:0;overflow:hidden;color:#1c1f22}
+.wd:focus-visible{outline:3px solid #1446a8;outline-offset:-3px}
+.wd.out{background:rgba(120,130,140,.09)}.wd.out .dn{opacity:.4}
+.wd.wk{background:rgba(120,130,140,.04)}
+.wd .dn{align-self:flex-start;font-size:19px;line-height:1.1;padding:0 5px;margin-bottom:2px}
+.wd.today .dn{border:2.5px solid #c4161c;border-radius:50% 45% 52% 48%;transform:rotate(-5deg);color:#c4161c}
+.wd .wi{display:block;font-size:14.5px;line-height:1.15;margin-top:2px;overflow-wrap:anywhere;hyphens:auto}
+.wi.done,.mci.done .mt{text-decoration:line-through;text-decoration-thickness:2px;opacity:.42}
+.wi.late::before{content:"! ";color:#c4161c;font-weight:700}
+.wi.auto{color:#7a8288!important;font-style:italic}
+.wd .more{font-size:12px;color:#5b6570;margin-top:2px;font-family:system-ui,sans-serif}
+.wd .dots{display:none;gap:3px;flex-wrap:wrap;margin-top:auto}
+.wd .dots i{display:block;width:13px;height:5px;border-radius:3px;transform:rotate(-8deg)}
+.wd .dots i.late{outline:2px solid #c4161c;outline-offset:1px}
+.wbn{text-align:center;font-size:15px;color:#5b6570;padding:8px 4px 2px;position:relative}
+.tray{display:flex;align-items:flex-end;justify-content:center;gap:14px;margin:0 22px;padding:10px 16px 8px;background:linear-gradient(180deg,#b9c0c4,#8d959a);border-radius:0 0 12px 12px;box-shadow:0 6px 14px rgba(0,0,0,.35)}
+.pen{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .15s}
+.pen b{display:block;position:relative;width:70px;height:17px;border-radius:9px 4px 4px 9px;background:linear-gradient(180deg,#ffffff,#d9dde0);box-shadow:0 2px 3px rgba(0,0,0,.35)}
+.pen b::before{content:"";position:absolute;right:-2px;top:-1px;width:24px;height:19px;border-radius:3px 9px 9px 3px;background:var(--pc);box-shadow:inset 0 2px 0 rgba(255,255,255,.3)}
+.pen b::after{content:"";position:absolute;left:10px;top:4px;width:30px;height:9px;border-radius:2px;background:var(--pc);opacity:.85}
+.pen-l{font-size:13px;color:#1c1f22}
+.pen.on{transform:translateY(-8px)}.pen.on .pen-l{font-weight:700;text-decoration:underline}
+.pen:focus-visible b{outline:3px solid #fff;outline-offset:2px}
+.wbh{padding:8px 16px 0;font-size:14px;color:var(--mute)}
+.wbs{padding:14px 16px 0;font-size:21px}
+.mcr{display:flex;gap:12px;align-items:flex-start;width:calc(100% - 32px);margin:8px 16px;text-align:left}
+.mcr .dt{flex:0 0 74px;font-weight:700}
+.mcr .sw,.mci .sw{flex:0 0 6px;align-self:stretch;border-radius:3px}
+.mcr .tx{flex:1;min-width:0}
+#dMcal .mci{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+#dMcal .mci>div{flex:1;min-width:0}
+#dMcal .mt{display:block;font-size:20px;line-height:1.2;background:#fbfcfc;border-radius:6px;padding:4px 8px}
+#dMcal .mci small{display:block;color:var(--mute);margin-top:3px}
+#dMcal .mci .row{margin-top:6px}
+.mcq{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.mcq button{min-height:36px;padding:4px 10px;font-size:14px;border-radius:18px}
+.mcsw{display:flex;gap:10px;margin-top:6px}
+.mcsw label{display:flex;flex-direction:column;align-items:center;gap:4px;margin:0;font-size:13px;color:var(--ink);cursor:pointer}
+.mcsw input{position:absolute;opacity:0;width:1px;height:1px}
+.mcsw span{display:block;width:46px;height:46px;border-radius:50%;background:var(--pc);border:3px solid rgba(255,255,255,.35);box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.mcsw input:checked+span{border-color:var(--ink);transform:scale(1.08)}
+.mcsw input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
+@media (max-width:699px){
+ .wbf{margin:10px 6px 0;padding:7px}.wb{padding:8px 3px 4px}.wbm{font-size:27px}
+ .wd{min-height:58px;padding:2px}.wd .dn{font-size:16px;padding:0 3px}.wd .wi,.wd .more{display:none}.wd .dots{display:flex}
+ .wbg .wh{font-size:12px}.tray{margin:0 10px;gap:8px;padding:8px 8px 6px}.pen b{width:54px}
+}
+@media print{.wbt,.tray,#tab,#fab,header{display:none!important}.wbf{box-shadow:none}}
+`;
+const st=document.createElement("style");st.textContent=css;document.head.appendChild(st);
+const dlg=document.createElement("dialog");dlg.id="dMcal";dlg.innerHTML='<div class="dlg" id="mcBody"></div>';document.body.appendChild(dlg);
+const dl=document.createElement("datalist");dl.id="mcList";dl.innerHTML=MCPICK.map(x=>`<option value="${esc(x)}">`).join("");document.body.appendChild(dl);
+
+function mcGo(y,m){MCY=y;MCM=m;mcView()}
+function mcView(){
+ if(MCY==null){const t=pd(ldate());MCY=t.getFullYear();MCM=t.getMonth()}
+ const T=ldate(),first=new Date(MCY,MCM,1),start=new Date(MCY,MCM,1-first.getDay()),last=new Date(MCY,MCM+1,0);
+ const weeks=Math.ceil((first.getDay()+last.getDate())/7),all=mcAll(),by={};
+ all.forEach(r=>(by[r.date]=by[r.date]||[]).push(r));
+ let cells="";
+ for(let i=0;i<weeks*7;i++){const d=new Date(start);d.setDate(start.getDate()+i);const k=iso(d),L=(by[k]||[]).slice().sort((a,b)=>(a.done?1:0)-(b.done?1:0)||(a.auto?1:0)-(b.auto?1:0));
+  const cls=["wd",d.getMonth()!==MCM?"out":"",k===T?"today":"",d.getDay()===0||d.getDay()===6?"wk":""].join(" ");
+  const shown=L.slice(0,4);
+  cells+=`<button type="button" class="${cls}" data-mcday="${k}" aria-label="${esc(longD(k))}${L.length?", "+L.length+" milestone"+(L.length>1?"s":""):""}"><span class="dn">${d.getDate()}</span>`+
+   shown.map(r=>`<span class="wi${r.done?" done":""}${late(r)?" late":""}${r.auto?" auto":""}" style="color:${r.auto?"#7a8288":MCC[r.color]?MCC[r.color][1]:"#1c1f22"}">${esc(label(r))}</span>`).join("")+
+   (L.length>4?`<span class="more">+${L.length-4} more</span>`:"")+
+   `<span class="dots">${L.slice(0,6).map(r=>`<i class="${late(r)?"late":""}" style="background:${r.auto?"#9aa2a8":MCC[r.color]?MCC[r.color][1]:"#1c1f22"};${r.done?"opacity:.35":""}"></i>`).join("")}</span></button>`}
+ const up=all.filter(r=>r.date>=T&&r.date<=addD(T,14)&&!r.done).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+ const pastDue=MC().filter(late).sort((a,b)=>a.date<b.date?-1:1);
+ const row=r=>`<button type="button" class="rec mcr${late(r)?" hold":""}" data-mcopen="${r.date}"><span class="sw" style="background:${r.auto?"#9aa2a8":MCC[r.color]?MCC[r.color][1]:"#1c1f22"}"></span><span class="dt">${esc(shortD(r.date))}</span><span class="tx"><b style="font-size:18px">${esc(r.text)}</b><small>${esc(r.unit||"Shop / General")}${r.auto?" &middot; from Unit Progress Tracker":""}</small></span></button>`;
+ $("#mod").innerHTML=`<div class="mh"><h2>Milestone Board</h2></div>
+ <div class="wbt"><button type="button" data-mcnav="-1" aria-label="Previous month">&#9664;</button><button type="button" data-mcnav="0">Today</button><button type="button" data-mcnav="1" aria-label="Next month">&#9654;</button><span class="sp"></span>${sup()?`<button type="button" class="pri" data-mcnew="1">Write a Milestone</button>`:""}</div>
+ <div class="wbf"><div class="wb"><div class="wbm">${MCMON[MCM]} ${MCY}<small>Houston Shop milestones</small></div>
+ <div class="wbg">${MCDAY.map(x=>`<div class="wh">${x}</div>`).join("")}${cells}</div>
+ <div class="wbn">${sup()?"Pick a marker below, then tap any day to write on it.":"Tap a day to read it. Supervisors write the milestones."}</div></div></div>
+ <div class="tray" role="radiogroup" aria-label="Marker color">${Object.keys(MCC).map(k=>`<button type="button" class="pen${MCPEN===k?" on":""}" role="radio" aria-checked="${MCPEN===k}" data-mcpen="${k}" style="--pc:${MCC[k][1]}"><b></b><span class="pen-l">${MCC[k][0]}</span></button>`).join("")}</div>
+ <div class="wbh">Red ! means the date has passed and it is not checked off. Gray entries are unit arrival dates from the Unit Progress Tracker.</div>
+ ${pastDue.length?`<h2 class="wbs">Past Due (${pastDue.length})</h2>${pastDue.map(row).join("")}`:""}
+ <h2 class="wbs">Coming Up, Next 14 Days</h2>${up.length?up.map(row).join(""):`<div class="empty" style="padding:8px 16px">Nothing on the board for the next two weeks.</div>`}`;
+}
+function mcDay(day,editId){
+ MCDAYSEL=day;const d=pd(day);if(d.getFullYear()!==MCY||d.getMonth()!==MCM){MCY=d.getFullYear();MCM=d.getMonth();mcView()}
+ const L=mcOn(day),S=sup(),ed=editId?MC().find(r=>r.id===editId):null;MCEDIT=ed;
+ const units=[""].concat(U.map(u=>u.name)),uSel=ed?ed.unit:(LAST&&LAST.mcu)||"",col=ed?ed.color:MCPEN;
+ $("#mcBody").innerHTML=`<h2>${esc(longD(day))}</h2>`+
+ (L.length?L.map(r=>`<div class="mci${r.done?" done":""}"><span class="sw" style="background:${r.auto?"#9aa2a8":MCC[r.color]?MCC[r.color][1]:"#1c1f22"}"></span><div><span class="mt" style="color:${r.auto?"#7a8288":MCC[r.color]?MCC[r.color][1]:"#1c1f22"}">${esc(r.text)}</span><small>${esc(r.unit||"Shop / General")}${r.auto?" &middot; arrival date from the Unit Progress Tracker":r.by?" &middot; written by "+esc(r.by):""}${r.done?" &middot; done"+(r.doneBy?" ("+esc(r.doneBy)+")":""):late(r)?" &middot; <b style='color:var(--bad)'>past due</b>":""}</small>${r.note?`<small>${esc(r.note)}</small>`:""}
+  ${S&&!r.auto?`<div class="row"><button type="button" data-mcact="done" data-id="${r.id}">${r.done?"Undo Check Off":"Check Off"}</button><button type="button" data-mcact="edit" data-id="${r.id}">Edit</button><button type="button" class="danger" data-mcact="erase" data-id="${r.id}">Erase</button></div>`:""}</div></div>`).join(""):`<div class="hint">Nothing written on this day.</div>`)+
+ (S?`<form id="mcF" style="margin-top:14px"><h3 style="font-size:20px">${ed?"Edit Milestone":"Write a Milestone"}</h3>
+  <label>Milestone<input name="text" list="mcList" required value="${ed?esc(ed.text):""}" placeholder="e.g. Ship date"></label>
+  ${ed?"":`<div class="mcq">${MCPICK.map(x=>`<button type="button" data-mcq="${esc(x)}">${esc(x)}</button>`).join("")}</div>`}
+  <label>Unit<select name="unit">${units.map(u=>`<option value="${esc(u)}"${u===uSel?" selected":""}>${u?esc(u):"Shop / General"}</option>`).join("")}</select></label>
+  <label>Date<input name="date" type="date" required value="${ed?ed.date:day}"></label>
+  <label>Marker</label><div class="mcsw">${Object.keys(MCC).map(k=>`<label><input type="radio" name="color" value="${k}"${k===col?" checked":""}><span style="--pc:${MCC[k][1]}"></span>${MCC[k][0]}</label>`).join("")}</div>
+  <label>Note (optional)<textarea name="note" rows="2">${ed?esc(ed.note||""):""}</textarea></label>
+  <div class="row">${ed?`<button type="button" data-mcact="cancel">Cancel Edit</button>`:""}<button type="submit" class="pri">${ed?"Save Changes":"Write It on the Board"}</button></div></form>`:"")+
+ `<div class="row" style="margin-top:14px"><button type="button" data-mcact="close">Close</button></div>`;
+ if(!dlg.open)dlg.showModal();
+ const f=$("#mcF");if(f){f.onsubmit=e=>{e.preventDefault();const v=Object.fromEntries(new FormData(f)),txt=(v.text||"").trim();if(!txt||!v.date)return;
+  try{LAST.mcu=v.unit;localStorage.setItem("tp-last",JSON.stringify(LAST))}catch(x){}
+  if(MCEDIT){Object.assign(MCEDIT,{text:txt,unit:v.unit,date:v.date,color:v.color,note:(v.note||"").trim()})}
+  else MC().push({id:"mc"+Date.now().toString(36),date:v.date,unit:v.unit,text:txt,color:v.color||MCPEN,note:(v.note||"").trim(),done:false,by:ME?ME.title:"",at:typeof nowS==="function"?nowS():ldate()});
+  MCPEN=v.color||MCPEN;sv();mcView();mcDay(v.date);dlg.scrollTop=0;$("#mcBody").scrollIntoView({block:"start"})}}
+}
+dlg.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.mcq){const i=$("#mcF").elements.text;i.value=b.dataset.mcq;i.focus();return}
+ const a=b.dataset.mcact;if(!a)return;const r=MC().find(x=>x.id===b.dataset.id);
+ if(a==="close")return dlg.close();
+ if(a==="cancel")return mcDay(MCDAYSEL);
+ if(!sup())return;
+ if(a==="done"&&r){r.done=!r.done;r.doneBy=r.done&&ME?ME.title:"";sv();mcView();mcDay(MCDAYSEL)}
+ else if(a==="edit"&&r){mcDay(MCDAYSEL,r.id);const t=$("#mcF");if(t)t.scrollIntoView({block:"start"})}
+ else if(a==="erase"&&r&&confirm("Erase \""+label(r)+"\" from the board?")){DB.mcal=MC().filter(x=>x!==r);sv();mcView();mcDay(MCDAYSEL)}});
+dlg.addEventListener("close",()=>{MCEDIT=null});
+$("#mod").addEventListener("click",e=>{if(cur!=="mcal")return;const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.mcnav!==undefined){const n=+b.dataset.mcnav;if(n===0){const t=pd(ldate());mcGo(t.getFullYear(),t.getMonth())}else{const d=new Date(MCY,MCM+n,1);mcGo(d.getFullYear(),d.getMonth())}}
+ else if(b.dataset.mcpen){MCPEN=b.dataset.mcpen;document.querySelectorAll(".pen").forEach(p=>{const on=p.dataset.mcpen===MCPEN;p.classList.toggle("on",on);p.setAttribute("aria-checked",on)})}
+ else if(b.dataset.mcday)mcDay(b.dataset.mcday);
+ else if(b.dataset.mcopen)mcDay(b.dataset.mcopen);
+ else if(b.dataset.mcnew)mcDay(ldate())});
+/* register with the app: home tile, More menu, favorites, search */
+M.mcal={t:"Milestone Board",f:[],sum:()=>""};
+TL.splice(TL.findIndex(x=>x[0]==="prog")+1,0,["mcal","Milestone Board","Whiteboard calendar of milestone dates"]);
+ICON.mcal='<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h4M7 17h7"/>';
+try{FAV_SHORT.mcal="Milestones"}catch(e){}
+{const mb=document.querySelector('#dMore [data-k="rent"]');if(mb){const x=document.createElement("button");x.dataset.k="mcal";x.textContent="Milestone Board";mb.after(x)}}
+{const _m=mod;mod=function(k){if(k==="mcal")return mcView();return _m.apply(this,arguments)}}
+{const _s=show;show=function(v){const r=_s.apply(this,arguments);if(cur==="mcal")$("#fab").hidden=true;return r}}
+/* home screen: past-due and today's milestones in Needs attention */
+{const _h=home;home=function(){_h.apply(this,arguments);try{const T=ldate(),pdue=MC().filter(late),tod=mcAll().filter(r=>r.date===T&&!r.done);
+ if(!pdue.length&&!tod.length)return;
+ pdue.forEach(r=>ATT.unshift(["Milestone past due",shortD(r.date)+" - "+label(r),()=>{show("mcal");mcDay(r.date)}]));
+ tod.forEach(r=>ATT.unshift(["Milestone today",label(r),()=>{show("mcal");mcDay(T)}]));
+ $("#attn").innerHTML=`<h2>Needs attention</h2>`+ATT.slice(0,6).map((a,i)=>`<button class="att" data-i="${i}"><b>${a[0]}</b>${esc(a[1])}</button>`).join("")}catch(e){}}}
+try{favRender()}catch(e){}
+try{if(cur==="home")home()}catch(e){}
+})();
+
 /* ===== Installable web app: offline cache + keep storage ===== */
 (function(){if(!/^https?:$/.test(location.protocol))return;
  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
