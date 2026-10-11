@@ -991,19 +991,43 @@ M.reset={t:"Factory Reset",f:[],sum:()=>""};
 TL.push(["reset","Factory Reset","Erase all data (supervisor passcode)"]);
 ICON.reset='<path d="M4 12a8 8 0 1 0 3-6.2"/><path d="M4 4v5h5"/>';
 
-/* ===== Quick Tools: camera, video, measure, calculator ===== */
-let QT="cam",QS=null,QFACE="environment",QUNIT="",QREC=null,QURLS=[],QMS={mode:"cal",pts:[],pxmm:0,segs:[],ref:"card",cv:"",cu:"in",img:false,drag:-1,src:""};
+/* ===== Quick Tools: camera, video, calculator ===== */
+let QT="cam",QS=null,QFACE="environment",QUNIT="",QREC=null,QURLS=[],QZ=1,QB=0,QL=false,QCAP=null;
 const QC=()=>DB.qcap||(DB.qcap=[]);
 const qfrac=(x,d)=>{d=d||64;const sg=x<0?"-":"";x=Math.abs(x);let n=Math.round(x*d),w=Math.floor(n/d),r=n-w*d;if(!r)return sg+w+'"';let g=d,a=r;while(a){const t=g%a;g=a;a=t}return sg+(w?w+" ":"")+(r/g)+"/"+(d/g)+'"'};
-const qlen=mm=>{const i=mm/25.4;return i.toFixed(3)+' in ('+qfrac(i,32)+') | '+mm.toFixed(1)+' mm'};
 function qMsg(t,bad){const e=document.querySelector("#qMsg");if(e){e.textContent=t;e.style.color=bad?"var(--bad)":"var(--done)"}}
 function qStop(){try{if(QREC&&QREC.mr&&QREC.mr.state!=="inactive"){QREC.cancel=true;QREC.mr.stop()}}catch(e){}
- if(QREC&&QREC.timer)clearInterval(QREC.timer);QREC=null;if(QS){QS.getTracks().forEach(t=>t.stop());QS=null}const v=document.querySelector("#qv");if(v)v.srcObject=null}
+ if(QREC&&QREC.timer)clearInterval(QREC.timer);QREC=null;QL=false;if(QS){QS.getTracks().forEach(t=>t.stop());QS=null}const v=document.querySelector("#qv");if(v)v.srcObject=null}
 async function qStart(audio){if(QS){QS.getTracks().forEach(t=>t.stop());QS=null}
  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){qMsg("This browser cannot open the camera. Open the app from the Home Screen icon in Safari.",1);return false}
  try{QS=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:QFACE},width:{ideal:1920},height:{ideal:1080}},audio:!!audio});
-  const v=$("#qv");if(!v){qStop();return false}v.srcObject=QS;v.muted=true;await v.play().catch(()=>{});qMsg("Camera on.");return true}
+  const v=$("#qv");if(!v){qStop();return false}v.srcObject=QS;v.muted=true;await v.play().catch(()=>{});qCaps();qApply();qMsg("Camera on.");return true}
  catch(e){qMsg("Camera is blocked or unavailable. Allow Camera for this app in iPad Settings, then try again.",1);return false}}
+/* camera light, zoom and brighten */
+const qTrack=()=>QS&&QS.getVideoTracks()[0];
+function qCaps(){const t=qTrack();let c={};try{c=t&&t.getCapabilities?t.getCapabilities():{}}catch(e){c={}}
+ QCAP={zoom:c.zoom&&c.zoom.max>c.zoom.min?{min:c.zoom.min,max:Math.min(c.zoom.max,10)}:null,torch:!!c.torch,exp:c.exposureCompensation&&c.exposureCompensation.max>0?c.exposureCompensation:null};
+ QZ=Math.min(qZmax(),Math.max(qZmin(),QZ));if(!QCAP.torch)QL=false}
+const qZmin=()=>QCAP&&QCAP.zoom?QCAP.zoom.min:1,qZmax=()=>QCAP&&QCAP.zoom?QCAP.zoom.max:8;
+const qDZ=()=>QCAP&&QCAP.zoom?1:QZ,qSB=()=>QCAP&&QCAP.exp?0:QB/100;
+function qApply(){const t=qTrack(),a={};
+ if(t&&QCAP){if(QCAP.zoom)a.zoom=QZ;if(QCAP.torch)a.torch=QL;if(QCAP.exp)a.exposureCompensation=Math.round(QB/100*QCAP.exp.max/(QCAP.exp.step||0.1))*(QCAP.exp.step||0.1);
+  if(Object.keys(a).length)try{t.applyConstraints({advanced:[a]}).catch(()=>{})}catch(e){}}
+ const v=$("#qv");if(v){const z=qDZ(),b=qSB();v.style.transform=z>1?"scale("+z+")":"";v.style.filter=b?"brightness("+(1+b)+")":""}qCtlSync()}
+function qCtlSync(){const on=!!(QS&&qTrack()),lt=$("#qLt"),lh=$("#qLh"),zr=$("#qZ"),zv=$("#qZv"),bv=$("#qBv");
+ if(lt){lt.disabled=!(on&&QCAP&&QCAP.torch);lt.textContent="Light: "+(QL?"On":"Off");lt.classList.toggle("pri",QL)}
+ if(lh)lh.textContent=!on?"Start the camera to use the light and zoom.":QCAP&&QCAP.torch?"":"No light on this camera. The front camera and iPads without a rear flash cannot light up. Use Brighten.";
+ if(zr){zr.min=qZmin();zr.max=qZmax();zr.value=QZ;zr.disabled=!on}if(zv)zv.textContent=(+QZ).toFixed(1)+"x"+(on&&!(QCAP&&QCAP.zoom)&&QZ>1?" (digital)":"");
+ document.querySelectorAll("[data-qt=zp]").forEach(b=>{const z=+b.dataset.z;b.hidden=z>qZmax();b.disabled=!on;b.classList.toggle("pri",Math.abs(QZ-z)<.05)});
+ if(bv)bv.textContent=QB?QB+"%":"Off"}
+function qSetZ(z){QZ=Math.round(Math.min(qZmax(),Math.max(qZmin(),z))*10)/10;qApply()}
+function qDraw(x,v,W,Hh){const z=qDZ(),sw=v.videoWidth/z,sh=v.videoHeight/z,sx=(v.videoWidth-sw)/2,sy=(v.videoHeight-sh)/2,b=qSB();
+ if(b&&"filter" in x){x.filter="brightness("+(1+b)+")";x.drawImage(v,sx,sy,sw,sh,0,0,W,Hh);x.filter="none";return}
+ x.drawImage(v,sx,sy,sw,sh,0,0,W,Hh);if(b){x.globalCompositeOperation="screen";x.globalAlpha=Math.min(1,b);x.drawImage(v,sx,sy,sw,sh,0,0,W,Hh);x.globalAlpha=1;x.globalCompositeOperation="source-over"}}
+function qPinch(){const w=$("#qvw");if(!w)return;const P=new Map();let d0=0,z0=1;const d=()=>{const[a,b]=[...P.values()];return Math.hypot(a[0]-b[0],a[1]-b[1])};
+ w.onpointerdown=e=>{P.set(e.pointerId,[e.clientX,e.clientY]);try{w.setPointerCapture(e.pointerId)}catch(x){}if(P.size===2){d0=d();z0=QZ}};
+ w.onpointermove=e=>{if(!P.has(e.pointerId))return;P.set(e.pointerId,[e.clientX,e.clientY]);if(P.size===2&&d0&&QS)qSetZ(z0*d()/d0)};
+ w.onpointerup=w.onpointercancel=e=>{P.delete(e.pointerId);if(P.size<2)d0=0}}
 let QCOMP="",QNOTE="",QFU="",QFD="";
 const qhm=ts=>new Date(ts).toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"}),qdt=ts=>new Date(ts).toLocaleDateString([],{month:"numeric",day:"numeric",year:"numeric"});
 const qcap=(u,c,n,by)=>({a:u+"  |  "+c+(n?"  |  "+n:""),b:()=>{const t=Date.now();return qdt(t)+"  "+qhm(t)+(by?"  |  "+by:"")}});
@@ -1014,7 +1038,7 @@ async function qSave(type,blob,mime,o){o=o||{};const id="q"+Date.now().toString(
  QC().unshift({id,type,mime,date:ldate(),ts,time:qhm(ts),unit:o.unit,comp:o.comp,note:o.note||"",by:ME?ME.title:"",size:blob.size,burned:!!o.burned,meas:!!o.meas});sv();return id}
 function qWho(){const u=$("#qU"),c=$("#qC"),n=$("#qN");if(!u||!u.value||!c||!c.value){qMsg("Choose the unit and the component first. Both are required.",1);return null}QUNIT=u.value;QCOMP=c.value;QNOTE=n?n.value.trim():"";return{unit:u.value,comp:c.value,note:QNOTE}}
 async function qShot(){const w=qWho();if(!w)return;const v=$("#qv");if(!v||!QS||!v.videoWidth)return qMsg("Tap Start Camera first.",1);
- const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;const x=c.getContext("2d");x.drawImage(v,0,0);qBanner(x,c.width,c.height,qcap(w.unit,w.comp,w.note,ME?ME.title:""));
+ const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;const x=c.getContext("2d");qDraw(x,v,c.width,c.height);qBanner(x,c.width,c.height,qcap(w.unit,w.comp,w.note,ME?ME.title:""));
  const b=await new Promise(r=>c.toBlob(r,"image/jpeg",.9));w.burned=true;await qSave("photo",b,"image/jpeg",w);qMsg("Photo saved for "+w.unit+", "+w.comp+" ("+QC().filter(x=>x.type==="photo"&&x.unit===w.unit&&x.date===ldate()).length+" photos for this unit today).")}
 const qtime=ms=>{const s=Math.floor(ms/1e3);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
 async function qRec(){const btn=$("#qRecB");
@@ -1025,13 +1049,13 @@ async function qRec(){const btn=$("#qRecB");
  const v=$("#qv");if(!v||!v.videoWidth)return qMsg("Tap Start Camera first.",1);
  let rs=QS,burned=false,raf=0;const R={cancel:false};
  if(HTMLCanvasElement.prototype.captureStream){try{const cv=document.createElement("canvas"),W=cv.width=v.videoWidth,Hh=cv.height=v.videoHeight,x=cv.getContext("2d"),cp=qcap(w.unit,w.comp,w.note,ME?ME.title:"");
-  const draw=()=>{x.drawImage(v,0,0,W,Hh);qBanner(x,W,Hh,cp);R.raf=requestAnimationFrame(draw)};draw();const cs=cv.captureStream(30);QS.getAudioTracks().forEach(t=>cs.addTrack(t));rs=cs;burned=true}catch(e){rs=QS;burned=false}}
+  const draw=()=>{qDraw(x,v,W,Hh);qBanner(x,W,Hh,cp);R.raf=requestAnimationFrame(draw)};draw();const cs=cv.captureStream(30);QS.getAudioTracks().forEach(t=>cs.addTrack(t));rs=cs;burned=true}catch(e){rs=QS;burned=false}}
  const mt=["video/mp4","video/webm;codecs=vp9,opus","video/webm"].find(m=>MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m))||"";
  let mr;try{mr=new MediaRecorder(rs,mt?{mimeType:mt}:undefined)}catch(e){if(R.raf)cancelAnimationFrame(R.raf);return qMsg("Could not start recording.",1)}
  const ch=[];R.mr=mr;R.t0=Date.now();QREC=R;
  mr.ondataavailable=e=>{if(e.data&&e.data.size)ch.push(e.data)};
  mr.onstop=async()=>{clearInterval(R.timer);if(R.raf)cancelAnimationFrame(R.raf);const b2=$("#qRecB");if(b2){b2.textContent="Start Recording";b2.classList.remove("danger")}qGate();
-  if(R.cancel||!ch.length)return;const type=mr.mimeType||mt||"video/mp4",blob=new Blob(ch,{type});w.burned=burned;await qSave("video",blob,type,w);qMsg("Video saved for "+w.unit+", "+w.comp+" ("+qtime(Date.now()-R.t0)+")"+(burned?"":". Caption is stored with the clip but not drawn on it on this device."))};
+  if(R.cancel||!ch.length)return;const type=mr.mimeType||mt||"video/mp4",blob=new Blob(ch,{type});w.burned=burned;await qSave("video",blob,type,w);qMsg("Video saved for "+w.unit+", "+w.comp+" ("+qtime(Date.now()-R.t0)+")"+(burned?"":". Caption, digital zoom and Brighten are not drawn on the clip on this device."))};
  mr.start(1000);btn.disabled=false;btn.textContent="Stop Recording";btn.classList.add("danger");
  R.timer=setInterval(()=>{const t=$("#qTim");if(t)t.textContent=qtime(Date.now()-R.t0)},500)}
 async function qShare(id){const r=QC().find(x=>x.id===id),b=await pGet(id);if(!r||!b)return alert("The file is not on this device.");
@@ -1051,73 +1075,43 @@ function qConv(i,side){const c=QCONV[i],a=$("#qa"+i),b=$("#qb"+i),v=parseFloat((
  let o;if(c[5]){o=side?v*9/5+32:(v-32)*5/9}else o=side?v/c[4]:v*c[4];(side?a:b).value=Math.round(o*1e4)/1e4;if(i===0){const t=$("#qfr");if(t)t.textContent=isNaN(parseFloat(a.value))?"":"= "+qfrac(parseFloat(a.value))}}
 function qView(){qStop();QURLS.forEach(u=>URL.revokeObjectURL(u));QURLS=[];
  const chip=(k,l)=>`<button class="chip${QT===k?" on":""}" data-qt="tab" data-v="${k}">${l}</button>`,un=`<div class="rec hold" style="margin:10px 0"><b style="font-size:17px">Required before you shoot</b><label>Unit<select id="qU"><option value="">Choose a unit</option>${U.filter(u=>!u.done).map(u=>`<option value="${esc(u.name)}"${u.name===QUNIT?" selected":""}>${esc(u.name)}</option>`).join("")}</select></label><label>Component<select id="qC"><option value="">Choose a component</option>${COMPS.map(c=>`<option value="${esc(c)}"${c===QCOMP?" selected":""}>${esc(c)}</option>`).join("")}</select></label><label>Note (optional)<input id="qN" value="${esc(QNOTE)}" placeholder="e.g. liner 4 crack, as found"></label><small>The unit, component, date and time are printed on every photo and video and filed under that unit for the day.</small></div>`;
- let h=`<div class="mh"><h2>Quick Tools</h2></div><div class="chips">${chip("cam","Camera")}${chip("vid","Video")}${chip("mea","Measure")}${chip("cal","Calculator")}${chip("sav","Saved ("+QC().length+")")}</div><div style="padding:0 16px 30px">`;
- const vid=`<video id="qv" playsinline muted autoplay style="width:100%;max-height:62vh;background:#000;border-radius:14px;display:block"></video>`;
- if(QT==="cam")h+=un+vid+`<div class="row"><button class="pri" data-qt="start">Start Camera</button><button data-qt="flip">Flip Camera</button><button class="pri" data-qt="shot" disabled>Take Photo</button></div><p id="qMsg" class="hint" role="status"></p>`;
- else if(QT==="vid")h+=un+vid+`<div class="row"><button data-qt="start2">Start Camera</button><button data-qt="flip2">Flip Camera</button><button class="pri" id="qRecB" data-qt="rec" disabled>Start Recording</button><b id="qTim" style="font-size:22px">0:00</b></div><p id="qMsg" class="hint" role="status">Videos use iPad storage. Keep clips short and export them to Files when done.</p>`;
- else if(QT==="mea"){const ref={card:["Credit or debit card, long side",85.6],bill:["US dollar bill, long side",155.96],quarter:["US quarter, diameter",24.26],letter:["Letter paper, long side (11 in)",279.4],custom:["Custom length",0]};
-  h+=`<div class="rec" style="margin:10px 0"><b style="font-size:17px">Quick reference only</b><small>Tape measure results are not added to any report, status or time record. Record official measurements in Data Entry Tools.</small></div><div class="row"><a class="pri" href="measure://" style="display:block;text-align:center;padding:14px;border-radius:12px;text-decoration:none;flex:1">Open Apple Measure App</a></div><p class="hint">Tapping opens the Measure app that comes with the iPad. If nothing happens, open Measure from the Home Screen or the App Library. The camera tape below works as a backup.</p><div class="hint">Place a known object flat next to the thing you are measuring, on the same surface. Hold the camera straight above it, not at an angle. Typical error is 2 to 5 percent, so use calipers or a micrometer for any tolerance, clearance or gap.</div>`+
-  (QMS.img?`<canvas id="qm" style="width:100%;border-radius:14px;touch-action:none;background:#000;display:block;margin-top:10px"></canvas>
-  <div class="hint" id="qmh"></div>
-  <label>Reference object<select id="qRef">${Object.entries(ref).map(([k,v])=>`<option value="${k}"${QMS.ref===k?" selected":""}>${v[0]}</option>`).join("")}</select></label>
-  <div class="row"${QMS.ref==="custom"?"":" hidden"} id="qCu"><input id="qCv" inputmode="decimal" placeholder="Length" value="${esc(QMS.cv)}" style="width:120px"><select id="qCun" style="width:90px"><option value="in"${QMS.cu==="in"?" selected":""}>in</option><option value="mm"${QMS.cu==="mm"?" selected":""}>mm</option></select></div>
-  <div class="row"><button class="${QMS.mode==="cal"?"pri":""}" data-qt="mcal">1. Set scale</button><button class="${QMS.mode==="mea"?"pri":""}" data-qt="mmea">2. Measure</button><button data-qt="mset" id="qSet" hidden>Use as scale</button></div>
-  <div class="row"><button data-qt="mclr">Clear points</button><button data-qt="msave">Save marked photo</button><button data-qt="mnew">New photo</button></div><div id="qSegs"></div>`
-  :`${vid}<div class="row"><button class="pri" data-qt="start3">Start Camera</button><button data-qt="flip3">Flip Camera</button><button class="pri" data-qt="freeze">Freeze Frame</button></div>
-  <label>Or use a photo you already have<input type="file" id="qFile" accept="image/*"></label><p id="qMsg" class="hint" role="status"></p>`);}
+ let h=`<div class="mh"><h2>Quick Tools</h2></div><div class="chips">${chip("cam","Camera")}${chip("vid","Video")}${chip("cal","Calculator")}${chip("sav","Saved ("+QC().length+")")}</div><div style="padding:0 16px 30px">`;
+ const vid=`<div id="qvw" style="overflow:hidden;border-radius:14px;background:#000;touch-action:none"><video id="qv" playsinline muted autoplay style="width:100%;max-height:62vh;background:#000;display:block;transform-origin:50% 50%"></video></div>`,
+  ctl=`<div class="rec" style="margin:10px 0"><div class="row" style="margin-top:0"><button data-qt="light" id="qLt" disabled>Light: Off</button></div><small id="qLh"></small>
+  <label>Zoom <b id="qZv" style="color:var(--ink)">1.0x</b><input type="range" id="qZ" min="1" max="8" step="0.1" value="1" disabled style="padding:0"></label>
+  <div class="row">${[1,2,4,8].map(z=>`<button data-qt="zp" data-z="${z}" disabled>${z}x</button>`).join("")}</div><small>Pinch the picture with two fingers to zoom.</small>
+  <label>Brighten <b id="qBv" style="color:var(--ink)">Off</b><input type="range" id="qB" min="0" max="100" step="5" value="${QB}" style="padding:0"></label><small>For dark spots inside the casing. Applies to the preview, photos and videos.</small></div>`;
+ if(QT==="cam")h+=un+vid+`<div class="row"><button class="pri" data-qt="start">Start Camera</button><button data-qt="flip">Flip Camera</button><button class="pri" data-qt="shot" disabled>Take Photo</button></div><p id="qMsg" class="hint" role="status"></p>`+ctl;
+ else if(QT==="vid")h+=un+vid+`<div class="row"><button data-qt="start2">Start Camera</button><button data-qt="flip2">Flip Camera</button><button class="pri" id="qRecB" data-qt="rec" disabled>Start Recording</button><b id="qTim" style="font-size:22px">0:00</b></div><p id="qMsg" class="hint" role="status">Videos use iPad storage. Keep clips short and export them to Files when done.</p>`+ctl;
  else if(QT==="cal"){const keys=[["C","C"],["<","⌫"],["%","%"],["÷","÷"],["7","7"],["8","8"],["9","9"],["×","×"],["4","4"],["5","5"],["6","6"],["−","−"],["1","1"],["2","2"],["3","3"],["+","+"],["+-","±"],["0","0"],[".","."],["=","="]];
-  h+=`<div class="rec" style="margin:10px 0"><div id="qCd" style="font:700 34px/1.2 TPD,Arial,sans-serif;text-align:right;overflow-x:auto;white-space:nowrap">0</div><div id="qCr" class="hint" style="text-align:right;min-height:1.5em"></div></div>
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${keys.map(([k,l])=>`<button data-qk="${k}" class="${k==="="?"pri":""}" style="min-height:62px;font-size:24px">${l}</button>`).join("")}</div>
-  <h3 style="margin-top:20px">Converters</h3>${QCONV.map((c,i)=>`<div class="row"><label style="flex:1;margin:0">${c[0]} (${c[1]})<input id="qa${i}" inputmode="decimal" data-qc="${i}" data-s="0"></label><label style="flex:1;margin:0">${c[2]} (${c[3]})<input id="qb${i}" inputmode="decimal" data-qc="${i}" data-s="1"></label></div>`).join("")}<div class="hint" id="qfr"></div>`}
+  const kc=k=>"÷×−+=".includes(k)?"background:#ff9f0a;color:#fff;border-color:#ff9f0a":["C","<","%","+-"].includes(k)?"background:#a5a5a5;color:#000;border-color:#a5a5a5":"background:#333;color:#fff;border-color:#333";
+  h+=`<div id="qCalc" style="background:#000;color:#fff;border-radius:18px;padding:16px;margin:10px 0">
+  <div id="qCd" style="font:700 52px/1.15 TPD,Arial,sans-serif;color:#fff;text-align:right;overflow-x:auto;white-space:nowrap;padding:6px 4px">0</div><div id="qCr" style="color:#d0d0d0;font-size:19px;text-align:right;min-height:1.6em;padding:0 4px 10px"></div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">${keys.map(([k,l])=>`<button data-qk="${k}" style="min-height:70px;font-size:30px;font-weight:700;border-radius:14px;${kc(k)}">${l}</button>`).join("")}</div>
+  <h3 style="margin-top:22px;color:#fff;font-size:22px">Converters</h3>${QCONV.map((c,i)=>`<div class="row"><label style="flex:1;margin:0;color:#fff;font-size:16px">${c[0]} (${c[1]})<input id="qa${i}" inputmode="decimal" data-qc="${i}" data-s="0" style="background:#1c1c1c;color:#fff;border:1px solid #666;font-size:22px;font-weight:600"></label><label style="flex:1;margin:0;color:#fff;font-size:16px">${c[2]} (${c[3]})<input id="qb${i}" inputmode="decimal" data-qc="${i}" data-s="1" style="background:#1c1c1c;color:#fff;border:1px solid #666;font-size:22px;font-weight:600"></label></div>`).join("")}<div id="qfr" style="color:#fff;font-size:18px;margin-top:8px"></div></div>`}
  else{const L=QC().filter(r=>(!QFU||r.unit===QFU)&&(!QFD||r.date===QFD)),us=[...new Set(QC().map(r=>r.unit))].sort(),ds=[...new Set(QC().map(r=>r.date))].sort().reverse();
   h+=`<div class="row"><label style="flex:1;margin:0">Unit<select id="qFU"><option value="">All units</option>${us.map(x=>`<option value="${esc(x)}"${x===QFU?" selected":""}>${esc(x||"No unit")}</option>`).join("")}</select></label><label style="flex:1;margin:0">Date<select id="qFD"><option value="">All dates</option>${ds.map(x=>`<option value="${x}"${x===QFD?" selected":""}>${x}</option>`).join("")}</select></label></div>`;
   const G={};L.forEach(r=>{(G[(r.unit||"No unit")+"||"+r.date]=G[(r.unit||"No unit")+"||"+r.date]||[]).push(r)});
   h+=L.length?`<div id="qSavL">`+Object.keys(G).sort((a,b)=>b.split("||")[1].localeCompare(a.split("||")[1])||a.localeCompare(b)).map(k=>{const[u,d]=k.split("||"),g=G[k];return `<h3 style="margin:16px 0 4px">${esc(u)} &middot; ${esc(d)} <small style="color:var(--mute);font:14px system-ui">${g.filter(r=>r.type==="photo").length} photos, ${g.filter(r=>r.type==="video").length} videos</small></h3>`+g.map(r=>`<div class="rec"><b>${esc(r.comp||"No component")}</b><small>${r.meas?"Reference only, not in reports &middot; ":""}${r.type==="photo"?"Photo":"Video"} &middot; ${esc(d)} ${esc(r.time||"")}${r.by?" &middot; "+esc(r.by):""}${r.note?" &middot; "+esc(r.note):""}</small><div data-qm="${r.id}" style="margin-top:8px"></div><div class="row"><button data-qt="share" data-id="${r.id}">Share or Save</button><button class="danger" data-qt="del" data-id="${r.id}">Delete</button></div></div>`).join("")}).join("")+`</div>`:`<div class="empty">Nothing saved yet. Photos and videos you take here are filed under the unit and the day.</div>`}
  $("#mod").innerHTML=h+"</div>";
- if(QT==="cal")qCalcShow();if(QT==="cam"||QT==="vid")qGate();
+ if(QT==="cal")qCalcShow();if(QT==="cam"||QT==="vid"){qGate();qCtlSync();qPinch()}
  if(QT==="sav")QC().forEach(async r=>{const el=document.querySelector(`[data-qm="${r.id}"]`),b=await pGet(r.id);if(!el)return;if(!b){el.textContent="File not on this device.";return}const u=URL.createObjectURL(b);QURLS.push(u);el.innerHTML=r.type==="photo"?`<img src="${u}" alt="Saved photo" style="width:100%;border-radius:10px">`:`<video src="${u}" controls playsinline preload="metadata" style="width:100%;border-radius:10px"></video>`});
- if(QT==="mea"&&QMS.img)qMeaInit()}
-/* measure canvas */
-function qMeaSrc(c){const m=$("#qm");QMS.src=c;QMS.img=true;QMS.pts=[];QMS.segs=[];QMS.mode=QMS.pxmm?"mea":"cal";qView()}
-function qRefMm(){const m={card:85.6,bill:155.96,quarter:24.26,letter:279.4};if(QMS.ref!=="custom")return m[QMS.ref];const v=parseFloat(QMS.cv);return isNaN(v)?0:(QMS.cu==="in"?v*25.4:v)}
-function qMeaDraw(){const cv=$("#qm");if(!cv||!QMS.src)return;const x=cv.getContext("2d"),k=cv.width/Math.max(1,cv.getBoundingClientRect().width||cv.width),lw=Math.max(2,2.5*k),r=Math.max(8,10*k);
- x.drawImage(QMS.src,0,0,cv.width,cv.height);x.font="bold "+Math.round(15*k)+"px sans-serif";x.lineWidth=lw;
- const seg=(a,b,col,txt)=>{x.strokeStyle=col;x.fillStyle=col;x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();[a,b].forEach(p=>{x.beginPath();x.arc(p[0],p[1],r,0,7);x.fill()});if(txt){const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,w=x.measureText(txt).width+12*k;x.fillStyle="rgba(0,0,0,.75)";x.fillRect(mx-w/2,my-26*k,w,24*k);x.fillStyle="#fff";x.fillText(txt,mx-w/2+6*k,my-8*k)}};
- QMS.segs.forEach(s=>seg(s.a,s.b,"#4fbf7a",qfrac(s.mm/25.4,32)));
- const p=QMS.pts;if(p.length===2){const px=Math.hypot(p[1][0]-p[0][0],p[1][1]-p[0][1]);seg(p[0],p[1],QMS.mode==="cal"?"#e8a62c":"#3fb0a8",QMS.mode==="cal"?"scale":(QMS.pxmm?qfrac(px/QMS.pxmm/25.4,32):""))}else if(p.length===1){x.fillStyle="#e8a62c";x.beginPath();x.arc(p[0][0],p[0][1],r,0,7);x.fill()}
- document.querySelectorAll("[data-qt=mcal]").forEach(b=>b.classList.toggle("pri",QMS.mode==="cal"));document.querySelectorAll("[data-qt=mmea]").forEach(b=>b.classList.toggle("pri",QMS.mode==="mea"));
- const hn=$("#qmh");if(hn){const set=$("#qSet");if(set)set.hidden=!(QMS.mode==="cal"&&p.length===2);
-  if(QMS.mode==="cal")hn.textContent=p.length<2?"Step 1: tap the two ends of the reference object. Drag a dot to adjust. Then tap Use as scale.":"Dots set. Check they sit exactly on the ends, then tap Use as scale.";
-  else if(!QMS.pxmm)hn.textContent="Set the scale first.";else if(p.length===2){const mm=Math.hypot(p[1][0]-p[0][0],p[1][1]-p[0][1])/QMS.pxmm;hn.textContent="Length: "+qlen(mm)}else hn.textContent="Step 2: tap the two ends of what you want to measure. Tap a third time to start another measurement."}
- const sg=$("#qSegs");if(sg)sg.innerHTML=QMS.segs.length?`<h3 style="margin-top:12px">Measurements</h3>`+QMS.segs.map((s,i)=>`<div class="rec" style="margin:6px 0"><b style="font-size:17px">${i+1}. ${qlen(s.mm)}</b></div>`).join(""):""}
-function qMeaInit(){const cv=$("#qm");if(!cv||!QMS.src)return;const s=QMS.src,mw=1600,sc=Math.min(1,mw/(s.width||s.videoWidth)),W=Math.round((s.width||s.videoWidth)*sc),Hh=Math.round((s.height||s.videoHeight)*sc);cv.width=W;cv.height=Hh;
- const pos=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height]};
- const near=(p)=>{const k=cv.width/cv.getBoundingClientRect().width,lim=34*k;let bi=-1,bd=1e9;QMS.pts.forEach((q,i)=>{const d=Math.hypot(q[0]-p[0],q[1]-p[1]);if(d<bd&&d<lim){bd=d;bi=i}});return bi};
- cv.onpointerdown=e=>{e.preventDefault();const p=pos(e);let i=near(p);if(i<0){if(QMS.pts.length>=2){if(QMS.mode==="mea"&&QMS.pxmm){const a=QMS.pts;QMS.segs.push({a:a[0],b:a[1],mm:Math.hypot(a[1][0]-a[0][0],a[1][1]-a[0][1])/QMS.pxmm})}QMS.pts=[]}QMS.pts.push(p);i=QMS.pts.length-1}QMS.drag=i;try{cv.setPointerCapture(e.pointerId)}catch(x){}qMeaDraw()};
- cv.onpointermove=e=>{if(QMS.drag<0)return;QMS.pts[QMS.drag]=pos(e);qMeaDraw()};
- cv.onpointerup=cv.onpointercancel=()=>{QMS.drag=-1;qMeaDraw()};qMeaDraw()}
+}
 $("#mod").addEventListener("click",async e=>{if(cur!=="qtools")return;const k=e.target.closest("[data-qk]");if(k)return qCalcKey(k.dataset.qk);const b=e.target.closest("button[data-qt]");if(!b)return;const a=b.dataset.qt;
  if(a==="tab"){QT=b.dataset.v;return qView()}
- if(a==="start"||a==="start2"||a==="start3")return qStart(a==="start2");
- if(a==="flip"||a==="flip2"||a==="flip3"){QFACE=QFACE==="environment"?"user":"environment";return qStart(a==="flip2")}
+ if(a==="start"||a==="start2")return qStart(a==="start2");
+ if(a==="flip"||a==="flip2"){QFACE=QFACE==="environment"?"user":"environment";QZ=1;QL=false;return qStart(a==="flip2")}
+ if(a==="light"){if(!QS)return qMsg("Tap Start Camera first.",1);QL=!QL;return qApply()}
+ if(a==="zp")return qSetZ(+b.dataset.z);
  if(a==="shot")return qShot();if(a==="rec")return qRec();
  if(a==="share")return qShare(b.dataset.id);
  if(a==="del"){if(!confirm("Delete this "+((QC().find(x=>x.id===b.dataset.id)||{}).type||"file")+"?"))return;const i=QC().findIndex(x=>x.id===b.dataset.id);if(i>=0){await pDel(b.dataset.id);QC().splice(i,1);sv();qView()}return}
- if(a==="freeze"){const v=$("#qv");if(!v||!QS||!v.videoWidth)return qMsg("Tap Start Camera first.",1);const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);return qMeaSrc(c)}
- if(a==="mcal"){QMS.mode="cal";QMS.pts=[];return qMeaDraw()}
- if(a==="mmea"){if(!QMS.pxmm)return alert("Set the scale first: tap the two ends of the reference object, then Use as scale.");QMS.mode="mea";QMS.pts=[];return qMeaDraw()}
- if(a==="mset"){const px=Math.hypot(QMS.pts[1][0]-QMS.pts[0][0],QMS.pts[1][1]-QMS.pts[0][1]),mm=qRefMm();if(!mm)return alert("Enter the length of your reference object.");QMS.pxmm=px/mm;QMS.mode="mea";QMS.pts=[];QMS.segs=[];return qMeaDraw()}
- if(a==="mclr"){QMS.pts=[];QMS.segs=[];return qMeaDraw()}
- if(a==="mnew"){QMS.img=false;QMS.src="";QMS.pxmm=0;QMS.pts=[];QMS.segs=[];QMS.mode="cal";return qView()}
- if(a==="msave"){const cv=$("#qm");if(!cv)return;const c2=document.createElement("canvas");c2.width=cv.width;c2.height=cv.height;const x2=c2.getContext("2d");x2.drawImage(cv,0,0);const bl=await new Promise(r=>c2.toBlob(r,"image/jpeg",.92));await qSave("photo",bl,"image/jpeg",{unit:"",comp:"Tape measure (reference only)",note:"Not used in reports",burned:false,meas:true});alert("Marked photo saved to the Saved tab as reference only. It is not added to any report.")}});
+});
 $("#mod").addEventListener("change",e=>{if(cur!=="qtools")return;const t=e.target;
- if(t.id==="qU"){QUNIT=t.value;qGate()}else if(t.id==="qC"){QCOMP=t.value;qGate()}else if(t.id==="qFU"){QFU=t.value;qView()}else if(t.id==="qFD"){QFD=t.value;qView()}
- else if(t.id==="qRef"){QMS.ref=t.value;const c=$("#qCu");if(c)c.hidden=t.value!=="custom"}
- else if(t.id==="qCun")QMS.cu=t.value;
- else if(t.id==="qFile"&&t.files[0]){const im=new Image(),u=URL.createObjectURL(t.files[0]);im.onload=()=>{qMeaSrc(im);URL.revokeObjectURL(u)};im.onerror=()=>qMsg("Could not open that image.",1);im.src=u}});
-$("#mod").addEventListener("input",e=>{if(cur!=="qtools")return;const t=e.target;if(t.id==="qCv")QMS.cv=t.value;else if(t.id==="qN")QNOTE=t.value;else if(t.dataset.qc!==undefined)qConv(+t.dataset.qc,+t.dataset.s)});
+ if(t.id==="qU"){QUNIT=t.value;qGate()}else if(t.id==="qC"){QCOMP=t.value;qGate()}else if(t.id==="qFU"){QFU=t.value;qView()}else if(t.id==="qFD"){QFD=t.value;qView()}});
+$("#mod").addEventListener("input",e=>{if(cur!=="qtools")return;const t=e.target;if(t.id==="qZ")qSetZ(+t.value);else if(t.id==="qB"){QB=+t.value;qApply()}else if(t.id==="qN")QNOTE=t.value;else if(t.dataset.qc!==undefined)qConv(+t.dataset.qc,+t.dataset.s)});
 M.qtools={t:"Quick Tools",f:[],sum:()=>""};
-TL.splice(1,0,["qtools","Quick Tools","Camera, video, calculator, measure tape"]);
+TL.splice(1,0,["qtools","Quick Tools","Camera, video, calculator"]);
 ICON.qtools='<path d="M14 7l-1-2H8L7 7H4v11h16V7z"/><circle cx="12" cy="12.5" r="3.2"/>';
 
 const OS=[
