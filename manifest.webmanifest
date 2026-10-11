@@ -1,0 +1,12 @@
+{
+  "name": "TurbinePros Workflow Tracker",
+  "short_name": "TP Tracker",
+  "description": "Receive, overhaul and ship GE 6B turbines",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0e1517",
+  "theme_color": "#0e1517",
+  "icons": []
+}
