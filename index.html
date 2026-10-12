@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 11, 2026 &middot; App icon counter, site emergency number (v34)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 11, 2026 &middot; One-on-one messages, simplified phone screens (v36)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Shop Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Shop Needs</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="cust">Argon Project Info</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -674,7 +674,7 @@ const PRE=[["clean","Pre-cleaning of the FME area completed"],["fence","Security
 const FA=()=>DB.fmea||(DB.fmea=[]),fcol=a=>a.cls==="FMEA2"?"a2":"a1",need=(a,k)=>((a.req||{})[k]||{})[fcol(a)]==="Y";
 let FID="",FF="open",CL=null,FT="areas",FO={};
 $("#mod").addEventListener("toggle",e=>{const d=e.target;if(d.classList&&d.classList.contains("fsec"))FO[d.dataset.t]=d.open},true);
-const fmeTabs=()=>`<div class="mh"><h2>FME</h2></div><div class="chips"><button class="chip${FT==="areas"?" on":""}" data-fm="tab" data-v="areas">FME Areas</button><button class="chip${FT==="co"?" on":""}" data-fm="tab" data-v="co">Closeout Forms</button><button class="chip${FT==="loto"?" on":""}" data-fm="tab" data-v="loto">LOTO</button></div>`;
+const fmeTabs=()=>`<div class="mh"><h2>FME</h2></div><div class="chips"><button class="chip${FT==="areas"?" on":""}" data-fm="tab" data-v="areas">FME Areas</button><button class="chip${FT==="co"?" on":""}" data-fm="tab" data-v="co">Closeout Forms</button></div>`;
 let FTASK="";
 const flog=(a,m)=>{(a.log=a.log||[]).unshift({t:new Date().toLocaleString(),m:m+(FTASK?" [Task: "+FTASK+"]":""),by:ME?ME.title:""})};
 const fnow=()=>new Date().toLocaleString([],{month:"numeric",day:"numeric",hour:"numeric",minute:"2-digit"});
@@ -705,13 +705,25 @@ function fmeArea(id){const a=FA().find(x=>x.id===id);if(!a)return fmeView();if(F
  sec("Pre-Opening Controls",pres+(a.st==="Classified"&&sup?`<div class="row"><button class="pri" data-fm="doopen">Open the FME Area</button></div><div class="hint">Every required control must be confirmed before the area is opened for entry.</div>`:""),a.st==="Classified")+
  sec("Access Control Log",acc,op)+sec("FME Log (tags and items)",its,op)+sec("Internal Closure Devices",dev,false)+sec("Bore-scope Inspections",bor,false)+sec("Close Out (TP-FME-6)",clo,op||cl)+
  sec("History",(a.log||[]).map(x=>`<small style="display:block">${esc(x.t)} &middot; ${esc(x.by||"")}: ${esc(x.m)}</small>`).join("")||"<small>None.</small>",false)+`</div>`}
-function clsForm(id){const a=id?FA().find(x=>x.id===id):null,rec=a||{unit:LAST.unit||"",loc:"",req:{},just:"",cls:"FMEA1"},F=$("#dDatF"),v=(k,c)=>((rec.req||{})[k]||{})[c];
- F.innerHTML=`<h2>TP FME 1 FME Classification</h2><div class="hint">Outage Project Manager or Supervisor to use this form to determine FME classifications.</div>`+dfFields([["unit","Unit #","unit"],["loc","Location","text","req"]],rec)+
- `<table class="fq"><tr><th style="text-align:left">FME: Requirements</th><th>FMEA1</th><th>FMEA2</th></tr>${FREQ.map(([k,l])=>`<tr><td>${l}</td>${["a1","a2"].map(c=>`<td><label><input type="radio" name="${k}_${c}" value="Y"${v(k,c)==="Y"?" checked":""}>Yes</label><label><input type="radio" name="${k}_${c}" value="N"${v(k,c)==="N"?" checked":""}>No</label></td>`).join("")}</tr>`).join("")}</table>
- <label>Please list justifications for No selection<textarea name="just" rows="3">${esc(rec.just)}</textarea></label><label>This area is classified as<select name="cls">${dopt(["FMEA1","FMEA2"],rec.cls)}</select></label><div class="hint">The classification chosen here decides which controls the app enforces for this area.</div><div class="row"><button type="button" id="dX">Cancel</button><button type="button" class="pri" id="dS">Save Classification</button></div>`;
- F.onchange=null;F.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="dX")return $("#dDat").close();if(b.id!=="dS")return;
-  const o={unit:F.elements.unit.value,loc:F.elements.loc.value.trim(),just:F.elements.just.value.trim(),cls:F.elements.cls.value,req:{}};if(!o.unit||!o.loc)return alert("Choose the unit and enter the location.");
-  let no=false;for(const[k,l]of FREQ){o.req[k]={};for(const c of["a1","a2"]){const r=F.querySelector(`[name=${k}_${c}]:checked`);if(!r)return alert("Answer Yes or No for every requirement in both columns. Missing: "+l+" ("+(c==="a1"?"FMEA1":"FMEA2")+")");o.req[k][c]=r.value;if(r.value==="N")no=true}}
+const FDEF={FMEA1:"Highest risk. Open internals where dropped material causes serious damage. Strictest controls.",FMEA2:"Moderate risk. Near open systems, not directly over them. Fewer controls."};
+function clsForm(id){const a=id?FA().find(x=>x.id===id):null,rec=a||{unit:LAST.unit||"",loc:"",req:{},just:"",cls:""},F=$("#dDatF");
+ const S={unit:rec.unit,loc:rec.loc,just:rec.just,cls:a?rec.cls:"",req:JSON.parse(JSON.stringify(rec.req||{})),info:""};
+ const col=()=>S.cls==="FMEA2"?"a2":"a1",v=k=>((S.req[k]||{})[col()]);
+ const draw=()=>{F.innerHTML=`<h2>TP FME 1 FME Classification</h2>`+dfFields([["unit","Unit #","unit"],["loc","Location","text","req"]],{unit:S.unit,loc:S.loc})+
+ `<div class="hint" style="font-weight:700;color:var(--ink);margin-top:10px">Area level</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${["FMEA1","FMEA2"].map(c=>`<div style="display:flex;gap:6px"><button type="button" data-cl="lvl" data-v="${c}"${S.cls===c?' class="pri"':""} style="flex:1;min-height:52px;font-size:17px">${c==="FMEA1"?"FME-A1":"FME-A2"}</button><button type="button" data-cl="info" data-v="${c}" aria-label="What is ${c}" style="min-width:44px;font-weight:800">i</button></div>`).join("")}</div>
+ ${S.info?`<div class="rec" style="margin:8px 0"><b>${S.info==="FMEA1"?"FME-A1":"FME-A2"}</b><small style="color:var(--ink)">${FDEF[S.info]}</small></div>`:""}`+
+ (S.cls?`<table class="fq"><tr><th style="text-align:left">FME: Requirements</th><th>${S.cls==="FMEA1"?"FME-A1":"FME-A2"}</th></tr>${FREQ.map(([k,l])=>`<tr><td>${l}</td><td><label><input type="radio" name="${k}" value="Y"${v(k)==="Y"?" checked":""}>Yes</label><label><input type="radio" name="${k}" value="N"${v(k)==="N"?" checked":""}>No</label></td></tr>`).join("")}</table>
+ <label>Please list justifications for No selection<textarea name="just" rows="3">${esc(S.just||"")}</textarea></label>`:`<div class="hint" style="margin-top:8px">Pick the area level to see the checklist.</div>`)+
+ `<div class="row"><button type="button" id="dX">Cancel</button><button type="button" class="pri" id="dS"${S.cls?"":" disabled"}>Save Classification</button></div>`};
+ const keep=()=>{const el=F.elements;if(el.unit)S.unit=el.unit.value;if(el.loc)S.loc=el.loc.value;if(el.just)S.just=el.just.value};
+ draw();
+ F.onchange=e=>{const t=e.target;keep();if(t.type==="radio"&&S.cls){(S.req[t.name]=S.req[t.name]||{})[col()]=t.value}};
+ F.oninput=()=>keep();
+ F.onclick=e=>{const b=e.target.closest("button");if(!b)return;keep();
+  if(b.dataset.cl==="lvl"){S.cls=b.dataset.v;return draw()}if(b.dataset.cl==="info"){S.info=S.info===b.dataset.v?"":b.dataset.v;return draw()}
+  if(b.id==="dX")return $("#dDat").close();if(b.id!=="dS")return;
+  const o={unit:S.unit,loc:String(S.loc||"").trim(),just:String(S.just||"").trim(),cls:S.cls,req:{}};if(!o.unit||!o.loc)return alert("Choose the unit and enter the location.");
+  let no=false;const c=col();for(const[k,l]of FREQ){const r=(S.req[k]||{})[c];if(!r)return alert("Answer Yes or No for every requirement. Missing: "+l);o.req[k]={[c]:r};if(r==="N")no=true}
   if(no&&!o.just)return alert("A justification is required for every No selection.");
   if(a){Object.assign(a,o);flog(a,"Classification edited ("+o.cls+")")}else{o.id="f"+Date.now().toString(36);o.st="Classified";o.cby=ME.title;o.cdate=tdy();o.pre={};o.items=[];o.devs=[];o.acc=[];o.scope=[];o.log=[];flog(o,"Classified "+o.cls+" (TP FME 1)");FA().push(o);id=o.id}
   LAST.unit=o.unit;try{localStorage.setItem("tp-last",JSON.stringify(LAST))}catch(x){}sv();$("#dDat").close();fmeArea(id)};
@@ -2554,7 +2566,24 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  /* filters and summary */
  function inF(d){const k=dkey(d.start);return (!DF.sh||shOf(d)===DF.sh)&&(DF.cat==="all"||d.cat===DF.cat)&&(!DF.from||k>=DF.from)&&(!DF.to||k<=DF.to)}
  function sums(L){const o={};Object.keys(CATS).forEach(k=>{const l=L.filter(d=>d.cat===k);o[k]={n:l.length,h:l.reduce((a,d)=>a+hrs(d),0),m:l.reduce((a,d)=>a+mh(d),0)}});return o}
- window.delayView=function(){const ms=window.CURSHIFT?CURSHIFT():"";if(DF.for!==ms){DF.for=ms;DF.sh=ms}const a=act(),sup=(isSup()||(window.ISFORE&&ISFORE())),L=DL().filter(inF).slice().sort((x,y)=>y.start-x.start),S=sums(L),tot=L.reduce((s,d)=>s+hrs(d),0),totM=L.reduce((s,d)=>s+mh(d),0);
+ /* phone: stop buttons only, totals on their own screen */
+ let DT=false,DTF={cat:"",sh:null};
+ function runCard(a,sup){return `<div class="rec" style="border:2px solid ${CATS[a.cat].c};box-shadow:0 0 0 1px ${CATS[a.cat].c}"><b style="color:${CATS[a.cat].c}">${E(CATS[a.cat].n)} delay running</b><div class="big" style="font-size:48px" id="dlyRun">${elap(Date.now()-a.start)}</div><small>Started ${E(fmtT(a.start))} by ${E(a.by||"")}${a.note?" &middot; "+E(a.note):""}</small><small>Tasks stopped: ${E(a.tasks.map(t=>t.title+" ("+t.unit+")").join("; "))}</small>
+   ${sup?`<label class="chk" style="color:inherit;font-size:15px;margin-top:8px"><input type="checkbox" id="dlyRes" checked><span>Restart the stopped task timers for the same crew</span></label><div class="row"><button class="pri" data-dly="end" style="flex:1">End Delay</button></div>`:""}</div>`}
+ function phoneDelay(){if(DT)return totView();const a=act(),sup=(isSup()||(window.ISFORE&&ISFORE()));
+  $("#mod").innerHTML=`<div class="mh"><h2>Delays</h2></div>`+(a?runCard(a,sup):"")+
+  `<div class="qg" style="grid-template-columns:1fr">${Object.entries(CATS).map(([k,c])=>`<button class="qb" data-dly="start" data-c="${k}" style="border:2px solid ${c.c}${a&&a.cat===k?";box-shadow:0 0 0 2px "+c.c:""}"><b style="font-size:20px;display:block;color:${c.c}">${E(c.n)}</b><small style="color:var(--mute)">${E(c.hint)}</small></button>`).join("")}</div>
+  <div style="padding:8px 16px 60px"><button data-dly="tot" style="width:100%;min-height:56px;font-size:18px">Delay Totals</button></div>`;
+  clearInterval(tick);tick=setInterval(()=>{if(cur!=="delay")return clearInterval(tick);upBar()},15000)}
+ function totView(){if(DTF.sh===null)DTF.sh=(window.CURSHIFT&&CURSHIFT())||"";const L=DL().filter(d=>(!DTF.sh||shOf(d)===DTF.sh)&&(!DTF.cat||d.cat===DTF.cat)),ord=["crane","weather","customer"];
+  const nm={crane:"Crane",weather:"Weather",customer:"Customer"},td="padding:8px 6px;border-bottom:1px solid var(--line)";
+  $("#mod").innerHTML=`<div class="mh"><button data-dly="back">Delays</button><h2>Delay Totals</h2></div>
+  <div class="chips">${ord.map(k=>`<button class="chip${DTF.cat===k?" on":""}" data-dly="tcat" data-c="${k}">${nm[k]}</button>`).join("")}</div>
+  <div class="chips" style="padding-top:0">${[["Day","Day Shift"],["Night","Night Shift"],["","Both"]].map(([k,l])=>`<button class="chip${DTF.sh===k?" on":""}" data-dly="tsh" data-c="${k}">${l}</button>`).join("")}</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:6px 16px"><div class="rec" style="margin:0;text-align:center"><div style="font-size:44px;font-weight:800">${L.length}</div><small>total delays</small></div><div class="rec" style="margin:0;text-align:center"><div style="font-size:44px;font-weight:800">${h2(L.reduce((a,d)=>a+mh(d),0))}</div><small>crew hours lost</small></div></div>
+  <div style="padding:0 16px"><table style="width:100%;border-collapse:collapse;font-size:15px"><tr><th style="${td};text-align:left">Type</th><th style="${td};text-align:right">Delays</th><th style="${td};text-align:right">Hours</th><th style="${td};text-align:right">Crew hours</th></tr>${ord.map(k=>{const l=L.filter(d=>d.cat===k);return `<tr><td style="${td};color:${CATS[k].c};font-weight:700">${nm[k]}</td><td style="${td};text-align:right">${l.length}</td><td style="${td};text-align:right">${h2(l.reduce((a,d)=>a+hrs(d),0))}</td><td style="${td};text-align:right">${h2(l.reduce((a,d)=>a+mh(d),0))}</td></tr>`}).join("")}</table>
+  <div class="hint" style="margin-top:8px">All dates. ${DTF.sh?E(DTF.sh)+" Shift only.":"Day and Night Shift combined."}${DTF.cat?" "+nm[DTF.cat]+" only; tap it again to show all.":""}</div></div><div style="height:60px"></div>`}
+ window.delayView=function(){if(window.PHONE&&PHONE())return phoneDelay();DT=false;const ms=window.CURSHIFT?CURSHIFT():"";if(DF.for!==ms){DF.for=ms;DF.sh=ms}const a=act(),sup=(isSup()||(window.ISFORE&&ISFORE())),L=DL().filter(inF).slice().sort((x,y)=>y.start-x.start),S=sums(L),tot=L.reduce((s,d)=>s+hrs(d),0),totM=L.reduce((s,d)=>s+mh(d),0);
   $("#mod").innerHTML=`<div class="mh"><h2>Delay Tracker</h2><button data-dly="print">Print Report</button></div>`+
   (a?`<div class="rec" style="border:2px solid ${CATS[a.cat].c};box-shadow:0 0 0 1px ${CATS[a.cat].c}"><b style="color:${CATS[a.cat].c}">${E(CATS[a.cat].n)} delay running</b><div class="big" style="font-size:48px" id="dlyRun">${elap(Date.now()-a.start)}</div><small>Started ${E(fmtT(a.start))} by ${E(a.by||"")}${a.note?" &middot; "+E(a.note):""}</small><small>Tasks stopped: ${E(a.tasks.map(t=>t.title+" ("+t.unit+")").join("; "))}</small><small>Crew affected: ${E((a.crew||[]).join(", ")||"none recorded")}</small>
    ${sup?`<label class="chk" style="color:inherit;font-size:15px;margin-top:8px"><input type="checkbox" id="dlyRes" checked><span>Restart the stopped task timers for the same crew</span></label><div class="row"><button class="pri" data-dly="end" style="flex:1">End Delay</button></div>`:""}</div>`:"")+
@@ -2575,6 +2604,8 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  const MD=$("#mod");
  MD.addEventListener("click",e=>{if(cur!=="delay")return;const b=e.target.closest("button[data-dly]");if(!b)return;const k=b.dataset.dly;
   if(k==="start")return openPick(b.dataset.c);
+  if(k==="tot"){DT=true;return delayView()}if(k==="back"){DT=false;return delayView()}
+  if(k==="tcat"){DTF.cat=DTF.cat===b.dataset.c?"":b.dataset.c;return delayView()}if(k==="tsh"){DTF.sh=b.dataset.c;return delayView()}
   if(k==="end"){const a=act();if(a&&(isSup()||(window.ISFORE&&ISFORE()))){endDelay(a,$("#dlyRes")&&$("#dlyRes").checked);delayView()}return}
   if(k==="cat"){DF.cat=b.dataset.c;return delayView()}
   if(k==="sh"){DF.sh=b.dataset.c;return delayView()}
@@ -2597,7 +2628,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  /* register tab */
  M.delay={t:"Delay Tracker",f:[],sum:()=>""};
  const _m=mod;mod=function(k){if(k==="delay")return delayView();return _m.apply(this,arguments)};
- const _s=show;show=function(v){const r=_s.apply(this,arguments);if(cur==="delay")$("#fab").hidden=true;upBar();return r};
+ const _s=show;show=function(v){if(v==="delay"&&cur!=="delay")DT=false;const r=_s.apply(this,arguments);if(cur==="delay")$("#fab").hidden=true;upBar();return r};
  try{const mm=document.querySelector("#dMore .more"),q=mm&&mm.querySelector('[data-k="qs"]');if(mm&&!mm.querySelector('[data-k="delay"]')){const x=document.createElement("button");x.dataset.k="delay";x.textContent="Delay Tracker";x.style.fontWeight="700";if(q)q.after(x);else mm.insertBefore(x,mm.firstChild)}}catch(e){}
  upBar();
 })();
@@ -2605,7 +2636,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
 /* ===== Damaged Tooling ===== */
 (function(){
  const E=esc,TL=()=>DB.dmgTools||(DB.dmgTools=[]);
- const OWN=["TurbinePros","Vendor / Rental","Personal (employee)","Other Contractor","Customer"];
+ const OWN=["TurbinePros","Rental","Vendor / Rental","Personal (employee)","Other Contractor","Customer"],POWN=["TurbinePros","Rental","Vendor","Personal (employee)","Other Contractor","Customer"];
  const CAT=["Hand Tool","Power Tool","Measuring / Precision (calibrated)","Torque Tool","Hydraulic Tool","Rigging / Lifting","Electrical / Test Equipment","Welding / Cutting","Cord / Hose / Air Line","Other"];
  const CAUSE=["Normal wear","Dropped","Overloaded / used beyond rating","Wrong tool for the job","Struck by equipment or load","Electrical fault","Pinched / crushed","Weather / environment","Unknown","Other"];
  const SEV=["Minor: still usable, needs repair","Out of service: tagged out","Destroyed: beyond repair"];
@@ -2650,12 +2681,21 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  const area=(k,l,v,ph)=>`<label>${l}<textarea data-tf="${k}" rows="3"${ph?` placeholder="${E(ph)}"`:""}>${E(v||"")}</textarea></label>`;
  const chk=(k,l,v)=>`<label class="chk" style="color:inherit;font-size:15px"><input type="checkbox" data-tf="${k}"${v?" checked":""}><span>${l}</span></label>`;
  const sec=t=>`<h3 style="margin-top:16px">${t}</h3>`;
- function form(){const r=ED,sup=isSup(),isNew=!TL().some(x=>x.id===r.id),T=DB.tasks.filter(t=>t.st!=="Done"||t.id===r.tid);
+ function phoneForm(){const r=ED,yn=(k,v)=>`<button type="button" data-tb="yn" data-k="${k}" data-v="${v}"${r[k]===v?' class="pri"':""} style="min-height:50px;font-size:17px">${v}</button>`,q=t=>`<div class="hint" style="font-weight:700;color:var(--ink);margin-top:10px">${t}</div>`;
+  $("#tlForm").innerHTML=`<h2>Broken Tool Report</h2>`+inp("desc","Tool description",r.desc,"text","e.g. 1 in. drive impact wrench")+sel("cat","Type of tool",CAT,r.cat)+
+  q("Photo of the damage")+`<div class="row" style="margin-top:4px"><button type="button" data-tb="photo">Take or Add Photos</button><input type="file" id="tlP" accept="image/*" capture="environment" multiple hidden></div><div>${(r.photos||[]).map(id=>`<img class="th" data-p="${id}" alt="Damage photo">`).join("")}</div>`+
+  inp("stored","Where it's stored",r.stored,"text","Where the broken tool is now")+
+  q("Repairable?")+`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${yn("rep","Yes")}${yn("rep","No")}</div>`+
+  q("Immediate replacement needed?")+`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${yn("repl","Yes")}${yn("repl","No")}</div>`+
+  sel("own","Who owns it",POWN,r.own)+(r.own==="Rental"?inp("ownName","Rental company",r.ownName)+inp("po","Rental agreement / PO number",r.po):"")+
+  `<div class="row" style="position:sticky;bottom:0;background:var(--card);padding:10px 0"><button type="button" data-tb="x">Cancel</button><button type="button" class="pri" data-tb="submit">Submit</button></div>`;
+  if(!dlg.open)dlg.showModal();loadTh()}
+ function form(){const r=ED,sup=isSup(),isNew=!TL().some(x=>x.id===r.id),T=DB.tasks.filter(t=>t.st!=="Done"||t.id===r.tid);if(isNew&&window.PHONE&&PHONE())return phoneForm();
   $("#tlForm").innerHTML=`<h2>${isNew?"Report Damaged Tooling":"Damaged Tooling"}</h2>${isNew?`<div class="hint">Fill in what you know. A supervisor completes the disposition and cost.</div>`:""}`+
   sec("The Tool")+inp("desc","Tool description",r.desc,"text","e.g. 1 in. drive impact wrench")+sel("cat","Type of tool",CAT,r.cat)+`<div class="gx" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${inp("tagId","Tool ID / asset tag",r.tagId)}${inp("serial","Serial number",r.serial)}</div>`+inp("qty","Quantity",r.qty,"number")+
   sec("Owner")+sel("own","Who owns it",OWN,r.own)+inp("ownName","Owner name or company",r.ownName,"text","Employee, vendor or contractor name")+inp("po","Rental agreement, PO or claim number",r.po)+
   sec("When and Where")+`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${inp("date","Date",r.date,"date")}${inp("time","Time",r.time,"time")}</div>`+
-  `<label>Unit and task in use<select data-tf="tid"><option value="">Not tied to a task</option>${T.map(t=>`<option value="${t.id}"${t.id===r.tid?" selected":""}>${E((t.unit||"No unit")+": "+t.title)}</option>`).join("")}</select></label>`+inp("loc","Location",r.loc,"text","e.g. Unit 4 laydown, Bay 2")+inp("by","Reported by",r.by)+
+  `<label>Unit and task in use<select data-tf="tid"><option value="">Not tied to a task</option>${T.map(t=>`<option value="${t.id}"${t.id===r.tid?" selected":""}>${E((t.unit||"No unit")+": "+t.title)}</option>`).join("")}</select></label>`+inp("loc","Location",r.loc,"text","e.g. Unit 4 laydown, Bay 2")+inp("stored","Where it's stored",r.stored)+`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${sel("rep","Repairable?",["","Yes","No"],r.rep||"")}${sel("repl","Immediate replacement needed?",["","Yes","No"],r.repl||"")}</div>`+inp("by","Reported by",r.by)+
   sec("What Happened")+sel("cause","Cause",CAUSE,r.cause)+area("what","Describe the damage and how it happened",r.what)+sel("sev","Condition",SEV,r.sev)+
   sec("Safety, FME and Calibration")+inp("tag","Out of service tag number",r.tag,"text","Required if tagged out")+chk("inj","Someone was hurt or it was a near miss (file in HSEQ Reports)",r.inj)+
   `<div class="hint">Turbine work: confirm every broken piece was found.</div>`+chk("fmeOk","All pieces of the tool are accounted for",r.fmeOk!==false)+inp("missing","If not, what is missing and where it was last seen",r.missing)+
@@ -2670,6 +2710,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  function newRec(){const t=DB.tasks.find(x=>x.st==="In progress"&&(x.who||"").includes(ME?ME.title:"~"));const n=new Date();
   return {id:"dt"+Date.now().toString(36),desc:"",cat:CAT[0],tagId:"",serial:"",qty:"1",own:OWN[0],ownName:"",po:"",date:ymd(n),time:String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0"),tid:t?t.id:"",unit:t?t.unit:"",task:t?t.title:"",loc:"",by:ME?ME.title:"",shift:curSh(),cause:CAUSE[0],what:"",sev:SEV[1],tag:"",inj:false,fmeOk:true,missing:"",calImpact:false,calDate:"",photos:[],disp:"Under review",resp:"Not yet decided",est:"",ownNote:"",supNote:"",st:"Reported",sigRep:"",sigSup:"",log:[]}}
  dlg.addEventListener("input",e=>{const t=e.target,k=t.dataset&&t.dataset.tf;if(!k||!ED)return;ED[k]=t.type==="checkbox"?t.checked:t.value;
+  if(k==="own"&&window.PHONE&&PHONE()&&!TL().some(x=>x.id===ED.id))return phoneForm();
   if(k==="tid"){const x=DB.tasks.find(y=>y.id===t.value);ED.unit=x?x.unit:"";ED.task=x?x.title:""}
   if(k==="cat"&&/Measuring/.test(t.value)&&!ED.calImpact){ED.calImpact=true;const c=$('#tlForm [data-tf="calImpact"]');if(c)c.checked=true}
   if(k==="sev"&&/Out of service|Destroyed/.test(t.value)&&ED.st==="Reported")ED.st="Tagged out"});
@@ -2677,6 +2718,10 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  dlg.addEventListener("click",e=>{const b=e.target.closest("button[data-tb]");if(!b||!ED)return;const k=b.dataset.tb;
   if(k==="x"){ED=null;return dlg.close()}
   if(k==="photo")return $("#tlP").click();
+  if(k==="yn"){ED[b.dataset.k]=b.dataset.v;return phoneForm()}
+  if(k==="submit"){const r=ED;if(!String(r.desc||"").trim())return alert("Describe the tool.");if(!String(r.stored||"").trim())return alert("Say where the broken tool is stored.");if(!r.rep)return alert("Answer: repairable?");if(!r.repl)return alert("Answer: immediate replacement needed?");
+   if(r.own==="Rental"&&(!String(r.ownName||"").trim()||!String(r.po||"").trim()))return alert("Enter the rental company and the rental agreement or PO number.");
+   r.loc=r.stored;r.st="Reported";r.disp=r.rep==="No"?"Replace":"Under review";r.log=[{t:new Date().toLocaleString(),m:"Reported from the phone by "+(ME?ME.title:"")}];TL().push(r);sv();ED=null;dlg.close();alert("Sent to your supervisor.");return show("home")}
   if(k==="sig"){const s=b.dataset.k;return sigPad(s==="sigSup"?"Supervisor signature":"Reporter signature",d=>{ED[s]=d;form()})}
   if(k==="del"&&isSup()&&confirm("Delete this damaged tooling record? This cannot be undone.")){DB.dmgTools=TL().filter(x=>x.id!==ED.id);(ED.photos||[]).forEach(pDel);sv();ED=null;dlg.close();return toolView()}
   if(k==="save"||k==="savep"){const r=ED;if(!String(r.desc).trim())return alert("Describe the tool first.");if(/Out of service|Destroyed/.test(r.sev)&&!String(r.tag).trim()&&!confirm("This tool is out of service but has no tag number. Save anyway?"))return;
@@ -2860,27 +2905,53 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
    await mk({title:"Isolation list: Unit 4 fuel gas and atomizing air",type:TYPES[1],unit:"Oman Unit 4",equip:"Fuel gas skid, atomizing air compressor 88AK",permitNo:"CP-26-0422",issuedBy:"Rick Alvarado, Shop Manager",issued:d(6),expires:d(-20),status:"Active",signed:true,signedBy:"Jason McKendree",signedAt:d(6)+" 06:30",zeroBy:"Ray Castillo",zeroAt:d(6)+" 06:50",shift:"Day",addedBy:"Jason McKendree",addedAt:d(6)+" 07:10",note:"Double block and bleed on fuel gas. Vent valve V-118 open and tagged."},[page("ENERGY ISOLATION LIST CP-26-0422",["Fuel gas: V-110 closed/locked, V-112 closed/locked, V-118 vent OPEN/tagged","Atomizing air 88AK: MCC-4 bkr 3 locked","Pressure gauge PI-111 reads 0 psig","Verified by R. Castillo"]),page("ISOLATION LIST page 2",["Lock numbers: 0412, 0413, 0419","Tags: T-2201 to T-2206"])]),
    await mk({title:"Permit sign-off: Unit 2 bearing housing work",type:TYPES[6],unit:"Oman Unit 2",equip:"Unit 2 lube oil system",permitNo:"CP-26-0398",issuedBy:"Rick Alvarado, Shop Manager",issued:d(20),expires:d(9),status:"Released",signed:true,signedBy:"Jason McKendree",signedAt:d(9)+" 15:30",zeroBy:"",zeroAt:"",shift:"Day",addedBy:"Jason McKendree",addedAt:d(9)+" 15:45",note:"All locks removed and permit returned to the plant."},[page("PERMIT RELEASE CP-26-0398",["Work complete. All personal locks removed.","Lockbox LB-1 cleared.","Released to plant "+d(9)])])];
   LO().locks=[{id:"lk1",name:"Marcus Delgado",lockNo:"0441",unit:"Oman Unit 1",point:"Group lockbox LB-3",permit:"CP-26-0417",on:d(0)+" 06:35",off:"",shift:"Day"},{id:"lk2",name:"Luis Herrera",lockNo:"0447",unit:"Oman Unit 1",point:"Group lockbox LB-3",permit:"CP-26-0417",on:d(0)+" 06:40",off:"",shift:"Day"},{id:"lk3",name:"Ray Castillo",lockNo:"0412",unit:"Oman Unit 4",point:"Fuel gas V-110",permit:"CP-26-0422",on:d(0)+" 06:45",off:"",shift:"Day"},{id:"lk4",name:"Tony Reyes",lockNo:"0503",unit:"Oman Unit 1",point:"Group lockbox LB-3",permit:"CP-26-0417",on:d(1)+" 18:10",off:d(0)+" 05:50",shift:"Night"}];
-  sv();if(cur==="fme"&&FT==="loto")lotoView();if(cur==="safety")safetyView()}catch(e){}}
+  LO().ver=1;LO().appr={by:"Jason McKendree",at:d(0)+" 06:20",ver:1};LO().verif=[{id:"lv|"+d(1)+"|Night",date:d(1),shift:"Night",by:"Tony Reyes",at:d(1)+" 18:15",ts:Date.now()-14*36e5,ver:1,appr:true}];LO().q=[{id:"lq1",text:"Does the Unit 4 fuel gas isolation cover the atomizing air piping we are opening today?",by:"Marcus Delgado",at:d(0)+" 07:15",ts:Date.now()-2*36e5,shift:"Day",ans:null}];
+  sv();if(cur==="loto")lotoView();if(cur==="safety")safetyView()}catch(e){}}
  /* main LOTO screen (inside FME) */
  function sumBox(){const c=ds().comp,on=LO().locks.filter(l=>!l.off),act=LO().docs.filter(d=>stOf(d)==="Active");
   return `<div class="rec" style="border-left:5px solid #b3342b"><b>LOTO Status: ${E(c.lotoSt||"Not set")}</b><small>Primary LOTO holder (plant): ${E(c.holder||"not set")}${c.release?" &middot; Scheduled release for testing: "+E(c.release):""}</small><small>${act.length} active permit${act.length===1?"":"s"} &middot; ${on.length} lock${on.length===1?"":"s"} on now${on.length?": "+E(on.map(l=>l.name+" #"+l.lockNo).join(", ")):""}</small></div>`}
- window.lotoView=function(){const isS=isSup(),units=[...new Set(U.map(u=>u.name).concat(LO().docs.map(d=>d.unit).filter(Boolean)))];
+ /* approval: green only when a supervisor approved the current set of documents */
+ const VER=()=>LO().ver||0,bump=()=>{LO().ver=VER()+1};
+ const approved=()=>!!(LO().appr&&LO().appr.ver===VER());
+ const LQ=()=>LO().q||(LO().q=[]),LV=()=>LO().verif||(LO().verif=[]);
+ const wDate=()=>{const d=new Date();if(curSh()==="Night"&&d.getHours()<14)d.setDate(d.getDate()-1);return ymd(d)};
+ const myVer=()=>LV().find(v=>v.date===wDate()&&v.shift===curSh());
+ window.LOTOAPPROVED=approved;
+ function banner(){return approved()?`<div class="rec" style="border:3px solid #2f7d4a;background:rgba(47,125,74,.15)"><b style="color:#3fae66;font-size:22px">LOTO APPROVED</b><small style="color:var(--ink)">Approved by ${E(LO().appr.by)} ${E(LO().appr.at)}. Paperwork is on file below.</small></div>`
+  :`<div class="rec" style="border:4px solid #b3342b;background:#b3342b;color:#fff;padding:18px"><b style="color:#fff;font-size:26px;line-height:1.15;display:block">LOTO NOT VERIFIED</b><b style="color:#fff;font-size:20px;display:block;margin-top:6px">STOP WORK IMMEDIATELY</b><small style="color:#fff;font-size:15px">Until the supervisor approves the LOTO.${LO().appr?" The LOTO was changed after the last approval.":""}</small></div>`}
+ window.lotoView=function(){const isS=isSup(),ph=PHONE(),canUp=isS&&!ph,fore=window.ISFORE&&ISFORE(),units=[...new Set(U.map(u=>u.name).concat(LO().docs.map(d=>d.unit).filter(Boolean)))];
   const D=LO().docs.filter(d=>(!LU||d.unit===LU)&&(LS==="all"||(LS==="active"?stOf(d)==="Active":stOf(d)!=="Active"))).sort((a,b)=>(b.issued||"")>(a.issued||"")?1:-1);
-  const on=LO().locks.filter(l=>!l.off&&(!LU||l.unit===LU)),off=LO().locks.filter(l=>l.off&&(!LU||l.unit===LU)).slice(-10).reverse();
+  const on=LO().locks.filter(l=>!l.off&&(!LU||l.unit===LU)),off=LO().locks.filter(l=>l.off&&(!LU||l.unit===LU)).slice(-10).reverse(),mv=myVer(),qs=LQ().slice().sort((a,b)=>b.ts-a.ts),openQ=qs.filter(q=>!q.ans);
   const chip=(v,l)=>`<button class="chip${LS===v?" on":""}" data-lo="st" data-v="${v}">${l}</button>`;
-  $("#mod").innerHTML=fmeTabs()+`<div class="hint" style="padding:0 16px">Lockout/tagout documents from the plant, signed permits and the lock register for this job. Also shown on the Safety tab.</div>`+sumBox()+
-  (isS?`<details class="fsec" style="margin:8px 16px"><summary>Edit LOTO status (feeds the Daily Status Report)</summary><label>LOTO Status<select id="loSt">${["","Signed On","Signed Off"].map(x=>`<option${(ds().comp.lotoSt||"")===x?" selected":""}>${x}</option>`).join("")}</select></label><label>Primary LOTO holder (plant)<input id="loH" value="${E(ds().comp.holder||"")}"></label><label>Scheduled release for testing<input type="date" id="loR" value="${E(ds().comp.release||"")}"></label></details>`:"")+
-  `<div class="row" style="padding:4px 16px"><button class="pri" data-lo="scan">Scan Document</button><button class="pri" data-lo="up">Upload File</button></div>
-  <div style="padding:0 16px"><label>Unit<select id="loU"><option value="">All units</option>${units.map(u=>`<option${u===LU?" selected":""}>${E(u)}</option>`).join("")}</select></label></div>
-  <h2 class="sec">Locks On Now (${on.length})</h2>`+(on.map(l=>`<div class="rec hold"><b>${E(l.name)} &middot; Lock #${E(l.lockNo)}</b><small>${E(l.unit||"")} &middot; ${E(l.point||"")}${l.permit?" &middot; Permit "+E(l.permit):""}</small><small>On ${E(l.on)} &middot; ${E(l.shift||"")} Shift</small><div class="row"><button data-lo="off" data-id="${l.id}">Remove Lock</button></div></div>`).join("")||`<div class="empty" style="padding:6px 16px">No locks recorded on right now.</div>`)+
-  `<div class="row" style="padding:0 16px"><button data-lo="lock">Record Lock On</button><button data-lo="print">Print LOTO Register</button></div>`+
-  `<h2 class="sec">Documents and Permits</h2><div class="chips">${chip("active","Active")}${chip("closed","Released / expired")}${chip("all","All")}</div>`+
-  (D.map(d=>{const s=stOf(d);return `<div class="rec"${s==="Active"?' style="border-left:5px solid #2f7d4a"':""}><b>${E(d.title)}</b><span class="tag" style="background:${STC[s]||"#5d686b"}">${E(s)}</span>${d.signed?`<span class="tag" style="background:#2f7d4a">Signed off</span>`:`<span class="tag">Not signed off</span>`}
+  $("#mod").innerHTML=`<div class="mh"><h2>LOTO</h2></div>`+banner()+
+  (canUp?`<div class="row" style="padding:0 16px">${approved()?`<button data-lo="unappr">Withdraw Approval</button>`:`<button class="pri" data-lo="appr" style="min-height:52px">Approve LOTO</button>`}</div><div class="hint" style="padding:0 16px">Approve after the paperwork is uploaded. Any change to the documents turns the phones red until you approve again.</div>`:"")+
+  /* crew locks on */
+  `<h2 class="sec">Crew Locks On</h2>`+(mv?`<div class="rec" style="border-left:5px solid #2f7d4a"><b>Verified for ${E(curSh())} Shift</b><small>${E(mv.by)} verified all crew signed on and locked on, ${E(mv.at)}</small>${mv.ver!==VER()?`<small style="color:#e0a04e">The LOTO changed after this check. Verify again.</small>`:""}</div>`:`<div class="rec hold"><b>Not verified yet this shift</b><small>The foreman confirms every crew member is signed on and locked on.</small></div>`)+
+  (fore?`<div class="row" style="padding:0 16px"><button class="pri" data-lo="verify" style="min-height:52px">Verify Crew Locks On</button></div>`:"")+
+  /* questions */
+  `<h2 class="sec">LOTO Clarification Request</h2><div style="padding:0 16px"><textarea id="loQ" rows="2" placeholder="Type a question for the supervisor"></textarea><div class="row"><button data-lo="ask">Send to Supervisor</button></div></div>`+
+  qs.filter(q=>isS||q.by===(ME&&ME.title)).slice(0,8).map(q=>`<div class="rec${!q.ans&&isS?" hold":""}"><b>${E(q.text)}</b><small>${E(q.by)} &middot; ${E(q.at)} &middot; ${E(q.shift||"")} Shift</small>${q.ans?`<small style="color:var(--ink)">Answer from ${E(q.ans.by)}: ${E(q.ans.text)}</small>`:isS?`<div class="row"><button class="pri" data-lo="answer" data-id="${q.id}">Answer</button></div>`:`<small>Waiting for the supervisor</small>`}</div>`).join("")+
+  /* documents */
+  `<h2 class="sec">Documents and Permits</h2>`+(canUp?`<div class="row" style="padding:4px 16px"><button class="pri" data-lo="scan">Scan Document</button><button class="pri" data-lo="up">Upload File</button></div>`:"")+
+  `<div style="padding:0 16px"><label>Unit<select id="loU"><option value="">All units</option>${units.map(u=>`<option${u===LU?" selected":""}>${E(u)}</option>`).join("")}</select></label></div><div class="chips">${chip("active","Active")}${chip("closed","Released / expired")}${chip("all","All")}</div>`+
+  (D.map(d=>{const s=stOf(d);return `<div class="rec"${s==="Active"?' style="border-left:5px solid #2f7d4a"':""}><b>${E(d.title)}</b><span class="tag" style="background:${STC[s]||"#5d686b"}">${E(s)}</span>
    <small>${E(d.type)}${d.permitNo?" &middot; Permit "+E(d.permitNo):""}${d.unit?" &middot; "+E(d.unit):""}</small>${d.equip?`<small>Equipment / isolation: ${E(d.equip)}</small>`:""}
-   <small>Issued ${E(d.issued||"")}${d.issuedBy?" by "+E(d.issuedBy):""}${d.expires?" &middot; Expires "+E(d.expires):""}</small>${d.signed?`<small>Signed off by ${E(d.signedBy||"")} ${E(d.signedAt||"")}</small>`:""}${d.zeroBy?`<small>Zero energy verified by ${E(d.zeroBy)} ${E(d.zeroAt||"")}</small>`:""}${d.note?`<small style="color:var(--ink)">${E(d.note)}</small>`:""}
-   <small>${d.file?E(d.file.pages?d.file.pages+" page"+(d.file.pages>1?"s":""):d.file.name)+" &middot; ":""}Added by ${E(d.addedBy||"")} ${E(d.addedAt||"")}</small>
-   <div class="row"><button class="pri" data-lo="view" data-id="${d.id}">View</button><button data-lo="edit" data-id="${d.id}">Details</button></div></div>`}).join("")||`<div class="empty" style="padding:6px 16px">No LOTO documents here yet. Scan or upload the plant's permits and isolation lists.</div>`)+
-  (off.length?`<details style="padding:8px 16px"><summary>Recently removed locks (${off.length})</summary>${off.map(l=>`<small style="display:block;margin:6px 0">${E(l.name)} #${E(l.lockNo)} &middot; ${E(l.unit||"")} &middot; ${E(l.point||"")} &middot; on ${E(l.on)}, off ${E(l.off)}</small>`).join("")}</details>`:"")+`<div style="height:70px"></div>`};
+   <small>Issued ${E(d.issued||"")}${d.expires?" &middot; Expires "+E(d.expires):""}</small>${d.note?`<small style="color:var(--ink)">${E(d.note)}</small>`:""}
+   <div class="row"><button class="pri" data-lo="view" data-id="${d.id}">View</button>${canUp?`<button data-lo="edit" data-id="${d.id}">Details</button>`:""}</div></div>`}).join("")||`<div class="empty" style="padding:6px 16px">No LOTO documents yet.${canUp?" Scan or upload the plant's permits and isolation lists.":" The supervisor uploads them on the iPad."}</div>`)+
+  /* iPad only: DSR status and the individual lock register */
+  (ph?"":`<h2 class="sec">Lock Register (${on.length} on)</h2>`+(on.map(l=>`<div class="rec hold"><b>${E(l.name)} &middot; Lock #${E(l.lockNo)}</b><small>${E(l.unit||"")} &middot; ${E(l.point||"")}${l.permit?" &middot; Permit "+E(l.permit):""}</small><small>On ${E(l.on)} &middot; ${E(l.shift||"")} Shift</small><div class="row"><button data-lo="off" data-id="${l.id}">Remove Lock</button></div></div>`).join("")||`<div class="empty" style="padding:6px 16px">No individual locks recorded.</div>`)+
+   `<div class="row" style="padding:0 16px"><button data-lo="lock">Record Lock On</button><button data-lo="print">Print LOTO Register</button></div>`+
+   (isS?`<details class="fsec" style="margin:8px 16px"><summary>Daily Status Report LOTO line</summary><label>LOTO Status<select id="loSt">${["","Signed On","Signed Off"].map(x=>`<option${(ds().comp.lotoSt||"")===x?" selected":""}>${x}</option>`).join("")}</select></label><label>Primary LOTO holder (plant)<input id="loH" value="${E(ds().comp.holder||"")}"></label><label>Scheduled release for testing<input type="date" id="loR" value="${E(ds().comp.release||"")}"></label></details>`:"")+
+   (off.length?`<details style="padding:8px 16px"><summary>Recently removed locks (${off.length})</summary>${off.map(l=>`<small style="display:block;margin:6px 0">${E(l.name)} #${E(l.lockNo)} &middot; ${E(l.unit||"")} &middot; on ${E(l.on)}, off ${E(l.off)}</small>`).join("")}</details>`:""))+`<div style="height:70px"></div>`;
+  window.LOTOSEEN&&LOTOSEEN()};
+ function verifyForm(){const F=$("#dDatF"),last=LV().filter(v=>v.shift!==curSh()||v.date!==wDate()).sort((a,b)=>b.ts-a.ts)[0],changed=last?last.ver!==VER():LO().docs.length>0&&!!LO().appr,crew=(DB.people||[]).filter(p=>!SUPR.includes(p.role));
+  F.innerHTML=`<h2>Verify Crew Locks On</h2>${!approved()?`<div class="rec" style="background:#b3342b;color:#fff;border:0"><b style="color:#fff">LOTO NOT VERIFIED BY THE SUPERVISOR</b><small style="color:#fff">Stop work until the supervisor approves it.</small></div>`:""}
+  ${changed?`<div class="rec hold"><b>The LOTO changed since the last shift</b><small style="color:var(--ink)">The supervisor updated the LOTO documents${LO().appr?" (approved "+E(LO().appr.at)+")":""}. Review them before your crew locks on.</small></div>`:""}
+  <div class="hint">By verifying, you confirm every crew member working under this LOTO is signed on and has their lock on.</div><small style="display:block;margin:6px 0">Crew on this shift: ${E(crew.map(p=>p.title).join(", ")||"none listed")}</small>
+  <div class="row"><button type="button" id="vfX">Cancel</button><button type="button" class="pri" id="vfOk">All Crew Signed On and Locked On</button></div>`;
+  F.oninput=F.onchange=null;F.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="vfX")return $("#dDat").close();if(b.id!=="vfOk")return;
+   const id="lv|"+wDate()+"|"+curSh();DB.loto.verif=LV().filter(v=>v.id!==id);LV().push({id,date:wDate(),shift:curSh(),by:ME?ME.title:"",at:nowTxt(),ts:Date.now(),ver:VER(),appr:approved()});sv();$("#dDat").close();reRender()};
+  if(!$("#dDat").open)$("#dDat").showModal()}
  /* document form: scan or upload, then details */
  const tf=(k,l,v,t,ph)=>`<label>${l}<input data-lf="${k}" type="${t||"text"}" value="${E(v||"")}"${ph?` placeholder="${E(ph)}"`:""}></label>`;
  function docForm(mode,rec){const F=$("#dDatF"),isNew=!rec;EDL=rec?JSON.parse(JSON.stringify(rec)):{title:"",type:TYPES[0],unit:LU||LAST.unit||"",equip:"",permitNo:"",issuedBy:"",issued:tdy(),expires:"",status:"Active",signed:false,signedBy:ME?ME.title:"",signedAt:"",zeroBy:"",zeroAt:"",note:"",shift:curSh()};if(isNew)PAGES=[];const r=EDL,pg=mode==="scan";
@@ -2900,13 +2971,13 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   F.onclick=async e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.rm){PAGES.splice(+b.dataset.rm,1);return draw()}const k=b.dataset.lb;if(!k)return;
    if(k==="x"){EDL=null;return $("#dDat").close()}
    if(k==="view"){$("#dDat").close();return docView(rec.id)}
-   if(k==="del"&&isSup()&&confirm("Delete this LOTO document? This cannot be undone.")){LO().docs=LO().docs.filter(x=>x.id!==rec.id);pDel(rec.id);sv();$("#dDat").close();return reRender()}
+   if(k==="del"&&isSup()&&confirm("Delete this LOTO document? This cannot be undone.")){LO().docs=LO().docs.filter(x=>x.id!==rec.id);pDel(rec.id);bump();sv();$("#dDat").close();return reRender()}
    if(k==="save"){const o=EDL;if(!String(o.title).trim())return alert("Enter a document title first.");
     if(isNew){let blob,file;if(b.dataset.m==="scan"){if(!PAGES.length)return alert("Add at least one page first.");blob=mkPDF(PAGES);file={name:o.title.replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"_")+".pdf",type:"application/pdf",size:blob.size,pages:PAGES.length}}
      else{const f=$("#loUp").files[0];if(!f)return alert("Choose a file first.");if(f.size>40e6)return alert("That file is over 40 MB. Take photos with Scan Document instead.");blob=f;file={name:f.name,type:f.type||"application/octet-stream",size:f.size,pages:0}}
      b.disabled=true;o.id="ld"+Date.now().toString(36);o.file=file;o.addedBy=ME?ME.title:"";o.addedAt=nowTxt();await pPut(o.id,blob);LO().docs.push(o);PAGES=[]}
     else{const i=LO().docs.findIndex(x=>x.id===rec.id);if(i>=0)LO().docs[i]=Object.assign(LO().docs[i],o)}
-    sv();EDL=null;$("#dDat").close();reRender()}};
+    bump();sv();EDL=null;$("#dDat").close();reRender()}};
   if(!$("#dDat").open)$("#dDat").showModal()}
  let VU="";
  async function docView(id){const r=LO().docs.find(x=>x.id===id),b=await pGet(id);if(!r)return;if(!b)return alert("The file for this document is not on this iPad. It may have been cleared from the browser data.");
@@ -2935,11 +3006,16 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   <table style="width:100%;border-collapse:collapse;margin-top:8px"><tr><th style="${th}">Locks</th><th style="${th}">Day Shift</th><th style="${th}">Night Shift</th><th style="${th}">Combined</th></tr>${rowC("On now",l=>!l.off)}${rowC("Removed",l=>!!l.off)}${rowC("All recorded",()=>true)}</table>
   <div style="font:700 13px Arial,sans-serif;margin:10px 0 4px">Documents and permits</div><table style="width:100%;border-collapse:collapse;font-size:10px"><tr><th style="${th}">Permit</th><th style="${th}">Document</th><th style="${th}">Unit / equipment</th><th style="${th}">Issued / expires</th><th style="${th}">Signed off</th><th style="${th}">Zero energy</th><th style="${th}">Status</th></tr>${D.map(d=>`<tr><td style="${td}">${E(d.permitNo||"")}</td><td style="${td}"><b>${E(d.title)}</b><br>${E(d.type)}</td><td style="${td}">${E(d.unit||"Site")}<br>${E(d.equip||"")}</td><td style="${td}">${E(d.issued||"")}<br>${E(d.expires||"")}</td><td style="${td}">${d.signed?E((d.signedBy||"")+" "+(d.signedAt||"")):"No"}</td><td style="${td}">${E((d.zeroBy||"")+" "+(d.zeroAt||""))}</td><td style="${td}">${E(stOf(d))}</td></tr>`).join("")||`<tr><td colspan="7" style="${td}">None.</td></tr>`}</table>
   <div style="font:700 13px Arial,sans-serif;margin:10px 0 4px">Lock register</div><table style="width:100%;border-collapse:collapse;font-size:10px"><tr><th style="${th}">Name</th><th style="${th}">Shift</th><th style="${th}">Lock #</th><th style="${th}">Unit / point</th><th style="${th}">Permit</th><th style="${th}">On</th><th style="${th}">Off</th></tr>${L.slice().reverse().slice(0,30).map(l=>`<tr><td style="${td}">${E(l.name)}</td><td style="${td}">${E(l.shift||"")}</td><td style="${td}">${E(l.lockNo)}</td><td style="${td}">${E(l.unit||"")}<br>${E(l.point||"")}</td><td style="${td}">${E(l.permit||"")}</td><td style="${td}">${E(l.on)}</td><td style="${td}">${l.off?E(l.off):"<b>ON</b>"}</td></tr>`).join("")||`<tr><td colspan="7" style="${td}">No locks recorded.</td></tr>`}</table></div>`}
- function reRender(){if(cur==="fme"&&FT==="loto")lotoView();else if(cur==="safety")safetyView()}
+ function reRender(){if(cur==="loto")lotoView();else if(cur==="safety")safetyView()}
  /* events (FME LOTO screen and Safety summary) */
  const MD=$("#mod");
- MD.addEventListener("click",e=>{if(cur!=="fme"&&cur!=="safety")return;const b=e.target.closest("button[data-lo]");if(!b)return;e.stopPropagation();const k=b.dataset.lo,id=b.dataset.id;
-  if(k==="go"){FT="loto";return show("fme")}
+ MD.addEventListener("click",e=>{if(cur!=="loto"&&cur!=="safety")return;const b=e.target.closest("button[data-lo]");if(!b)return;e.stopPropagation();const k=b.dataset.lo,id=b.dataset.id;
+  if(k==="go")return show("loto");
+  if(k==="verify")return verifyForm();
+  if(k==="appr"&&isSup()){if(!LO().docs.some(d=>stOf(d)==="Active")&&!confirm("No active LOTO documents are uploaded. Approve anyway?"))return;LO().appr={by:ME.title,at:nowTxt(),ver:VER()};sv();return reRender()}
+  if(k==="unappr"&&isSup()){if(confirm("Withdraw the LOTO approval? Every phone shows STOP WORK until you approve again.")){LO().appr=null;sv();reRender()}return}
+  if(k==="ask"){const t=$("#loQ").value.trim();if(!t)return alert("Type your question first.");LQ().push({id:"lq"+Date.now().toString(36),text:t,by:ME?ME.title:"",at:nowTxt(),ts:Date.now(),shift:curSh(),ans:null});sv();alert("Sent to the supervisor.");return reRender()}
+  if(k==="answer"&&isSup()){const q=LQ().find(x=>x.id===id),a=q&&prompt("Answer for "+q.by+":\n"+q.text);if(a&&a.trim()){q.ans={by:ME.title,text:a.trim(),at:nowTxt()};sv();reRender()}return}
   if(k==="scan"||k==="up")return docForm(k==="scan"?"scan":"up",null);
   if(k==="lock")return lockForm();
   if(k==="print")return fprev(regHTML());
@@ -2947,10 +3023,10 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   if(k==="view")return docView(id);
   if(k==="edit"){const r=LO().docs.find(x=>x.id===id);return r&&docForm("edit",r)}
   if(k==="off"){const l=LO().locks.find(x=>x.id===id);if(l&&confirm("Record lock #"+l.lockNo+" ("+l.name+") as removed?")){l.off=nowTxt();sv();reRender()}}},true);
- MD.addEventListener("change",e=>{if(cur!=="fme"||FT!=="loto")return;const t=e.target;if(t.id==="loU"){LU=t.value;return lotoView()}
+ MD.addEventListener("change",e=>{if(cur!=="loto")return;const t=e.target;if(t.id==="loU"){LU=t.value;return lotoView()}
   const m={loSt:"lotoSt",loH:"holder",loR:"release"}[t.id];if(m&&isSup()){ds().comp[m]=t.value;sv();const s=document.querySelector("#mod .rec b");if(s)s.textContent="LOTO Status: "+(ds().comp.lotoSt||"Not set")}});
  /* hook into FME: a LOTO chip next to FME Areas and Closeout Forms */
- const _fv=fmeView;fmeView=function(){if(FT==="loto")return lotoView();return _fv.apply(this,arguments)};
+ const _fv=fmeView;fmeView=function(){if(FT==="loto")FT="areas";return _fv.apply(this,arguments)};
  const _ft=fmeTabs;
  /* Safety tab: LOTO summary with active permits, ready to view */
  const _sv=safetyView;safetyView=function(){const r=_sv.apply(this,arguments);try{const act=LO().docs.filter(d=>stOf(d)==="Active"),on=LO().locks.filter(l=>!l.off);
@@ -2959,7 +3035,8 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   const first=document.querySelector("#mod .rec");if(first)first.insertAdjacentHTML("beforebegin",h);else $("#mod").insertAdjacentHTML("beforeend",h)}catch(e){}return r};
  /* tile and icon */
  try{if(!TL.some(t=>t[0]==="loto"))TL.splice(TL.findIndex(x=>x[0]==="fme")+1,0,["loto","LOTO","Lockout/tagout permits, isolation lists, locks"]);ICON.loto='<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4M12 15v2"/>';M.loto={t:"LOTO",f:[],sum:()=>""}}catch(e){}
- const _s=show;show=function(v){if(v==="loto"){FT="loto";v="fme"}return _s.call(this,v)};
+ const _mo=mod;mod=function(k){if(k==="loto")return lotoView();return _mo.apply(this,arguments)};
+ const _s=show;show=function(v){const r=_s.call(this,v);try{if(cur==="loto")$("#fab").hidden=true}catch(e){}return r};
  try{const mm=document.querySelector("#dMore .more"),q=mm&&mm.querySelector('[data-k="tools"]');if(mm&&!mm.querySelector('[data-k="loto"]')){const x=document.createElement("button");x.dataset.k="loto";x.textContent="LOTO";x.style.fontWeight="700";if(q)q.after(x);else mm.appendChild(x)}}catch(e){}
  seed();
 })();
@@ -3178,11 +3255,12 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   as.forEach(n=>{if(RUN()[n]&&RUN()[n].tid!==t.id)bank(n);if(!RUN()[n])RUN()[n]={tid:t.id,since:Date.now()}});t.st="In progress";DB.tasks.forEach(x=>{if(x!==t)fixSt(x)});sv()}
  function fPause(t){runners(t).filter(n=>!window.ONSHIFT||ONSHIFT(n)).forEach(bank);fixSt(t);sv()}
  function fDone(t){runners(t).forEach(bank);t.st="Done";t.doneAt=tdy();sv()}
- let TKF="mine";
- function tasksPhone(){const me=ME?ME.title:"",mine=t=>(t.who||"").split(/,\s*/).includes(me),run=t=>runners(t).length>0;
-  const L=DB.tasks.filter(t=>t.st!=="Done"&&(TKF==="all"||(TKF==="run"?run(t):TKF==="today"?t.due===tdy():mine(t)||run(t)&&(t.who||"").split(/,\s*/).some(n=>window.ONSHIFT&&ONSHIFT(n)))));
+ let TKF="prog";
+ function tasksPhone(){const onS=n=>!window.ONSHIFT||ONSHIFT(n),who=t=>(t.who||"").split(/,\s*/).filter(Boolean),myShift=t=>!who(t).length&&!runners(t).length||who(t).some(onS)||runners(t).some(onS);
+  const started=t=>t.st==="In progress"||t.st==="Paused"||runners(t).length>0,A=DB.tasks.filter(t=>t.st!=="Done"&&myShift(t)),P=A.filter(started),Q=A.filter(t=>!started(t));if(TKF!=="prog"&&TKF!=="pend")TKF="prog";
+  const L=TKF==="prog"?P:Q;
   const chip=(v,l)=>`<button class="chip${TKF===v?" on":""}" data-fp="f" data-v="${v}">${l}</button>`;
-  $("#mod").innerHTML=`<div class="mh"><h2>My Tasks</h2></div><div class="chips">${chip("mine","My crew")}${chip("run","Running")}${chip("today","Today")}${chip("all","All open")}</div>`+
+  $("#mod").innerHTML=`<div class="mh"><h2>Crew Tasks</h2></div><div class="chips">${chip("prog","In Progress ("+P.length+")")}${chip("pend","Pending ("+Q.length+")")}</div>`+
   (L.map(t=>{const a=+sumH(t.id),x=+t.exp||0,rn=runners(t),h=t.hold&&!t.hold.rel;
    return `<div class="rec${h?" hold":""}"><b>${E(t.title)}</b>${h?`<span class="tag">Hold point: ${E(t.hold.type)}</span>`:""}${x&&a>=0.85*x?`<span class="tag"${a>x?' style="background:var(--bad)"':""}>${a>x?"Over expected hours":"Near overage: "+Math.round(100*a/x)+"%"}</span>`:""}
    <small>${E(t.unit||"No unit")} &middot; ${E(t.st==="In progress"?"Running":t.st)} &middot; ${f2(a)} h${x?" of "+f2(x):""}</small>${rn.length?`<small>On the clock: ${E(rn.join(", "))}</small>`:""}<small>Crew: ${E(t.who||"none")}</small>
@@ -3190,14 +3268,15 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
    <div class="row"><label style="flex:1;margin:0" class="lnk">Photo<input type="file" data-fpp="${t.id}" accept="image/*" capture="environment" multiple hidden></label><button data-fp="note" data-id="${t.id}">Note</button><button data-fp="hold" data-id="${t.id}">Hold Point</button></div>
    ${taskPh(t.id).length?`<div>${taskPh(t.id).slice(-4).map(p=>`<img class="th" data-p="${p.id}" alt="Task photo">`).join("")}</div>`:""}</div>`}).join("")||`<div class="empty" style="padding:10px 16px">No tasks here. Tasks are created on the iPad.</div>`)+`<div style="height:40px"></div>`}
  /* ---------------- photo and video log ---------------- */
- let MU="",MT="";
- function mediaView(){const L=MEDIA().slice().sort((a,b)=>b.ts-a.ts).slice(0,40),ph=PHONE();
+ let MU="",MT="",MN="";const MISC="Miscellaneous";
+ function mediaView(){const L=MEDIA().slice().sort((a,b)=>b.ts-a.ts).slice(0,40),ph=PHONE();if(MU===""&&LAST.unit&&U.some(u=>u.name===LAST.unit))MU=LAST.unit;
+  const uo=`<option value="">Pick a unit</option>`+U.map(u=>`<option${u.name===MU?" selected":""}>${E(u.name)}</option>`).join("")+`<option${MU===MISC?" selected":""}>${MISC}</option>`;
   $("#mod").innerHTML=`<div class="mh"><h2>Photo &amp; Video Log</h2></div><div style="padding:0 16px">
-  <label>Unit<select id="mdU">${unitOpts(MU||LAST.unit)}</select></label><label>Task<select id="mdT">${taskOpts(MT,t=>!MU||t.unit===MU)}</select></label><label>Note<input id="mdN" placeholder="What this shows"></label>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${photoIn("mdP",true)}${photoIn("mdV",false,"video/*")}</div><div class="hint">Photos tied to a task also show on that task and in the Daily Status Report. Videos over about 20 MB stay on this device.</div></div>
+  <label>Unit<select id="mdU">${uo}</select></label>${MU&&MU!==MISC?`<label>Task<select id="mdT">${taskOpts(MT,t=>t.unit===MU)}</select></label>`:""}<label>Description<input id="mdN" placeholder="Required: what this shows" value="${E(MN)}"></label>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${photoIn("mdP",true)}${photoIn("mdV",false,"video/*")}</div><div class="hint">Task photos also appear in the Daily Report. Videos over 20 MB stay on this phone.</div></div>
   <h2 class="sec">Recent</h2>`+(L.map(m=>`<div class="rec"><b>${m.kind==="video"?"Video":"Photo"} &middot; ${E(m.unit||"No unit")}</b><small>${E(m.ttl||"")}${m.note?" &middot; "+E(m.note):""}</small><small>${E(m.at)} &middot; ${E(m.by)} &middot; ${E(m.shift)} Shift</small>${m.kind==="video"?`<div class="row"><button data-fm2="play" data-id="${m.id}">Play Video</button></div>`:`<img class="th" data-p="${m.id}" alt="Photo">`}</div>`).join("")||`<div class="empty" style="padding:10px 16px">No photos or videos yet.</div>`)+`<div style="height:40px"></div>`;
   loadTh()}
- async function addMedia(files,kind){const u=$("#mdU").value,tid=$("#mdT").value,note=$("#mdN").value.trim(),tk=DB.tasks.find(x=>x.id===tid);MU=u;MT=tid;
+ async function addMedia(files,kind){const u=$("#mdU").value,tid=$("#mdT")?$("#mdT").value:"",note=$("#mdN").value.trim(),tk=DB.tasks.find(x=>x.id===tid);if(!note){alert("Add a description first, then take the "+(kind==="video"?"video":"photo")+".");const f=$(kind==="video"?"#mdV":"#mdP");if(f)f.value="";$("#mdN").focus();return}MU=u;MT=tid;MN="";
   for(const f of [...files]){const id=uidm(kind==="video"?"v":"p");if(kind==="video"){if(f.size>150e6){alert("That video is too large to save. Keep videos under 2 minutes.");continue}await pPut(id,f)}else{const d=await shrink(f);if(!d)continue;await pPut(id,d)}
    MEDIA().push({id,kind,mime:f.type||"",unit:u||(tk?tk.unit:""),tid,ttl:tk?tk.title:"",note,by:ME?ME.title:"",at:nowTxt(),ts:Date.now(),date:tdy(),shift:curSh(),size:f.size});
    if(kind==="photo"&&tid)TPS().push({id,tid,unit:tk.unit,ttl:tk.title,date:tdy(),cap:note,by:ME?ME.title:""})}
@@ -3220,34 +3299,42 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  const CT={inc:["Incident","#b3342b","Injury, illness or property damage"],nm:["Near Miss","#c47a00","Could have hurt someone"],obs:["Observation","#3b82c4","Safe or at-risk behavior or condition"],stop:["Stop Work","#5b2d8a","Work stopped for safety"]};
  let CASE=null;
  function caseView(){const ph=PHONE(),L=CASES().slice().sort((a,b)=>b.ts-a.ts),open=L.filter(c=>c.st!=="Closed");
-  $("#mod").innerHTML=`<div class="mh"><h2>Safety Cases</h2></div><div class="hint" style="padding:0 16px">Tap one to start the case right now. Time, shift, weather and your name fill in. Finish the details, then a supervisor files it in HSEQ Reports.</div>
+  $("#mod").innerHTML=`<div class="mh"><h2>Safety</h2></div><div class="hint" style="padding:0 16px">Tap a case type. Submit sends it to your supervisor.</div>
   <div class="qg" style="grid-template-columns:1fr 1fr">${Object.entries(CT).map(([k,c])=>`<button class="qb" data-fc="new" data-v="${k}" style="border:2px solid ${c[1]};min-height:96px"><b style="display:block;font-size:21px;color:${c[1]}">${c[0]}</b><small style="color:var(--mute)">${c[2]}</small></button>`).join("")}</div>
   <h2 class="sec">Open (${open.length})</h2>`+(open.map(caseRow).join("")||`<div class="empty" style="padding:6px 16px">No open cases.</div>`)+
   (L.length>open.length?`<details style="padding:8px 16px"><summary>Closed (${L.length-open.length})</summary>${L.filter(c=>c.st==="Closed").slice(0,20).map(caseRow).join("")}</details>`:"")+`<div style="height:40px"></div>`;loadTh()}
- const caseRow=c=>`<div class="rec"${c.st!=="Closed"?` style="border-left:5px solid ${CT[c.type][1]}"`:""}><b>${E(CT[c.type][0])}${c.hurt?" &middot; Someone hurt":""}</b>${c.st==="Closed"?`<span class="tag" style="background:#5d686b">Closed${c.hseq?" &middot; HSEQ "+E(c.hseq):""}</span>`:`<span class="tag">Open</span>`}<small>${E(c.at)} &middot; ${E(c.shift)} Shift &middot; ${E(c.by)}${c.unit?" &middot; "+E(c.unit):""}${c.loc?" &middot; "+E(c.loc):""}</small>${c.desc?`<small style="color:var(--ink)">${E(c.desc.slice(0,160))}${c.desc.length>160?"...":""}</small>`:""}${thumbsOf((c.photos||[]).slice(0,3))}<div class="row"><button data-fc="open" data-id="${c.id}">Open</button><button data-fc="print" data-id="${c.id}">Print</button></div></div>`;
- function caseForm(c){CASE=c;const F=$("#dDatF"),sup=isSup(),t=CT[c.type];
-  F.innerHTML=`<h2 style="color:${t[1]}">${t[0]}</h2><div class="hint">Started ${E(c.at)} &middot; ${E(c.shift)} Shift &middot; ${E(c.by)}${c.wx?"<br>Weather: "+E(c.wx):""}</div>
-  <div class="hint" style="margin-top:10px;font-weight:700;color:var(--ink)">Was anyone hurt?</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button type="button" data-cf2="hurt" data-v="1"${c.hurt===true?' class="pri"':""} style="min-height:56px;font-size:18px">Yes</button><button type="button" data-cf2="hurt" data-v="0"${c.hurt===false?' class="pri"':""} style="min-height:56px;font-size:18px">No</button></div>
-  ${c.hurt?`<div class="rec hold" style="margin:8px 0"><b>Get care first</b><small>${(()=>{const p=EMPRIMARY(),cr=p.label!==p.num;if(!p.set)return `Get your supervisor now. This site\'s emergency number is not set in Quick Start.</small></div>`;return `Call ${E(cr?"the "+p.label.toLowerCase()+" ("+p.num+")":p.num)} for anything serious. Tell your supervisor right away.</small><div class="row"><a class="lnk" href="tel:${E(p.tel)}" style="background:#b3342b;color:#fff">Call ${E(cr?p.label:p.num)}</a></div></div>`})()}`:""}
-  ${photoIn("csP",true)}<div>${thumbsOf(c.photos)}</div>
+ const caseRow=c=>`<div class="rec"${c.st!=="Closed"?` style="border-left:5px solid ${CT[c.type][1]}"`:""}><b>${E(CT[c.type][0])}${c.hurt?" &middot; Someone hurt":""}</b>${c.st==="Closed"?`<span class="tag" style="background:#5d686b">Closed${c.hseq?" &middot; HSEQ "+E(c.hseq):""}</span>`:`<span class="tag">Open</span>`}<small>${E(c.at)} &middot; ${E(c.shift)} Shift &middot; ${E(c.by)}${c.unit?" &middot; "+E(c.unit):""}${c.loc?" &middot; "+E(c.loc):""}</small>${c.desc?`<small style="color:var(--ink)">${E(c.desc.slice(0,160))}${c.desc.length>160?"...":""}</small>`:""}${thumbsOf((c.photos||[]).slice(0,3))}${(c.videos||[]).length?`<small>${c.videos.length} video${c.videos.length===1?"":"s"}</small>`:""}${c.noPh&&!(c.photos||[]).length&&!(c.videos||[]).length?`<small>No photo: ${E(c.noPh)}</small>`:""}<div class="row"><button data-fc="open" data-id="${c.id}">Open</button><button data-fc="print" data-id="${c.id}">Print</button></div></div>`;
+ const dtLocal=ms=>{const d=new Date(ms),p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"T"+p(d.getHours())+":"+p(d.getMinutes())};
+ function caseForm(c){CASE=c;const F=$("#dDatF"),sup=isSup()&&!PHONE(),t=CT[c.type],isNew=!CASES().some(x=>x.id===c.id);if(!c.when)c.when=dtLocal(c.ts||Date.now());c.photos=c.photos||[];c.videos=c.videos||[];
+  const hasMedia=c.photos.length+c.videos.length>0;
+  const ep=window.EMPRIMARY?EMPRIMARY():{set:false};
+  F.innerHTML=`<h2 style="color:${t[1]}">${t[0]}</h2>${c.type==="inc"&&ep.set?`<div class="row" style="margin-top:0"><a class="lnk" href="tel:${E(ep.tel)}" style="background:#b3342b;color:#fff">Someone hurt? Call ${E(ep.label===ep.num?ep.num:ep.label)}</a></div>`:""}
+  <label>Who: reported by<input value="${E(c.by)}" disabled></label><label>People involved<input data-cf="ppl" value="${E(c.ppl||"")}" placeholder="Names of people involved or witnesses"></label>
   <label>What happened<textarea data-cf="desc" rows="4" placeholder="Tap the microphone on the keyboard to talk instead of type">${E(c.desc||"")}</textarea></label>
-  <label>Immediate action taken<textarea data-cf="act" rows="2">${E(c.act||"")}</textarea></label>
-  <label>Unit<select data-cf="unit">${unitOpts(c.unit)}</select></label><label>Exact location<input data-cf="loc" value="${E(c.loc||"")}" placeholder="e.g. Bay 2, Unit 4 laydown"></label><label>People involved or witnesses<input data-cf="ppl" value="${E(c.ppl||"")}"></label>
-  ${sup?`<h3 style="margin-top:14px">Supervisor</h3><label>HSEQ Reports number<input data-cf="hseq" value="${E(c.hseq||"")}"></label><label>Supervisor notes<textarea data-cf="sn" rows="2">${E(c.sn||"")}</textarea></label><div class="row"><a class="lnk" href="https://www.hseqreports.com/" target="_blank" rel="noopener">Open HSEQ Reports</a></div>`:""}
-  <div class="row" style="position:sticky;bottom:0;background:var(--card);padding:10px 0">${sup&&c.st!=="Closed"?`<button type="button" data-cf2="close">Close Case</button>`:""}${sup&&c.st==="Closed"?`<button type="button" data-cf2="reopen">Reopen</button>`:""}<button type="button" class="pri" data-cf2="save">Save</button></div>`;
-  F.oninput=e=>{const k=e.target.dataset&&e.target.dataset.cf;if(k){CASE[k]=e.target.value}};
-  F.onchange=async e=>{const k=e.target.dataset&&e.target.dataset.cf;if(k)CASE[k]=e.target.value;if(e.target.id==="csP"){CASE.photos=(CASE.photos||[]).concat(await savePhotos(e.target.files));saveCase(true);caseForm(CASE)}};
+  <label>Where: unit<select data-cf="unit">${unitOpts(c.unit)}</select></label><label>Where: detail (optional)<input data-cf="loc" value="${E(c.loc||"")}" placeholder="e.g. Bay 2, laydown yard"></label>
+  <label>When<input type="datetime-local" data-cf="when" value="${E(c.when)}"></label>
+  <div class="hint" style="font-weight:700;color:var(--ink);margin-top:10px">Photo or video (required)</div>
+  <label class="lnk" style="cursor:pointer;margin:6px 0;min-height:52px;font-size:16px">Take Photo or Video<input type="file" id="csP" accept="image/*,video/*" capture="environment" multiple hidden></label>
+  <div>${thumbsOf(c.photos)}${c.videos.length?`<small style="display:block">${c.videos.length} video${c.videos.length===1?"":"s"} attached</small>`:""}</div>
+  ${hasMedia?"":`<label>No photo or video? Say why<input data-cf="noPh" value="${E(c.noPh||"")}" placeholder="e.g. caring for an injured person, active hazard"></label>`}
+  ${sup&&!isNew?`<h3 style="margin-top:14px">Supervisor</h3><label>HSEQ Reports number<input data-cf="hseq" value="${E(c.hseq||"")}"></label><label>Supervisor notes<textarea data-cf="sn" rows="2">${E(c.sn||"")}</textarea></label><div class="row"><a class="lnk" href="https://www.hseqreports.com/" target="_blank" rel="noopener">Open HSEQ Reports</a></div>`:""}
+  <div class="row" style="position:sticky;bottom:0;background:var(--card);padding:10px 0">${isNew?`<button type="button" data-cf2="x">Cancel</button><button type="button" class="pri" data-cf2="submit">Submit</button>`:`${sup&&c.st!=="Closed"?`<button type="button" data-cf2="close">Close Case</button>`:""}${sup&&c.st==="Closed"?`<button type="button" data-cf2="reopen">Reopen</button>`:""}<button type="button" data-cf2="x">Cancel</button><button type="button" class="pri" data-cf2="save">Save</button>`}</div>`;
+  F.oninput=e=>{const k=e.target.dataset&&e.target.dataset.cf;if(k)CASE[k]=e.target.value};
+  F.onchange=async e=>{const k=e.target.dataset&&e.target.dataset.cf;if(k)CASE[k]=e.target.value;if(e.target.id==="csP"){for(const f of [...e.target.files]){if(/^video/.test(f.type)){if(f.size>150e6){alert("That video is too large. Keep it under 2 minutes.");continue}const id=uidm("v");await pPut(id,f);CASE.videos.push(id)}else{const d=await shrink(f);if(!d)continue;const id=uidm("p");await pPut(id,d);CASE.photos.push(id)}}caseForm(CASE)}};
   F.onclick=e=>{const b=e.target.closest("button[data-cf2]");if(!b)return;const k=b.dataset.cf2;
-   if(k==="hurt"){CASE.hurt=b.dataset.v==="1";saveCase(true);return caseForm(CASE)}
+   if(k==="x"){if(isNew){CASE.photos.concat(CASE.videos).forEach(x=>pDel(x))}CASE=null;return $("#dDat").close()}
+   if(k==="submit"||k==="save"){if(!String(CASE.desc||"").trim())return alert("Describe what happened.");if(!CASE.photos.length&&!CASE.videos.length&&!String(CASE.noPh||"").trim())return alert("Add a photo or video, or type why you can't.");
+    const w=new Date(CASE.when);if(!isNaN(w)){CASE.ts=+w;CASE.date=ymd(w);CASE.at=w.toLocaleString([],{month:"numeric",day:"numeric",year:"2-digit",hour:"numeric",minute:"2-digit"})}
+    if(k==="submit"){CASE.st="Open";CASE.submitted=nowTxt()}}
    if(k==="close"){if(!String(CASE.hseq||"").trim()&&!confirm("Close without an HSEQ Reports number?"))return;CASE.st="Closed";CASE.closedBy=ME?ME.title:"";CASE.closedAt=nowTxt()}
    if(k==="reopen")CASE.st="Open";
-   saveCase();$("#dDat").close();refreshCur()};
+   saveCase();$("#dDat").close();if(k==="submit")alert("Sent to your supervisor.");refreshCur()};
   if(!$("#dDat").open)$("#dDat").showModal();loadTh()}
  function saveCase(quiet){const i=CASES().findIndex(x=>x.id===CASE.id);if(i>=0)CASES()[i]=CASE;else CASES().push(CASE);sv()}
- function newCase(type){const c={id:uidm("sc"),type,at:nowTxt(),ts:Date.now(),date:tdy(),shift:curSh(),by:ME?ME.title:"",wx:(window.WXLINE&&WXLINE())||"",unit:LAST.unit||"",loc:"",desc:"",act:"",ppl:"",hurt:null,photos:[],st:"Open"};CASE=c;saveCase(true);caseForm(c)}
+ function newCase(type){const c={id:uidm("sc"),type,at:nowTxt(),ts:Date.now(),date:tdy(),shift:curSh(),by:ME?ME.title:"",wx:(window.WXLINE&&WXLINE())||"",unit:LAST.unit||"",loc:"",desc:"",act:"",ppl:"",photos:[],videos:[],st:"Open"};CASE=c;caseForm(c)}
  function caseHTML(c){const t=CT[c.type],th="border:1px solid #000;padding:4px 6px;background:#ede9dc;font-weight:700;width:1.7in",td="border:1px solid #000;padding:4px 6px;white-space:pre-wrap",row=(a,b)=>`<tr><td style="${th}">${a}</td><td style="${td}">${E(b||"")}</td></tr>`;
   return `<div class="pg" style="padding:.4in .5in;font-size:12px"><div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:6px"><img src="${LOGO}" alt="" style="height:.5in"><div style="text-align:right"><div style="font:700 18px Arial,sans-serif">Safety Case: ${t[0]}</div><div>${E(typeof SITE==="function"?SITE():"")}${typeof JOBNO==="function"&&JOBNO()?" &middot; Job "+E(JOBNO()):""}</div></div></div>
-  <table style="width:100%;border-collapse:collapse;margin-top:10px">${row("Started",c.at+" ("+c.shift+" Shift)")}${row("Started by",c.by)}${row("Anyone hurt",c.hurt===true?"Yes":c.hurt===false?"No":"Not answered")}${row("Unit",c.unit)}${row("Location",c.loc)}${row("Weather",c.wx)}${row("What happened",c.desc)}${row("Immediate action",c.act)}${row("People involved",c.ppl)}${row("HSEQ Reports number",c.hseq)}${row("Supervisor notes",c.sn)}${row("Status",c.st+(c.closedAt?" ("+c.closedAt+" by "+c.closedBy+")":""))}</table>
+  <table style="width:100%;border-collapse:collapse;margin-top:10px">${row("Started",c.at+" ("+c.shift+" Shift)")}${row("Started by",c.by)}${c.noPh?row("No photo or video because",c.noPh):""}${row("Unit",c.unit)}${row("Location",c.loc)}${row("Weather",c.wx)}${row("What happened",c.desc)}${row("Immediate action",c.act)}${row("People involved",c.ppl)}${row("HSEQ Reports number",c.hseq)}${row("Supervisor notes",c.sn)}${row("Status",c.st+(c.closedAt?" ("+c.closedAt+" by "+c.closedBy+")":""))}</table>
   ${(c.photos||[]).length?`<div class="ph" style="margin-top:10px">${c.photos.slice(0,4).map(p=>`<img data-p="${p}" alt="" style="width:48%;max-height:2.6in;object-fit:contain">`).join("")}</div>`:""}
   <div style="display:flex;gap:.4in;margin-top:24px">${["Reported by","Supervisor"].map(l=>`<div style="flex:1"><div style="border-bottom:1px solid #000;height:.4in"></div>${l} &middot; Signature / Date</div>`).join("")}</div></div>`}
  /* ---------------- time out / stop work ---------------- */
@@ -3283,7 +3370,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   <h2 class="sec">Recent handoffs</h2>`+(L.map(h=>`<div class="rec${!h.ack&&h.shift!==me?" hold":""}"><b>${E(h.shift)} Shift &middot; ${E(h.by)}</b><small>${E(h.at)}${h.unit?" &middot; "+E(h.unit):""}</small><small style="color:var(--ink);white-space:pre-wrap">${E(h.text)}</small>${thumbsOf(h.photos)}${h.ack?`<small>Read by ${E(h.ack.by)} ${E(h.ack.at)}</small>`:h.shift!==me?`<div class="row"><button class="pri" data-fo="ack" data-id="${h.id}">Mark Read</button></div>`:`<small>Not read yet</small>`}</div>`).join("")||`<div class="empty" style="padding:6px 16px">No handoffs yet.</div>`)+`<div style="height:40px"></div>`;loadTh()}
  let HOPH=[];
  /* ---------------- register views ---------------- */
- const VIEWS={fm_tasks:["My Tasks","Pause, resume, complete, photos and notes",tasksPhone],fm_media:["Photo & Video Log","Field photos and videos by unit and task",mediaView],fm_hold:["Hold Points","Tasks waiting on QC, customer or parts",holdView],fm_case:["Safety Cases","Incidents, near misses, observations, stop work",caseView],fm_tout:["Time Out","Stop work checklist and log",toutView],fm_em:["Emergency Card","Site emergency number, muster point, hospital, contacts",emView],fm_hand:["Shift Handoff","Notes for the next shift",handView]};
+ const VIEWS={fm_tasks:["Crew Tasks","Pause, resume, complete, photos and notes",tasksPhone],fm_media:["Photo & Video Log","Field photos and videos by unit and task",mediaView],fm_hold:["Hold Points","Tasks waiting on QC, customer or parts",holdView],fm_case:["Safety","Incidents, near misses, observations, stop work",caseView],fm_tout:["Time Out","Stop work checklist and log",toutView],fm_em:["Emergency Card","Site emergency number, muster point, hospital, contacts",emView],fm_hand:["Shift Handoff","Notes for the next shift",handView]};
  Object.entries(VIEWS).forEach(([k,v])=>{M[k]={t:v[0],f:[],sum:()=>""};ICON[k]=ICO[k];if(k!=="fm_tasks"&&!TL.some(t=>t[0]===k))TL.push([k,v[0],v[1]])});
  const _m=mod;mod=function(k){if(VIEWS[k])return VIEWS[k][2]();return _m.apply(this,arguments)};
  function refreshCur(){try{if(VIEWS[cur])VIEWS[cur][2]();else if(cur==="home")home();else if(M[cur])mod(cur)}catch(e){}}
@@ -3306,10 +3393,10 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
    const t=$("#hoN").value.trim();if(!t)return alert("Write the handoff note first.");HAND().push({id:uidm("ho"),shift:curSh(),by:ME?ME.title:"",at:nowTxt(),ts:Date.now(),date:tdy(),unit:$("#hoU").value,text:t,photos:HOPH,ack:null});HOPH=[];sv();handView()}});
  MD.addEventListener("change",async e=>{const t=e.target;
   if(cur==="fm_tasks"&&t.dataset.fpp){const tk=DB.tasks.find(x=>x.id===t.dataset.fpp);if(!tk)return;for(const id of await savePhotos(t.files))TPS().push({id,tid:tk.id,unit:tk.unit,ttl:tk.title,date:tk.due||tdy(),cap:"",by:ME?ME.title:""});sv();return tasksPhone()}
-  if(cur==="fm_media"){if(t.id==="mdU"){MU=t.value;$("#mdT").innerHTML=taskOpts("",x=>!MU||x.unit===MU)}if(t.id==="mdT"){MT=t.value;const tk=DB.tasks.find(x=>x.id===MT);if(tk){MU=tk.unit;$("#mdU").value=tk.unit}}if(t.id==="mdP")return addMedia(t.files,"photo");if(t.id==="mdV")return addMedia(t.files,"video")}
+  if(cur==="fm_media"){if(t.id==="mdU"){MU=t.value;MT="";MN=$("#mdN").value;return mediaView()}if(t.id==="mdT"){MT=t.value}if(t.id==="mdP")return addMedia(t.files,"photo");if(t.id==="mdV")return addMedia(t.files,"video")}
   if(cur==="fm_hand"&&t.id==="hoP"){HOPH=HOPH.concat(await savePhotos(t.files));$("#hoTh").innerHTML=thumbsOf(HOPH);loadTh()}});
  /* ---------------- phone home screen ---------------- */
- const PT=[["fm_msg","Messages"],["fm_tasks","My Tasks"],["crew","Crew Board"],["delay","Delays"],["fm_brk","Breaks"],["fm_media","Photos & Video"],["fm_hold","Hold Point"],["fm_req","Parts & Expendables"],["fm_rcv","Receive Delivery"],["fm_case","Safety Case"],["fm_tout","Time Out"],["fm_em","Emergency"],["loto","LOTO"],["tools","Damaged Tool"],["fme","FME Log"],["fm_hand","Shift Handoff"],["fm_eos","End of Shift"],["fm_ntf","Icon Counter"]];
+ const PT=[["fm_msg","Messages"],["fm_tasks","Crew Tasks"],["crew","Crew Board"],["delay","Delays"],["fm_brk","Breaks"],["fm_media","Photos & Video"],["fm_hold","Hold Point"],["fm_req","Parts & Expendables"],["fm_rcv","Receive Delivery"],["fm_case","Safety"],["fm_tout","Time Out"],["fm_em","Emergency"],["loto","LOTO"],["tools","Broken Tool"],["fme","FME Log"],["fm_hand","Shift End"],["fm_ntf","Icon Counter"]];
  const ALLOW=new Set(["home","fm_ntf","fm_msg","crew","fm_req","fm_rcv","fm_brk","brk_rep","fm_eos","fm_tasks","delay","fm_media","fm_hold","fm_case","fm_tout","fm_em","loto","fme","tools","fm_hand"]);
  const ph=document.createElement("div");ph.id="phoneHome";ph.hidden=true;const hm=document.getElementById("home");if(hm)hm.appendChild(ph);
  const st=document.createElement("style");st.textContent=`body.phone #home>*:not(#phoneHome):not(#shHome){display:none!important}body.phone #tab,body.phone #fab{display:none!important}body.phone{padding-bottom:20px!important}
@@ -3420,7 +3507,8 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  /* =================== MESSAGES =================== */
  const chOf=(a,b)=>"dm:"+[a,b].sort().join("|");
  const chName=ch=>ch==="all"?"Crew Leads Group":ch.slice(3).split("|").filter(n=>n!==me()).join("")||"Me";
- const myCh=ch=>ch==="all"?ISFORE():ch.slice(3).split("|").includes(me());
+ const myCh=ch=>ch!=="all"&&ch.slice(3).split("|").includes(me());
+ let MVD=[];
  const readTs=(who,ch)=>{const r=RD().find(x=>x.id===who+"|"+ch);return r?r.ts:0};
  const unread=ch=>{const t=readTs(me(),ch);return MSG().filter(m=>m.ch===ch&&m.from!==me()&&m.ts>t).length};
  const unreadAll=()=>{if(!ME||!ISFORE())return 0;const chs=new Set(MSG().map(m=>m.ch).filter(myCh));let n=0;chs.forEach(c=>n+=unread(c));return n};
@@ -3428,23 +3516,23 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  let CH="",MLINK=null,MPH=[],MSIG="";
  function msgList(){CH="";const leads=ALLP().filter(p=>isLead(p)&&p.title!==me());
   const last=ch=>{const L=MSG().filter(m=>m.ch===ch);return L[L.length-1]};
-  const row=(ch,title,sub)=>{const l=last(ch),u=unread(ch);return `<button class="rec" data-mg="open" data-ch="${E(ch)}" style="display:block;width:100%;text-align:left;cursor:pointer${u?";border-left:5px solid var(--acc,#1f6f6b)":""}"><b>${E(title)}${u?` <span class="tag">${u} new</span>`:""}</b><small>${E(sub)}</small>${l?`<small style="color:var(--ink)">${E(l.from===me()?"You":l.from)}: ${E((l.text||(l.photos&&l.photos.length?"Photo":"")||(l.link?"Link":"")).slice(0,70))} &middot; ${E(tm(l.ts))}</small>`:`<small>No messages yet</small>`}</button>`};
+  const row=(ch,title,sub)=>{const l=last(ch),u=unread(ch);return `<button class="rec" data-mg="open" data-ch="${E(ch)}" style="display:block;width:100%;text-align:left;cursor:pointer${u?";border-left:5px solid var(--acc,#1f6f6b)":""}"><b>${E(title)}${u?` <span class="tag">${u} new</span>`:""}</b><small>${E(sub)}</small>${l?`<small style="color:var(--ink)">${E(l.from===me()?"You":l.from)}: ${E((l.text||(l.photos&&l.photos.length?"Photo":"")||(l.videos&&l.videos.length?"Video":"")||(l.link?"Link":"")).slice(0,70))} &middot; ${E(tm(l.ts))}</small>`:`<small>No messages yet</small>`}</button>`};
   const sorted=leads.slice().sort((a,b)=>((last(chOf(me(),b.title))||{}).ts||0)-((last(chOf(me(),a.title))||{}).ts||0)||a.title.localeCompare(b.title));
   MD.innerHTML=`<div class="mh"><h2>Messages</h2></div>`+(!ISFORE()?`<div class="hint" style="padding:0 16px">Messages are for foremen and supervisors.</div>`:
-   row("all","Crew Leads Group","All supervisors and foremen, both shifts")+`<h2 class="sec">One on one</h2>`+(sorted.map(p=>row(chOf(me(),p.title),p.title,(p.role||"")+(p.shift?" · "+p.shift+" Shift":""))).join("")||`<div class="empty" style="padding:6px 16px">No other foremen or supervisors yet. Set a person's role to Foreman in People.</div>`))+`<div style="height:40px"></div>`}
+   (sorted.map(p=>row(chOf(me(),p.title),p.title,(p.role||"")+(p.shift?" · "+p.shift+" Shift":""))).join("")||`<div class="empty" style="padding:6px 16px">No other foremen or supervisors yet. Set a person's role to Foreman in People.</div>`))+`<div style="height:40px"></div>`}
  function bubbles(){const L=MSG().filter(m=>m.ch===CH).slice(-150),mine=L.filter(m=>m.from===me()),lastMine=mine[mine.length-1];
   const seen=m=>{if(!m)return "";const others=CH==="all"?ALLP().filter(p=>isLead(p)&&p.title!==me()).map(p=>p.title):[chName(CH)];const s=others.filter(n=>readTs(n,CH)>=m.ts);return s.length?(CH==="all"?"Seen by "+s.join(", "):"Seen"):"Sent"};
   let lastDay="";
   return L.map(m=>{const mi=m.from===me(),day=new Date(m.ts).toDateString(),hd=day!==lastDay?`<div style="text-align:center;font-size:12px;color:var(--mute);margin:10px 0 4px">${E(new Date(m.ts).toLocaleDateString([],{weekday:"long",month:"short",day:"numeric"}))}</div>`:"";lastDay=day;
-   return hd+`<div style="display:flex;justify-content:${mi?"flex-end":"flex-start"};margin:4px 0"><div style="max-width:82%;padding:8px 12px;border-radius:16px;${mi?"background:#1f6f6b;color:#fff;border-bottom-right-radius:4px":"background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px"}">${mi?"":`<div style="font-size:12px;font-weight:700;opacity:.8">${E(m.from)}</div>`}${m.text?`<div style="white-space:pre-wrap;font-size:16px">${E(m.text)}</div>`:""}${(m.photos||[]).length?`<div>${thumbs(m.photos)}</div>`:""}${m.link?`<button data-mg="go" data-k="${E(m.link.k)}" data-id="${E(m.link.id)}" style="margin-top:6px;min-height:34px;font-size:14px;${mi?"background:#fff;color:#1f6f6b":""}">${E({task:"Task",unit:"Unit",hold:"Hold point"}[m.link.k]||"Link")}: ${E(m.link.label)}</button>`:""}<div style="font-size:11px;opacity:.7;text-align:right;margin-top:2px">${E(tm(m.ts))}${m===lastMine?" &middot; "+E(seen(m)):""}</div></div></div>`}).join("")||`<div class="empty">No messages yet. Say hello.</div>`}
+   return hd+`<div style="display:flex;justify-content:${mi?"flex-end":"flex-start"};margin:4px 0"><div style="max-width:82%;padding:8px 12px;border-radius:16px;${mi?"background:#1f6f6b;color:#fff;border-bottom-right-radius:4px":"background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px"}">${mi?"":`<div style="font-size:12px;font-weight:700;opacity:.8">${E(m.from)}</div>`}${m.text?`<div style="white-space:pre-wrap;font-size:16px">${E(m.text)}</div>`:""}${(m.photos||[]).length?`<div>${thumbs(m.photos)}</div>`:""}${(m.videos||[]).map(v=>`<button data-mg="vid" data-id="${E(v)}" style="margin-top:6px;min-height:40px;font-size:15px;${mi?"background:#fff;color:#1f6f6b":""}">&#9654; Play video</button>`).join("")}${m.link?`<button data-mg="go" data-k="${E(m.link.k)}" data-id="${E(m.link.id)}" style="margin-top:6px;min-height:34px;font-size:14px;${mi?"background:#fff;color:#1f6f6b":""}">${E({task:"Task",unit:"Unit",hold:"Hold point"}[m.link.k]||"Link")}: ${E(m.link.label)}</button>`:""}<div style="font-size:11px;opacity:.7;text-align:right;margin-top:2px">${E(tm(m.ts))}${m===lastMine?" &middot; "+E(seen(m)):""}</div></div></div>`}).join("")||`<div class="empty">No messages yet. Say hello.</div>`}
  function chatView(){markRead(CH);MSIG=sig();
   MD.innerHTML=`<div class="mh"><button data-mg="list">All Chats</button><h2>${E(chName(CH))}</h2></div>${CH==="all"?`<div class="hint" style="padding:0 16px">Everyone with the Foreman or a supervisor role, both shifts.</div>`:""}
   <div id="msgL" style="padding:4px 12px;max-height:calc(100vh - 330px);min-height:220px;overflow:auto">${bubbles()}</div>
   <div style="position:sticky;bottom:0;background:var(--bg,#fff);padding:8px 12px 18px;border-top:1px solid var(--line)"><div id="mgAt" style="font-size:13px">${attHTML()}</div>
   <textarea id="mgT" rows="2" placeholder="Message" style="width:100%;font-size:16px"></textarea>
-  <div class="row" style="margin-top:6px"><label class="lnk" style="flex:1;cursor:pointer;margin:0">Photo<input type="file" id="mgP" accept="image/*" capture="environment" multiple hidden></label><button data-mg="link" style="flex:1">Link</button><button class="pri" data-mg="send" style="flex:1.4">Send</button></div></div>`;
+  <div class="row" style="margin-top:6px"><label class="lnk" style="flex:1;cursor:pointer;margin:0">Photo<input type="file" id="mgP" accept="image/*" capture="environment" multiple hidden></label><label class="lnk" style="flex:1;cursor:pointer;margin:0">Video<input type="file" id="mgV" accept="video/*" capture="environment" hidden></label><button class="pri" data-mg="send" style="flex:1.4">Send</button></div></div>`;
   const l=$("#msgL");if(l){l.scrollTop=l.scrollHeight;l.querySelectorAll("img").forEach(i=>i.addEventListener("load",()=>{l.scrollTop=l.scrollHeight},{once:true}))}loadTh()}
- const attHTML=()=>(MLINK?`<span class="tag" style="background:#3b82c4">${E({task:"Task",unit:"Unit",hold:"Hold point"}[MLINK.k])}: ${E(MLINK.label)}</span> <button data-mg="unlink" style="min-height:26px;padding:0 8px">x</button> `:"")+(MPH.length?`<div>${thumbs(MPH)} <button data-mg="unph" style="min-height:26px;padding:0 8px">Remove photos</button></div>`:"");
+ const attHTML=()=>(MVD.length?`<span class="tag" style="background:#3b82c4">${MVD.length} video${MVD.length===1?"":"s"} ready</span> <button data-mg="unvd" style="min-height:26px;padding:0 8px">x</button> `:"")+(MLINK?`<span class="tag" style="background:#3b82c4">${E({task:"Task",unit:"Unit",hold:"Hold point"}[MLINK.k])}: ${E(MLINK.label)}</span> <button data-mg="unlink" style="min-height:26px;padding:0 8px">x</button> `:"")+(MPH.length?`<div>${thumbs(MPH)} <button data-mg="unph" style="min-height:26px;padding:0 8px">Remove photos</button></div>`:"");
  const sig=()=>{const L=MSG().filter(m=>m.ch===CH);return L.length+"|"+(L.length?L[L.length-1].ts:0)+"|"+RD().filter(r=>r.ch===CH).map(r=>r.ts).join(",")};
  function linkForm(){const F=$("#dDatF"),holds=DB.tasks.filter(t=>t.hold&&!t.hold.rel);
   F.innerHTML=`<h2>Link to</h2><label>Task<select id="lkTk">${taskOpts("")}</select></label><label>Hold point<select id="lkHp"><option value="">None</option>${holds.map(t=>`<option value="${t.id}">${E(t.title+" ("+t.hold.type+")")}</option>`).join("")}</select></label><label>Unit<select id="lkUn">${unitOpts("")}</select></label><div class="hint">Pick one. The message shows a button that opens it.</div><div class="row"><button type="button" id="lkX">Cancel</button><button type="button" class="pri" id="lkOk">Attach</button></div>`;
@@ -3642,17 +3730,52 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   const fl=eosFlags(sh);EOS().push({id:"eos|"+wd+"|"+sh,date:wd,shift:sh,by:me(),at:nowTxt(),ts:Date.now(),rows,flags:fl.map(x=>x[0]+": "+x[1]),stopped:running.length,ack:null});EOSCHK={};sv();
   show("fm_hand");setTimeout(()=>{const t=$("#hoN");if(t&&!t.value){t.value=(fl.length?"Still open:\n"+fl.map(x=>"- "+x[0]+": "+x[1]).join("\n")+"\n\n":"")+"Crew hours: "+rows.map(r=>r.who+" "+f2(r.hrs)+"h").join(", ")+"\n\n";t.focus()}},80)}
 
+
+ /* =================== SHIFT END: turnover note, hours check, locks reminder =================== */
+ const FN=()=>DB.fnotes||(DB.fnotes=[]),HO=()=>DB.handoff||(DB.handoff=[]);
+ let SN={ph:[]};
+ const CTN={inc:"Incident",nm:"Near miss",obs:"Observation",stop:"Stop work"};
+ function pulled(sh){const d2=shDates(sh),inSh=x=>(x.shift||"Day")===sh&&(x.date?d2.includes(x.date):Date.now()-(x.ts||0)<16*36e5),out=[];
+  (DB.cases||[]).filter(inSh).forEach(c=>out.push({k:"Safety case",t:(CTN[c.type]||"Case")+": "+String(c.desc||"").slice(0,140)+(c.unit?" ("+c.unit+")":"")+(c.st==="Closed"?" (closed)":"")}));
+  (DB.timeouts||[]).filter(inSh).forEach(x=>out.push({k:"Time out",t:(x.ttl||"General")+": "+(x.why||"")+(x.cleared?" (cleared)":" (STILL OPEN)")}));
+  FN().filter(n=>n.ntk&&!n.sent&&n.shift===sh&&d2.includes(n.date)).forEach(n=>out.push({k:"Note",t:(n.unit?n.unit+": ":"General: ")+n.text,id:n.id,ph:n.photos||[],by:n.by}));
+  return out}
+ function turnView(){const sh=curSh(),wd=workDate(sh),P=pulled(sh),fl=eosFlags(sh),can=ISFORE(),cr=crew(),L=HO().slice().sort((a,b)=>b.ts-a.ts).slice(0,15),myN=FN().filter(n=>n.shift===sh&&shDates(sh).includes(n.date)&&!n.sent).sort((a,b)=>b.ts-a.ts);
+  const hrsRows=cr.map(p=>{const n=p.title,h=hrsNow(n,sh),r=RUN()[n],c=EOSCHK[n]||(EOSCHK[n]={ok:true,note:""});if(!h&&!r)return "";return `<div style="border-bottom:1px solid var(--line);padding:6px 0"><div style="display:flex;align-items:center;gap:10px"><label class="chk" style="margin:0;flex:1;color:inherit"><input type="checkbox" data-eo="ok" data-nm="${E(n)}"${c.ok?" checked":""}><span>${E(n)}${r?` <small style="color:var(--mute)">(on the clock)</small>`:""}</span></label><b>${f2(h)} h</b></div>${c.ok?"":`<input data-eo="note" data-nm="${E(n)}" value="${E(c.note)}" placeholder="What is wrong with these hours">`}</div>`}).join("");
+  MD.innerHTML=`<div class="mh"><h2>Shift Turnover</h2></div><div class="hint" style="padding:0 16px">${E(sh)} Shift &middot; ${E(fmtD(wd))}</div>
+  <h2 class="sec">Add a note</h2><div style="padding:0 16px"><textarea id="snT" rows="3" placeholder="Issues, status, anything the next shift needs to know"></textarea>
+  <label>Unit<select id="snU"><option value="">General</option>${U.map(u=>`<option>${E(u.name)}</option>`).join("")}</select></label>
+  <label class="chk" style="color:inherit;font-size:15px"><input type="checkbox" id="snK" checked><span>Next shift needs to know</span></label>
+  ${phIn("snP","Add Photo (optional)")}<div id="snTh">${thumbs(SN.ph)}</div><div class="row"><button class="pri" data-se="add">Save Note</button></div></div>`+
+  (myN.length?`<h2 class="sec">This shift's notes (${myN.length})</h2>`+myN.map(n=>`<div class="rec"><b>${E(n.unit||"General")}</b>${n.ntk?`<span class="tag">Need to know</span>`:""}<small style="color:var(--ink);white-space:pre-wrap">${E(n.text)}</small><small>${E(n.by)} &middot; ${E(tm(n.ts))}</small>${thumbs(n.photos)}${n.by===me()||isSup()?`<div class="row"><button data-se="ntk" data-id="${n.id}">${n.ntk?"Not need to know":"Mark need to know"}</button><button class="danger" data-se="del" data-id="${n.id}">Delete</button></div>`:""}</div>`).join(""):"")+
+  `<h2 class="sec">Goes to the next shift (${P.length})</h2>`+(P.map(x=>`<div class="rec"><b>${E(x.k)}</b><small style="color:var(--ink)">${E(x.t)}</small>${thumbs((x.ph||[]).slice(0,3))}</div>`).join("")||`<div class="empty" style="padding:6px 16px">Nothing yet. Safety cases, time outs and need-to-know notes from this shift show here.</div>`)+
+  (fl.length?`<h2 class="sec">Still open (${fl.length})</h2>`+fl.map(x=>`<div class="rec hold"><b>${E(x[0])}</b><small style="color:var(--ink)">${E(x[1])}</small><div class="row"><button data-eo="go" data-v="${x[2]}">Open</button></div></div>`).join(""):"")+
+  (can?`<h2 class="sec">Crew hours</h2><div style="padding:0 16px">${hrsRows||`<div class="hint">No hours on this shift yet.</div>`}<div class="hint">Uncheck anyone whose hours look wrong and say what to fix.</div></div>
+  <div style="padding:8px 16px"><label>Anything else for the next shift<textarea id="seF" rows="2"></textarea></label><button class="pri" data-se="end" style="width:100%;min-height:58px;font-size:18px">End Shift and Send</button><div class="hint">Stops every task clock on ${E(sh)} Shift and sends this turnover.</div></div>`:"")+
+  `<h2 class="sec">Recent handoffs</h2>`+(L.map(h=>`<div class="rec${!h.ack&&h.shift!==sh?" hold":""}"><b>${E(h.shift)} Shift &middot; ${E(h.by)}</b><small>${E(h.at)}${h.unit?" &middot; "+E(h.unit):""}</small>${h.text?`<small style="color:var(--ink);white-space:pre-wrap">${E(h.text)}</small>`:""}${(h.items||[]).map(x=>`<small style="color:var(--ink)">&bull; ${E(x.k)}: ${E(x.t)}</small>`).join("")}${h.lotoChk?`<small>Locks reminder confirmed by ${E(h.lotoChk.by)} ${E(h.lotoChk.at)}</small>`:""}${thumbs((h.photos||[]).slice(0,4))}${h.ack?`<small>Read by ${E(h.ack.by)} ${E(h.ack.at)}</small>`:h.shift!==sh?`<div class="row"><button class="pri" data-se="ack" data-id="${h.id}">Mark Read</button></div>`:`<small>Not read yet</small>`}</div>`).join("")||`<div class="empty" style="padding:6px 16px">No handoffs yet.</div>`)+`<div style="height:40px"></div>`;loadTh()}
+ function locksPopup(go){const F=$("#dDatF");F.innerHTML=`<h2 style="color:#b3342b">Before the crew leaves</h2><div class="rec" style="border:3px solid #b3342b"><b style="font-size:21px;line-height:1.25">Remember to Remove All Locks Prior to Crew Departure if Required</b></div><div class="hint">Tap to confirm, even if locks are staying on.</div><div class="row"><button type="button" id="lpX">Cancel</button><button type="button" class="pri" id="lpOk" style="background:#b3342b;border-color:#b3342b;color:#fff">Verified</button></div>`;
+  F.oninput=F.onchange=null;F.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="lpX")return $("#dDat").close();if(b.id==="lpOk"){$("#dDat").close();go({by:me(),at:nowTxt()})}};dlg()}
+ function endAndSend(){const sh=curSh(),wd=workDate(sh),cr=crew(),extra=($("#seF")?$("#seF").value:"").trim();
+  locksPopup(lk=>{const P=pulled(sh),running=Object.keys(RUN()).filter(onSh);running.forEach(bank);DB.tasks.forEach(fixSt);
+   const rows=cr.map(p=>({who:p.title,hrs:hrsNow(p.title,sh),ok:(EOSCHK[p.title]||{ok:true}).ok,note:(EOSCHK[p.title]||{}).note||""})).filter(r=>r.hrs>0||!r.ok),fl=eosFlags(sh);
+   EOS().push({id:"eos|"+wd+"|"+sh+"|"+Date.now().toString(36),date:wd,shift:sh,by:me(),at:nowTxt(),ts:Date.now(),rows,flags:fl.map(x=>x[0]+": "+x[1]),stopped:running.length,ack:null,lotoChk:lk});
+   const ph=[];P.forEach(x=>(x.ph||[]).forEach(i=>ph.push(i)));
+   HO().push({id:uidm("ho"),shift:sh,by:me(),at:nowTxt(),ts:Date.now(),date:wd,unit:"",text:extra,items:P.map(x=>({k:x.k,t:x.t})).concat(fl.map(x=>({k:"Still open",t:x[0]+": "+x[1]}))),photos:ph,lotoChk:lk,hours:rows,ack:null});
+   P.forEach(x=>{if(x.id){const n=FN().find(y=>y.id===x.id);if(n)n.sent=true}});FN().forEach(n=>{if(n.shift===sh&&shDates(sh).includes(n.date))n.sent=true});
+   EOSCHK={};sv();alert("Shift ended. "+running.length+" task clock"+(running.length===1?"":"s")+" stopped and the turnover was sent.");turnView()})}
  /* =================== register views =================== */
  const ICO={fm_msg:'<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',crew:'<circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5M14 20c0-2.5 1.5-4 3-4s4 1.5 4 4"/>',fm_req:'<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2M12 11v6M9 14h6"/>',fm_rcv:'<path d="M2 7h12v9H2zM14 10h4l3 3v3h-7"/><circle cx="6" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/><path d="M6 11l2 2 3-3"/>',fm_brk:'<path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 10h2a2.5 2.5 0 0 1 0 5h-2M8 3v3M11 3v3"/>',brk_rep:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',fm_eos:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/><path d="M4 4l3 3"/>'};
- const VIEWS={fm_msg:["Messages","Chat with foremen and supervisors",()=>CH?chatView():msgList()],crew:["Crew Board","Who is on which task, move people",crewView],fm_req:["Parts & Expendables","Request expendables and parts",reqView],fm_rcv:["Receive Delivery","BOL scan, photos and damage at the gate",rcvView],fm_brk:["Breaks","Break and lunch log, worked-through reasons",brkView],brk_rep:["Worked-Through Breaks","Weekly report, both shifts",repView],fm_eos:["End of Shift","Stop clocks, check hours, hand off",eosView]};
- Object.entries(VIEWS).forEach(([k,v])=>{M[k]={t:v[0],f:[],sum:()=>""};ICON[k]=ICO[k];if(!TL.some(t=>t[0]===k))TL.push([k,v[0],v[1]])});
+ const VIEWS={fm_hand:["Shift End","Turnover notes, hours check, end the shift",turnView],fm_msg:["Messages","One-on-one chats with photos and video",()=>CH?chatView():msgList()],crew:["Crew Board","Who is on which task, move people",crewView],fm_req:["Parts & Expendables","Request expendables and parts",reqView],fm_rcv:["Receive Delivery","BOL scan, photos and damage at the gate",rcvView],fm_brk:["Breaks","Break and lunch log, worked-through reasons",brkView],brk_rep:["Worked-Through Breaks","Weekly report, both shifts",repView],fm_eos:["End of Shift","Stop clocks, check hours, hand off",eosView]};
+ Object.entries(VIEWS).forEach(([k,v])=>{M[k]={t:v[0],f:[],sum:()=>""};ICON[k]=ICO[k]||ICON[k];const x=TL.find(t=>t[0]===k);if(x){x[1]=v[0];x[2]=v[1]}else TL.push([k,v[0],v[1]])});
+ try{const i=TL.findIndex(t=>t[0]==="fm_eos");if(i>=0)TL.splice(i,1)}catch(e){}
  const _m=mod;mod=function(k){if(VIEWS[k])return VIEWS[k][2]();return _m.apply(this,arguments)};
  const _s=show;show=function(v){if(v==="brk_rep"&&!isSup()){alert("The weekly report is for supervisors.");return}if(v!=="fm_msg")CH="";if(v!=="crew")CSEL="";const r=_s.apply(this,arguments);try{if(VIEWS[cur])$("#fab").hidden=true}catch(e){}return r};
  try{if(!DB.homeV5){const h=HM(),put=(k,name)=>{const id=Object.keys(h.folders||{}).find(i=>h.folders[i].name===name);const inAny=Object.values(h.folders||{}).some(f=>(f.items||[]).includes(k));if(!inAny&&id){h.folders[id].items.push(k);h.order=(h.order||[]).filter(x=>x!==k)}};
   [["fm_msg","Daily Work"],["crew","Daily Work"],["fm_brk","Daily Work"],["brk_rep","Daily Work"],["fm_eos","Daily Work"],["fm_req","Shop Needs"],["fm_rcv","Shop Needs"]].forEach(([k,n])=>put(k,n));DB.homeV5=1;sv()}}catch(e){}
  window.MSGUNREAD=unreadAll;window.BRKPENDING=()=>{try{return pending().length}catch(e){return 0}};
+ try{if(!DB.homeV7){const hh=HM();Object.values(hh.folders||{}).forEach(f=>{f.items=(f.items||[]).filter(k=>k!=="fm_eos")});hh.order=(hh.order||[]).filter(k=>k!=="fm_eos");DB.homeV7=1;sv()}}catch(e){}
  /* phone tiles and badges */
- window.PBADGE=k=>{if(k==="fm_msg"){const n=unreadAll();return n?n+" new":""}if(k==="crew"){const n=crew().filter(p=>!RUN()[p.title]).length;return n?n+" idle":""}if(k==="fm_brk"){const n=pending().length;return n?n+" need reason":""}
+ window.PBADGE=k=>{if(k==="loto"&&window.LOTOAPPROVED&&((DB.loto||{}).docs||[]).length&&!LOTOAPPROVED())return "STOP: not verified";if(k==="fm_msg"){const n=unreadAll();return n?n+" new":""}if(k==="crew"){const n=crew().filter(p=>!RUN()[p.title]).length;return n?n+" idle":""}if(k==="fm_brk"){const n=pending().length;return n?n+" need reason":""}
   if(k==="fm_req"){const n=ORD().filter(o=>o.req&&o.by===me()&&isOpen(o)).length;return n?n+" open":""}if(k==="fm_rcv"){const n=ORD().filter(o=>o.kind==="vend"&&isOpen(o)&&o.due&&o.due<=tdy()).length;return n?n+" due":""}return ""};
  /* iPad: Needs attention */
  const _h=home;home=function(){const r=_h.apply(this,arguments);if(window.PHONE&&PHONE())return r;try{const add=(a,b,go)=>ATT.unshift([a,b,go]);
@@ -3660,15 +3783,20 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   RENT().forEach(o=>(o.rcv||[]).forEach(x=>{if(x.dmg&&!x.dmgOk)add("Rental delivered damaged",(o.vend?o.vend+": ":"")+o.desc+(x.dmgNote?" - "+x.dmgNote:""),()=>show("fm_rcv"))}));
   if(isSup()){const rq=ORD().filter(o=>o.req&&o.st==="Requested").length;if(rq)add("Field requests waiting",rq+" part or expendable request"+(rq===1?"":"s")+" to approve",()=>{RQ="mine";RQF="all";show("fm_req")});
    EOS().filter(x=>!x.ack&&x.rows.some(r=>!r.ok)).forEach(x=>add("Hours to fix",x.shift+" Shift "+x.date+": "+x.rows.filter(r=>!r.ok).map(r=>r.who).join(", "),()=>show("fm_eos")))}
+  if(isSup()){((DB.loto||{}).q||[]).filter(q=>!q.ans).forEach(q=>add("LOTO question from "+q.by,q.text,()=>show("loto")));
+   if(window.LOTOAPPROVED&&((DB.loto||{}).docs||[]).length&&!LOTOAPPROVED())add("LOTO not approved","Phones show STOP WORK until you approve the LOTO",()=>show("loto"));
+   (DB.dmgTools||[]).filter(t=>t.st==="Reported").forEach(t=>add("Broken tool reported",(t.desc||"Tool")+(t.repl==="Yes"?" - replacement needed now":"")+" ("+(t.by||"")+")",()=>show("tools")))}
   const n=unreadAll();if(n)add("Messages",n+" unread",()=>show("fm_msg"));
   if(ATT.length&&$("#attn"))$("#attn").innerHTML=`<h2>Needs attention</h2>`+ATT.slice(0,10).map((a,i)=>`<button class="att" data-i="${i}"><b>${E(a[0])}</b>${E(a[1])}</button>`).join("")}catch(e){}return r};
 
  /* =================== events =================== */
  MD.addEventListener("click",async e=>{const b=e.target.closest("button,[data-cb]");if(!b)return;const d=b.dataset;
   if(cur==="fm_msg"&&d.mg){const k=d.mg;
-   if(k==="open"){CH=d.ch;MLINK=null;MPH=[];return chatView()}if(k==="list"){CH="";return msgList()}if(k==="link")return linkForm();if(k==="go")return goLink(d.k,d.id);
+   if(k==="open"){CH=d.ch;MLINK=null;MPH=[];MVD=[];return chatView()}if(k==="list"){CH="";return msgList()}if(k==="link")return linkForm();if(k==="go")return goLink(d.k,d.id);
    if(k==="unlink"){MLINK=null;$("#mgAt").innerHTML=attHTML();return loadTh()}if(k==="unph"){MPH.forEach(pDel);MPH=[];$("#mgAt").innerHTML=attHTML();return}
-   if(k==="send"){const t=$("#mgT").value.trim();if(!t&&!MPH.length&&!MLINK)return;MSG().push({id:uidm("m"),ch:CH,from:me(),text:t,ts:Date.now(),photos:MPH,link:MLINK,shift:curSh()});MPH=[];MLINK=null;sv();markRead(CH);$("#mgT").value="";$("#mgAt").innerHTML="";MSIG=sig();const l=$("#msgL");l.innerHTML=bubbles();l.scrollTop=l.scrollHeight;loadTh();return}}
+   if(k==="vid"){const v=await pGet(d.id);if(!v)return alert("This video is not on this device yet. Try again in a minute.");const u=URL.createObjectURL(v);$("#vBody").innerHTML=`<h2>Video</h2><video src="${u}" controls playsinline style="width:100%;border-radius:10px"></video><div class="row"><button type="button" id="vvX">Close</button></div>`;$("#vBody").onclick=ev=>{if(ev.target.id==="vvX"){$("#dView").close();URL.revokeObjectURL(u)}};return $("#dView").showModal()}
+   if(k==="unvd"){MVD.forEach(pDel);MVD=[];$("#mgAt").innerHTML=attHTML();return}
+   if(k==="send"){const t=$("#mgT").value.trim();if(!t&&!MPH.length&&!MVD.length)return;MSG().push({id:uidm("m"),ch:CH,from:me(),text:t,ts:Date.now(),photos:MPH,videos:MVD,link:null,shift:curSh()});MPH=[];MVD=[];MLINK=null;sv();markRead(CH);$("#mgT").value="";$("#mgAt").innerHTML="";MSIG=sig();const l=$("#msgL");l.innerHTML=bubbles();l.scrollTop=l.scrollHeight;loadTh();return}}
   if(cur==="crew"&&d.cb){if(!ISFORE())return;const k=d.cb;
    if(k==="p"){e.stopPropagation();CSEL=CSEL===d.nm?"":d.nm;return crewView()}if(k==="cancel"){CSEL="";return crewView()}if(k==="other")return otherTask(CSEL);
    if(!CSEL)return;if(k==="t"){moveTo(CSEL,d.id);CSEL="";return crewView()}if(k==="idle"){if(RUN()[CSEL]){bank(CSEL);sv()}CSEL="";return crewView()}}
@@ -3686,13 +3814,22 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
    if(!isSup())return;if(k==="addw"){BS()[BSH].push({id:uidm("bw"),t:BSH==="Night"?"22:00":"10:00",len:15,kind:"Break"});sv();return brkView()}
    if(k==="delw"&&confirm("Remove this break time?")){BS()[BSH]=BS()[BSH].filter(w=>w.id!==d.id);sv();return brkView()}}
   if(cur==="brk_rep"&&d.wr){const k=d.wr;if(k==="back")return show("fm_brk");if(k==="prev"){WK--;return repView()}if(k==="next"){WK=Math.min(0,WK+1);return repView()}if(k==="csv")return repCSV();if(k==="print"){fprev(repHTML());try{await fillImgs()}catch(x){}return}}
+  if(cur==="fm_hand"&&d.se){const k=d.se;
+   if(k==="add"){const t=$("#snT").value.trim();if(!t)return alert("Type the note first.");FN().push({id:uidm("fn"),text:t,unit:$("#snU").value,ntk:$("#snK").checked,photos:SN.ph,by:me(),at:nowTxt(),ts:Date.now(),date:workDate(curSh()),shift:curSh()});SN.ph=[];sv();return turnView()}
+   if(k==="end")return endAndSend();
+   if(k==="ack"){const h=HO().find(x=>x.id===d.id);if(h){h.ack={by:me(),at:nowTxt()};sv();turnView()}return}
+   const n=FN().find(x=>x.id===d.id);if(!n)return;if(k==="ntk"){n.ntk=!n.ntk;sv();return turnView()}if(k==="del"&&confirm("Delete this note?")){DB.fnotes=FN().filter(x=>x!==n);sv();return turnView()}return}
+  if(cur==="fm_hand"&&d.eo==="go")return show(d.v);
   if(cur==="fm_eos"&&d.eo){const k=d.eo;if(k==="go")return show(d.v);if(k==="end")return endShift();if(k==="ack"&&isSup()){const x=EOS().find(y=>y.id===d.id);if(x){x.ack={by:me(),at:nowTxt()};sv();eosView()}}}});
  MD.addEventListener("change",async e=>{const t=e.target,d=t.dataset;
   if(cur==="fm_msg"&&t.id==="mgP"){MPH=MPH.concat(await savePh(t.files));t.value="";$("#mgAt").innerHTML=attHTML();loadTh()}
+  if(cur==="fm_msg"&&t.id==="mgV"){const f=t.files[0];t.value="";if(!f)return;if(f.size>150e6)return alert("That video is too large. Keep videos under 2 minutes.");const id=uidm("v");await pPut(id,f);MVD.push(id);$("#mgAt").innerHTML=attHTML()}
   if(cur==="fm_req"){if(t.id==="ppP"){PPH=PPH.concat(await savePh(t.files));$("#ppTh").innerHTML=thumbs(PPH);loadTh()}if(t.id==="ppU"){LAST.unit=t.value;$("#ppT").innerHTML=taskOpts("",x=>!t.value||x.unit===t.value)}if(t.id==="ppT"){const tk=DB.tasks.find(x=>x.id===t.value);if(tk&&tk.unit)$("#ppU").value=tk.unit}}
   if(cur==="fm_brk"&&d.bw&&isSup()){const w=BS()[BSH].find(x=>x.id===d.id);if(!w)return;if(d.bw==="len"){const v=parseInt(t.value,10);if(!(v>0))return;w.len=v}else w[d.bw]=t.value;sv()}
+  if(cur==="fm_hand"&&t.id==="snP"){SN.ph=SN.ph.concat(await savePh(t.files));t.value="";const x=$("#snTh");if(x)x.innerHTML=thumbs(SN.ph);loadTh();return}
+  if(cur==="fm_hand"&&d.eo==="ok"){const c=EOSCHK[d.nm]||(EOSCHK[d.nm]={ok:true,note:""});c.ok=t.checked;const keep=$("#seF")?$("#seF").value:"";turnView();if($("#seF"))$("#seF").value=keep;return}
   if(cur==="fm_eos"&&d.eo==="ok"){const c=EOSCHK[d.nm]||(EOSCHK[d.nm]={ok:true,note:""});c.ok=t.checked;eosView()}});
- MD.addEventListener("input",e=>{const t=e.target;if(cur==="fm_eos"&&t.dataset.eo==="note"){(EOSCHK[t.dataset.nm]||(EOSCHK[t.dataset.nm]={ok:false})).note=t.value}});
+ MD.addEventListener("input",e=>{const t=e.target;if((cur==="fm_eos"||cur==="fm_hand")&&t.dataset.eo==="note"){(EOSCHK[t.dataset.nm]||(EOSCHK[t.dataset.nm]={ok:false})).note=t.value}});
  MD.addEventListener("keydown",e=>{if(cur==="fm_msg"&&e.target.id==="mgT"&&e.key==="Enter"&&!e.shiftKey&&!PHONE()){e.preventDefault();const b=document.querySelector('#mod [data-mg="send"]');if(b)b.click()}});
 
  /* =================== demo examples =================== */
@@ -3701,13 +3838,13 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   const at=(n,h,m)=>{const x=new Date();x.setDate(x.getDate()-n);x.setHours(h,m,0,0);return +x},JM="Jason McKendree",MDL="Marcus Delgado",TR="Tony Reyes",DH="Derek Hall";
   const T1=DB.tasks.find(t=>t.st==="In progress")||DB.tasks[0],HP=DB.tasks.find(t=>t.hold&&!t.hold.rel);
   const m=(ch,from,text,ts,x)=>MSG().push(Object.assign({id:"dm"+ts+from.length,ch,from,text,ts,photos:[],link:null,shift:window.SHOF?SHOF(from)||"Day":"Day"},x||{}));
-  m("all",DH,"Night shift turned over. Unit 1 lower half bolting is 70% torqued, pattern sheet is on the clipboard.",at(0,5,45));
-  m("all",JM,"Got it, thanks Derek. Marcus, start the crew on the rest of the Unit 1 bolting after the tailgate.",at(0,6,40));
-  m("all",MDL,"Will do. Bearing cap on Unit 4 is ready for QC.",at(0,7,5),HP?{link:{k:"hold",id:HP.id,label:HP.title+" ("+HP.hold.type+")"}}:{});
+  m(chOf(DH,JM),DH,"Night shift turned over. Unit 1 lower half bolting is 70% torqued, pattern sheet is on the clipboard.",at(0,5,45));
+  m(chOf(DH,JM),JM,"Got it, thanks Derek. I'll have Marcus start the crew on the rest of the Unit 1 bolting.",at(0,6,40));
+  m(chOf(JM,MDL),MDL,"Bearing cap on Unit 4 is ready for QC.",at(0,7,5),{photos:["pf3"]});
   m(chOf(JM,MDL),JM,"Need two guys on the Unit 1 lift at 10. Can you spare Tyler and Danny?",at(0,8,10));
-  m(chOf(JM,MDL),MDL,"Yes. Moving them after break.",at(0,8,12),T1?{link:{k:"task",id:T1.id,label:(T1.unit?T1.unit+": ":"")+T1.title}}:{});
+  m(chOf(JM,MDL),MDL,"Yes. Moving them after break.",at(0,8,12));
   m(chOf(DH,TR),DH,"Watch the oil on the Unit 4 walkway tonight.",at(1,18,20));
-  RD().push({id:JM+"|all",who:JM,ch:"all",ts:at(0,6,40)},{id:MDL+"|all",who:MDL,ch:"all",ts:at(0,7,5)},{id:MDL+"|"+chOf(JM,MDL),who:MDL,ch:chOf(JM,MDL),ts:at(0,8,12)},{id:JM+"|"+chOf(JM,MDL),who:JM,ch:chOf(JM,MDL),ts:at(0,8,10)});
+  RD().push({id:JM+"|"+chOf(DH,JM),who:JM,ch:chOf(DH,JM),ts:at(0,6,40)},{id:MDL+"|"+chOf(JM,MDL),who:MDL,ch:chOf(JM,MDL),ts:at(0,8,12)},{id:JM+"|"+chOf(JM,MDL),who:JM,ch:chOf(JM,MDL),ts:at(0,8,10)});
   /* breaks: a week of logs, a few worked through on both shifts */
   BS();const cOf=sh=>ALLP().filter(p=>!SUPR.includes(p.role)&&(p.shift||"Day")===sh).map(p=>p.title),dayC=cOf("Day"),nightC=cOf("Night");
   const wt=[[1,"Day","bd2","Danny Whitfield","Critical lift or rigging in progress"],[1,"Day","bd2","Tyler Brooks","Critical lift or rigging in progress"],[2,"Day","bd3","Luis Herrera","Customer witness or hold point"],[3,"Night","bn2","Kyle Brandt","Finishing a step that could not stop: torque pass on Unit 1 lower half"],[2,"Night","bn1","Hector Ruiz","Crew short-handed"],[4,"Day","bd1","Ray Castillo","Emergency or breakdown work: Bay 2 crane pendant"]];
@@ -3741,7 +3878,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  window.BADGECOUNT=()=>{if(!ME)return 0;let n=0;try{n+=window.MSGUNREAD?MSGUNREAD():0;const sh=curSh();
   if(isSup()){n+=(DB.orders||[]).filter(o=>o.req&&o.st==="Requested"&&(!o.shift||!sh||o.shift===sh)).length;
    (DB.orders||[]).forEach(o=>(o.rec||[]).forEach(r=>{if(r.dmg&&!r.dmgOk)n++}));(DB.rent||[]).forEach(o=>(o.rcv||[]).forEach(r=>{if(r.dmg&&!r.dmgOk)n++}));
-   n+=(DB.eos||[]).filter(x=>!x.ack&&(x.rows||[]).some(r=>!r.ok)).length;n+=(DB.cases||[]).filter(c=>c.st!=="Closed").length;n+=(DB.timeouts||[]).filter(x=>!x.cleared).length}
+   n+=(DB.eos||[]).filter(x=>!x.ack&&(x.rows||[]).some(r=>!r.ok)).length;n+=(DB.cases||[]).filter(c=>c.st!=="Closed").length;n+=((DB.loto||{}).q||[]).filter(q=>!q.ans).length;n+=(DB.dmgTools||[]).filter(t=>t.st==="Reported").length;n+=(DB.timeouts||[]).filter(x=>!x.cleared).length}
   else if(window.ISFORE&&ISFORE()){n+=window.BRKPENDING?BRKPENDING():0;n+=(DB.handoff||[]).filter(h=>!h.ack&&sh&&h.shift!==sh).length}}catch(e){}return n};
  let lastB=-1;
  async function updBadge(){const n=ME?BADGECOUNT():0;if(n===lastB)return;lastB=n;try{if(canBadge()){if(n)await navigator.setAppBadge(n);else await navigator.clearAppBadge()}}catch(e){}}
