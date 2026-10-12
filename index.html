@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v50)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v50.1)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -5240,6 +5240,60 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  /* the banks start with the people and plant already in the app */
  try{if(!DB.banksV1){if(ALLP().length)peopleSave();plantSave();DB.banksV1=1;sv()}}catch(e){}
  setTimeout(()=>{try{if(cur==="home")home()}catch(e){}},0);
+})();
+
+/* ===== v50.1: search plants, addresses and hospitals online while typing (free map search; Google can be swapped in later) ===== */
+(function(){
+ const E=esc,nv=v=>String(v==null?"":v).trim();
+ /* which boxes search, and what a pick fills in */
+ const F={"q.site":"place","s.plant":"addr","s.truck":"addr","q.bill":"addr","q.hosp":"hosp","q.clinic":"clinic","q.hospAddr":"addr"};
+ const keyOf=el=>el&&el.dataset?(el.dataset.jw||el.dataset.q||""):"";
+ const OBJ=st=>st==="q"?QSD():st==="s"?ds().setup:st==="c"?ds().contacts:ds().comp;
+ const GEO=()=>{const g=DB.siteGeo;return g&&typeof g==="object"&&isFinite(g.lat)?g:null};
+ const bias=()=>{const g=GEO()||(DB.wx&&isFinite(DB.wx.lat)?{lat:DB.wx.lat,lon:DB.wx.lon}:null);return g||{lat:39.8,lon:-98.6}};
+ const st=document.createElement("style");st.textContent=`.geoL{position:relative;z-index:30;margin-top:4px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.35);overflow:hidden}.geoL button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:10px 12px;min-height:52px;color:var(--ink)}.geoL button:last-child{border-bottom:0}.geoL b{display:block;font-size:16px;color:var(--ink)}.geoL small{display:block;color:var(--mute);font-size:13px}.geoL .geoMsg{padding:10px 12px;color:var(--mute);font-size:14px}.geoL .geoCr{padding:4px 12px 6px;color:var(--mute);font-size:11px;text-align:right}`;document.head.appendChild(st);
+ /* free map search (OpenStreetMap data through Photon; Nominatim when Photon finds nothing) */
+ const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1).replace(/_/g," "):"";
+ function fmtP(p){const l1=[p.housenumber,p.street].filter(Boolean).join(" "),st2=[p.state,p.postcode].filter(Boolean).join(" ");return [l1,p.city||p.district||p.county,st2].filter(Boolean).join(", ")}
+ async function photon(q,opt){const b=opt.near||bias();let u="https://photon.komoot.io/api/?limit=7&lang=en&q="+encodeURIComponent(q)+"&lat="+b.lat+"&lon="+b.lon;if(opt.tag)u+="&osm_tag="+encodeURIComponent(opt.tag);
+  const r=await fetch(u,{signal:opt.sig});if(!r.ok)throw new Error("photon "+r.status);const j=await r.json();
+  return (j.features||[]).filter(f=>!(f.properties||{}).countrycode||/^(US|CA|MX)$/i.test(f.properties.countrycode)).map(f=>{const p=f.properties||{},c=f.geometry&&f.geometry.coordinates||[];const addr=fmtP(p);
+   return {name:p.name||addr,addr,kind:cap(p.osm_value||p.type||""),lat:c[1],lon:c[0]}}).filter(x=>x.name)}
+ async function nomi(q,opt){const u="https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=us,ca,mx&q="+encodeURIComponent(q);
+  const r=await fetch(u,{signal:opt.sig});if(!r.ok)throw new Error("nominatim "+r.status);const j=await r.json();
+  return j.map(x=>{const a=x.address||{},l1=[a.house_number,a.road].filter(Boolean).join(" "),st2=[a.state,a.postcode].filter(Boolean).join(" ");const addr=[l1,a.city||a.town||a.village||a.county,st2].filter(Boolean).join(", ");
+   return {name:x.name||addr||x.display_name,addr:addr||x.display_name,kind:cap(x.type||""),lat:+x.lat,lon:+x.lon}})}
+ /* the place to plug in Google Places later: same shape {name, addr, kind, lat, lon} */
+ window.GEOSEARCH=async function(q,opt){opt=opt||{};let L=[];try{L=await photon(q,opt)}catch(e){if(e.name==="AbortError")throw e}
+  if(!L.length&&!opt.tag){try{L=await nomi(q,opt)}catch(e){if(e.name==="AbortError")throw e}}return L};
+ let box=null,ctl=null,tmr=0,curEl=null,RES=[];
+ const close=()=>{if(box){box.remove();box=null}if(ctl){try{ctl.abort()}catch(e){}ctl=null}};
+ function show(el,html){if(!box||box.previousElementSibling!==el){close();box=document.createElement("div");box.className="geoL";box.setAttribute("role","listbox");el.after(box)}box.innerHTML=html}
+ function render(el,L,title){RES=L;show(el,(title?`<div class="geoMsg">${E(title)}</div>`:"")+(L.map((x,i)=>`<button type="button" role="option" data-geo="${i}"><b>${E(x.name)}</b><small>${E([x.kind,x.addr&&x.addr!==x.name?x.addr:""].filter(Boolean).join(" · "))}</small></button>`).join("")||`<div class="geoMsg">No matches. Keep typing, or type it in yourself.</div>`)+`<div class="geoCr">Map data © OpenStreetMap contributors</div>`)}
+ async function run(el,q,opt){if(!navigator.onLine){show(el,`<div class="geoMsg">No signal. Type it in; search works when you are back online.</div>`);return}
+  show(el,`<div class="geoMsg">Searching...</div>`);if(ctl)try{ctl.abort()}catch(e){}ctl=new AbortController();opt.sig=ctl.signal;
+  try{const L=await window.GEOSEARCH(q,opt);if(curEl===el)render(el,L,opt.title)}catch(e){if(e.name!=="AbortError"&&curEl===el)show(el,`<div class="geoMsg">Search is not reachable right now. Type it in.</div>`)}}
+ function setField(k,v){const[s,f]=k.split(".");OBJ(s)[f]=v;document.querySelectorAll(`[data-jw="${k}"],[data-q="${k}"]`).forEach(x=>{if(x.value!==v){x.value=v;x.dispatchEvent(new Event("input",{bubbles:true}))}})}
+ function pick(el,x){const k=keyOf(el),kind=F[k];if(!x)return;
+  if(kind==="place"){el.value=x.name;el.dispatchEvent(new Event("input",{bubbles:true}));if(x.addr)setField("s.plant",x.addr);if(isFinite(x.lat))DB.siteGeo={lat:x.lat,lon:x.lon,name:x.name}}
+  else if(kind==="hosp"){el.value=x.name;el.dispatchEvent(new Event("input",{bubbles:true}));if(x.addr)setField("q.hospAddr",x.addr)}
+  else if(kind==="clinic"){el.value=x.name+(x.addr?", "+x.addr:"");el.dispatchEvent(new Event("input",{bubbles:true}))}
+  else{el.value=x.addr||x.name;el.dispatchEvent(new Event("input",{bubbles:true}))}
+  sv();close();try{el.focus()}catch(e){}}
+ const near=()=>GEO()||undefined;
+ function query(el){const k=keyOf(el),kind=F[k],q=nv(el.value);curEl=el;clearTimeout(tmr);
+  if(kind==="hosp"||kind==="clinic"){const tag=kind==="hosp"?"amenity:hospital":"amenity:clinic";
+   if(q.length<3){if(GEO())tmr=setTimeout(()=>run(el,kind==="hosp"?"hospital":"clinic",{tag,near:GEO(),title:(kind==="hosp"?"Hospitals":"Clinics")+" near "+(GEO().name||"the plant")}),250);else close();return}
+   tmr=setTimeout(()=>run(el,q,{tag,near:near()}),350);return}
+  if(q.length<3)return close();tmr=setTimeout(()=>run(el,q,{near:kind==="place"?undefined:near()}),350)}
+ document.addEventListener("input",e=>{const el=e.target;if(!e.isTrusted)return;if(F[keyOf(el)])query(el)},true);
+ document.addEventListener("focusin",e=>{const el=e.target,k=keyOf(el);if((F[k]==="hosp"||F[k]==="clinic")&&!nv(el.value)&&GEO())query(el)});
+ document.addEventListener("focusout",e=>{if(F[keyOf(e.target)])setTimeout(()=>{if(box&&!box.contains(document.activeElement)&&document.activeElement!==curEl)close()},250)});
+ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&box)close()});
+ document.addEventListener("pointerdown",e=>{const b=e.target.closest&&e.target.closest(".geoL button[data-geo]");if(!b)return;e.preventDefault();pick(curEl,RES[+b.dataset.geo])},true);
+ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".geoL button[data-geo]");if(b){e.preventDefault();e.stopPropagation()}},true);
+ /* the search boxes need the browser's own suggestions off */
+ new MutationObserver(()=>{document.querySelectorAll(Object.keys(F).map(k=>`[data-jw="${k}"],[data-q="${k}"]`).join(",")).forEach(x=>{if(x.getAttribute("autocomplete")!=="off"){x.setAttribute("autocomplete","off");x.setAttribute("placeholder",x.getAttribute("placeholder")||(F[keyOf(x)]==="place"?"Type the plant name to search, e.g. W.A. Parish":"Type to search"))}})}).observe(document.getElementById("mod"),{childList:true,subtree:true});
 })();
 
 /* ===== Installable web app: offline cache + keep storage ===== */
