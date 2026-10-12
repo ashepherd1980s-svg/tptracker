@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 11, 2026 &middot; QR code to join Live Sync (v38)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 11, 2026 &middot; iPad home layout per person (v41)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Shop Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Shop Needs</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="cust">Argon Project Info</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -2014,7 +2014,9 @@ document.querySelectorAll(".hUnit").forEach(b=>b.onclick=()=>show("cust"));
 
 /* ===== Home layout: rearrange, folders, rename (supervisors) ===== */
 if(!ICON.jsa)ICON.jsa='<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9zM9 13l2 2 4-4"/>';
-function HM(){return DB.home||(DB.home={order:[],folders:{},names:{}})}
+function HM(){const b=DB.home||(DB.home={order:[],folders:{},names:{}});if(!ME||!DB.homeBy)return b;return DB.homeBy[ME.title]||b}
+function hmMine(){if(!ME)return;const by=DB.homeBy||(DB.homeBy={});if(!by[ME.title])by[ME.title]=JSON.parse(JSON.stringify(DB.home||{order:[],folders:{},names:{}}))}
+const hmHasMine=()=>!!(ME&&DB.homeBy&&DB.homeBy[ME.title]);
 var HMED=HMED||false,HMSEL=HMSEL||new Set(),HMSKIP=false,HMOPEN=null;
 function HMORIG(k){const x=TL.find(t=>t[0]===k);return x?x[1]:k}
 function tName(k){return (DB.home&&DB.home.names&&DB.home.names[k])||HMORIG(k)}
@@ -2035,27 +2037,27 @@ function hmTile(x){const ed=HMED,tag=ed?"div":"button",at=ed?'role="button" tabi
   return `<${tag} ${at} class="tile fold${ed?" ed":""}" data-k="${x}" data-f="${id}"><span class="ti fi">${v.slice(0,4).map(hmIco).join("")}</span><b>${esc(f.name)}</b><em>${v.length} tool${v.length===1?"":"s"}</em>${ed?hmCtl(x):""}</${tag}>`}
  if(!hmVis(x))return "";
  return `<${tag} ${at} class="tile${ed?" ed":""}${HMSEL.has(x)?" sel":""}" data-k="${x}"><span class="ti">${hmIco(x)}</span><b>${esc(tName(x))}</b><em>${ed?"":hmBadge(x)}</em>${ed?`<span class="ck" aria-hidden="true">&#10003;</span>`+hmCtl(x):""}</${tag}>`}
-function hmRender(){if(!HMSEL)HMSEL=new Set();if(!isSup()){HMED=false;HMSEL.clear()}
+function hmRender(){if(!HMSEL)HMSEL=new Set();if(!ME){HMED=false;HMSEL.clear()}if(HMED)hmMine();
  const L=hmLayout(),n=HMSEL.size;
- $("#hmBar").innerHTML=`<div class="hmh"><h2>Tools</h2>${isSup()?(HMED?`<button type="button" class="pri" data-hm="done">Done</button>`:`<button type="button" data-hm="edit">Edit Home</button>`):""}</div>`+
-  (HMED?`<div class="hmt"><p>Drag a tile by its grip &#10303; or use the arrows. Tap Move to send a tool to any folder or the home screen. Drop a tile in the middle of another to make a folder. Tap tiles to select them. Outside Edit Home, press and hold any tool to move it.</p><div class="row"><button type="button" class="pri" data-hm="nf"${n?"":" disabled"}>New Folder${n?" ("+n+")":""}</button><button type="button" data-hm="def">Restore Default</button></div></div>`:"");
+ $("#hmBar").innerHTML=`<div class="hmh"><h2>Tools</h2>${ME?(HMED?`<button type="button" class="pri" data-hm="done">Done</button>`:`<button type="button" data-hm="edit">Edit Home</button>`):""}</div>`+
+  (HMED?`<div class="hmt"><p>Drag a tile by its grip &#10303; or use the arrows. Tap Move to send a tool to any folder or the home screen. Drop a tile in the middle of another to make a folder. Tap tiles to select them. Outside Edit Home, press and hold any tool to move it.</p><div class="row"><button type="button" class="pri" data-hm="nf"${n?"":" disabled"}>New Folder${n?" ("+n+")":""}</button><button type="button" data-hm="mine0">Use Default Layout</button>${isSup()?`<button type="button" data-hm="mkdef">Make This the Default for Everyone</button><button type="button" data-hm="def">Standard Folders</button>`:""}</div><div class="hint">Your layout is yours: it follows you to any iPad you sign in on.${isSup()?" Make This the Default sets the layout for everyone who has not made their own.":""}</div></div>`:"");
  $("#tiles").classList.toggle("editing",HMED);
  $("#tiles").innerHTML=L.map(hmTile).join("");hmNames()}
 function hmNames(){document.querySelectorAll("#dMore .more button[data-k]").forEach(b=>{if(hmIs(b.dataset.k)||b.dataset.k==="cust")b.textContent=tName(b.dataset.k)})}
 function hmMove(x,d){const o=HM().order,i=o.indexOf(x),j=i+d;if(i<0||j<0||j>=o.length)return;o.splice(i,1);o.splice(j,0,x);sv();hmRender()}
-function hmNewFolder(items,at){const h=HM(),id=Date.now().toString(36);h.folders[id]={name:"New Folder",items:items.slice()};
+function hmNewFolder(items,at){hmMine();const h=HM(),id=Date.now().toString(36);h.folders[id]={name:"New Folder",items:items.slice()};
  h.order=h.order.filter(x=>!items.includes(x));h.order.splice(Math.min(at,h.order.length),0,"f:"+id);HMSEL.clear();sv();hmRender();hmRename("f:"+id,true)}
-function hmRename(x,isNew){const fo=x.startsWith("f:"),f=fo?HM().folders[x.slice(2)]:null,cur=fo?f.name:tName(x),D=$("#dHm");
+function hmRename(x,isNew){hmMine();const fo=x.startsWith("f:"),f=fo?HM().folders[x.slice(2)]:null,cur=fo?f.name:tName(x),D=$("#dHm");
  $("#hmD").innerHTML=`<h2>${isNew?"Name this folder":fo?"Rename folder":"Rename tile"}</h2>${fo?"":`<div class="hint">Original name: ${esc(HMORIG(x))}</div>`}
  <label>Name<input id="hmN" maxlength="40" value="${esc(cur)}" autocomplete="off"></label>
  <div class="row">${!fo&&HM().names[x]?`<button type="button" data-hr="orig">Use Original Name</button>`:""}<button type="button" data-hr="x">Cancel</button><button type="button" class="pri" data-hr="ok">Save</button></div>`;
  $("#hmD").onclick=e=>{const b=e.target.closest("button[data-hr]");if(!b)return;const a=b.dataset.hr,v=$("#hmN").value.trim().replace(/\s+/g," ");
   if(a==="orig")delete HM().names[x];else if(a==="ok"){if(fo)f.name=v||f.name||"Folder";else if(!v||v===HMORIG(x))delete HM().names[x];else HM().names[x]=v}
-  if(a!=="x")sv();D.close();hmRender();if(HMOPEN&&!fo)hmOpen(HMOPEN)};
+  if(a!=="x")sv();D.close();hmRender();if(HMOPEN&&!fo)hmOpen(HMOPEN);if(fo&&window.HMRE){const r=window.HMRE;window.HMRE=null;hmOpen(r)}};
  $("#hmD").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();$('#hmD [data-hr="ok"]').click()}};
  if(D.open)D.close();D.showModal();const i=$("#hmN");i.focus();i.select()}
-function hmOpen(id){const h=HM(),f=h.folders[id];if(!f)return;HMOPEN=id;const ed=HMED&&isSup(),v=f.items.filter(ed?hmIs:hmVis);
- $("#hmD").innerHTML=`<h2>${esc(f.name)}</h2>`+(ed?
+function hmOpen(id){const h=HM(),f=h.folders[id];if(!f)return;HMOPEN=id;const ed=HMED&&!!ME,v=f.items.filter(ed?hmIs:hmVis);
+ $("#hmD").innerHTML=(ed?`<h2>${esc(f.name)}</h2>`:`<div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1;margin:0">${esc(f.name)}</h2>${ME?`<button type="button" data-hf="fren2" style="min-height:44px">&#9998; Rename</button>`:""}</div>`)+(ed?
   (v.map((k,i)=>`<div class="hfr"><span class="ti">${hmIco(k)}</span><b>${esc(tName(k))}</b><button type="button" data-hf="up" data-k="${k}" aria-label="Move up"${i?"":" disabled"}>&#9650;</button><button type="button" data-hf="dn" data-k="${k}" aria-label="Move down"${i<v.length-1?"":" disabled"}>&#9660;</button><button type="button" data-hf="ren" data-k="${k}">Rename</button><button type="button" data-hf="mv" data-k="${k}">Move</button><button type="button" data-hf="out" data-k="${k}">Take Out</button></div>`).join("")||`<div class="empty">This folder is empty.</div>`)+
   `<div class="row"><button type="button" data-hf="fren">Rename Folder</button><button type="button" class="danger" data-hf="fdel">Remove Folder</button><button type="button" class="pri" data-hf="x">Done</button></div><div class="hint">Remove Folder puts its tiles back on the home screen. Nothing is deleted.</div>`
   :`<div class="tiles hft">${v.map(k=>`<button type="button" class="tile" data-hf="go" data-k="${k}"><span class="ti">${hmIco(k)}</span><b>${esc(tName(k))}</b><em>${hmBadge(k)}</em></button>`).join("")}</div><div class="row"><button type="button" class="pri" data-hf="x">Close</button></div>`);
@@ -2065,6 +2067,7 @@ function hmOpen(id){const h=HM(),f=h.folders[id];if(!f)return;HMOPEN=id;const ed
   if(a==="up"||a==="dn"){const vi=v.indexOf(k),o=v[vi+(a==="up"?-1:1)];if(o==null)return;const j=it.indexOf(o);it[i]=o;it[j]=k}
   else if(a==="ren"){hmRename(k);return}
   else if(a==="fren"){HMOPEN=null;hmRename("f:"+id);return}
+  else if(a==="fren2"){HMOPEN=null;window.HMRE=id;hmRename("f:"+id);return}
   else if(a==="out"){it.splice(i,1);const p=h.order.indexOf("f:"+id);h.order.splice(p+1,0,k)}
   else if(a==="fdel"){if(!confirm("Remove the folder "+f.name+"? Its tiles go back on the home screen."))return;const p=h.order.indexOf("f:"+id);h.order.splice(p,1,...it);delete h.folders[id];sv();HMOPEN=null;D.close();hmRender();return}
   sv();hmRender();hmOpen(id)};
@@ -2075,7 +2078,9 @@ function hmClick(e){if(HMSKIP){HMSKIP=false;e.preventDefault();return true}
   if(a==="edit"){HMED=true;HMSEL.clear();hmRender()}
   else if(a==="done"){HMED=false;HMSEL.clear();home()}
   else if(a==="nf"){const o=HM().order,s=o.filter(k=>HMSEL.has(k));if(s.length)hmNewFolder(s,o.indexOf(s[0]))}
-  else if(a==="def"){if(confirm("Put every tile back in the standard folders (Daily Work, Safety & FME, Units & Schedule, Supervisor Setup, Shop Needs) with original names?")){DB.home=window.HMDEF?HMDEF():{order:[],folders:{},names:{}};HMSEL.clear();sv();hmRender()}}
+  else if(a==="def"&&isSup()){if(confirm("Put the default layout back to the standard folders (Daily Work, Safety & FME, Units & Schedule, Supervisor Setup, Shop Needs) with original names? Your own layout also goes back to it.")){DB.home=window.HMDEF?HMDEF():{order:[],folders:{},names:{}};if(DB.homeBy&&ME)delete DB.homeBy[ME.title];HMSEL.clear();sv();hmRender()}}
+ if(a==="mine0"){if(confirm("Drop your own layout and use the default layout?")){if(DB.homeBy&&ME)delete DB.homeBy[ME.title];HMED=false;HMSEL.clear();sv();home()}}
+ if(a==="mkdef"&&isSup()){if(confirm("Make your layout the default for everyone? People who already arranged their own keep theirs.")){hmMine();DB.home=JSON.parse(JSON.stringify(DB.homeBy[ME.title]));delete DB.homeBy[ME.title];HMED=false;HMSEL.clear();sv();home();alert("Done. This is now the default layout.")}}
   else if(a==="l"||a==="r")hmMove(x.k,a==="l"?-1:1);
   else if(a==="ren")hmRename(x.k);
   return true}
@@ -2088,7 +2093,7 @@ function hmClick(e){if(HMSKIP){HMSKIP=false;e.preventDefault();return true}
  const clr=()=>T.querySelectorAll(".hb,.ha,.hcx").forEach(x=>x.classList.remove("hb","ha","hcx"));
  const zone=(el,x)=>{const r=el.getBoundingClientRect(),f=(x-r.left)/r.width;return f<.3?"b":f>.7?"a":"c"};
  T.addEventListener("pointerdown",e=>{const t=e.target.closest(".tile");if(!t)return;
-  if(!HMED){if(!isSup()||t.dataset.f)return;const sx=e.clientX,sy=e.clientY;LP={sx,sy,tm:setTimeout(()=>{LP=null;HMSKIP=true;HMED=true;HMSEL.clear();try{navigator.vibrate&&navigator.vibrate(15)}catch(z){}hmRender();setTimeout(()=>HMSKIP=false,700)},650)};return}
+  if(!HMED){if(!ME||t.dataset.f)return;const sx=e.clientX,sy=e.clientY;LP={sx,sy,tm:setTimeout(()=>{LP=null;HMSKIP=true;HMED=true;HMSEL.clear();try{navigator.vibrate&&navigator.vibrate(15)}catch(z){}hmRender();setTimeout(()=>HMSKIP=false,700)},650)};return}
   if(!e.target.closest(".grip"))return;e.preventDefault();
   D={k:t.dataset.k,el:t,x0:e.clientX,y0:e.clientY,on:false,tg:null,z:null};try{t.setPointerCapture(e.pointerId)}catch(z){}});
  const end=()=>{if(LP){clearTimeout(LP.tm);LP=null}};
@@ -3078,7 +3083,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   else{const f=h.folders[dest];if(!f)return;pos==="first"?f.items.unshift(k):f.items.push(k)}sv();after()}
  function moveFolder(x,how){const o=HM().order,i=o.indexOf(x);if(i<0)return;o.splice(i,1);const j=how==="first"?0:how==="last"?o.length:how==="up"?Math.max(0,i-1):Math.min(o.length,i+1);o.splice(j,0,x);sv();after()}
  function after(){try{if(cur==="home")home();else hmRender()}catch(e){}try{favRender()}catch(e){}}
- window.moveSheet=function(k){const D=$("#dHm"),sup=isSup(),fo=k.startsWith("f:"),h=HM();hmLayout();
+ window.moveSheet=function(k){hmMine();const D=$("#dHm"),sup=!!ME,fo=k.startsWith("f:"),h=HM();hmLayout();
   const name=fo?(h.folders[k.slice(2)]||{}).name:tName(k),at=fo?"":locOf(k),fav=favList(),inBar=fav.includes(k),tool=!fo&&favOk(k);
   const dests=[["home","Home screen"]].concat(Object.keys(h.folders).map(id=>[id,h.folders[id].name]));
   $("#hmD").innerHTML=`<h2>Move ${E(name||"")}</h2>`+
@@ -3407,8 +3412,8 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  window.PHONEVIEW=function(){if(!PHONE()||cur!=="home")return false;phoneHome();return true};
  function phoneHome(){document.body.classList.add("phone");ph.hidden=false;
   if(!ISFORE()){ph.innerHTML=`<h2>Field App</h2><div class="rec"><b>The phone app is for foremen and supervisors</b><small>Ask a supervisor to set your role to Foreman, or use the iPad.</small></div><div class="row"><button data-ph="out">Sign Out</button></div>`;return}
-  ph.innerHTML=`<h2>Field App</h2><div class="pg2">${PT.map(([k,l])=>`<button type="button" class="pt${/case|tout|em/.test(k)?" sf":""}" data-ph="go" data-k="${k}"><span class="i"><svg viewBox="0 0 24 24">${ICO[k]||ICON[k]||""}</svg></span><b>${E(l)}</b><em>${E(badge(k))}</em></button>`).join("")}</div>
-  <div class="row" style="margin-top:14px">${isSup()?`<button data-ph="full">Open Full App</button>`:""}<button data-ph="out">Sign Out</button></div>`}
+  ph.innerHTML=`<h2>Field App</h2><div class="pg2">${(window.PHONELIST?PHONELIST(PT):PT).map(([k,l])=>`<button type="button" class="pt${/case|tout|em/.test(k)?" sf":""}" data-ph="go" data-k="${k}"><span class="i"><svg viewBox="0 0 24 24">${ICO[k]||ICON[k]||""}</svg></span><b>${E(l)}</b><em>${E(badge(k))}</em></button>`).join("")}</div>
+  <div class="row" style="margin-top:14px"><button data-pe="edit">Edit Tiles</button>${isSup()?`<button data-ph="full">Open Full App</button>`:""}<button data-ph="out">Sign Out</button></div>`}
  ph.addEventListener("click",e=>{const b=e.target.closest("button[data-ph]");if(!b)return;const a=b.dataset.ph;
   if(a==="go"){const k=b.dataset.k;if(k==="tools"){show("tools");return setTimeout(()=>{const n=document.querySelector('#mod [data-tl="new"]');if(n)n.click()},60)}return show(k)}
   if(a==="full"){try{localStorage.setItem(MODEK,"full")}catch(x){}document.body.classList.remove("phone");ph.hidden=true;return show("home")}
@@ -4007,6 +4012,59 @@ window.QRSVG=(function(){
  setTimeout(joinPage,700);
  /* once connected, forget the scanned code */
  setInterval(()=>{if(JOIN&&window.SYNCSTATE&&SYNCSTATE().on){JOIN="";store(JK,"")}},5000);
+})();
+
+/* ===== Phone home: each person moves, hides and renames their own tiles ===== */
+(function(){
+ const E=esc;
+ const LAY=()=>{if(!ME)return {order:[],hidden:[],names:{}};const all=DB.phoneLay||(DB.phoneLay={});const o=all[ME.title]||(all[ME.title]={order:[],hidden:[],names:{}});o.order=o.order||[];o.hidden=o.hidden||[];o.names=o.names||{};return o};
+ let PTS=[],EDIT=false,DRAG=null,HOLD=0;
+ /* the tile list for this person: their order, minus hidden, with their names */
+ window.PHONELIST=function(PT,withHidden){PTS=PT;const L=LAY(),keys=PT.map(x=>x[0]),def={};PT.forEach(([k,l])=>def[k]=l);
+  const ord=L.order.filter(k=>keys.includes(k)).concat(keys.filter(k=>!L.order.includes(k)));
+  return ord.filter(k=>withHidden||!L.hidden.includes(k)).map(k=>[k,L.names[k]||def[k]])};
+ const defName=k=>(PTS.find(x=>x[0]===k)||[])[1]||k;
+ const save=()=>{sv()};
+ const ph=()=>document.getElementById("phoneHome");
+ function draw(){const p=ph();if(!p||!EDIT)return;const L=LAY(),vis=PHONELIST(PTS),hid=PHONELIST(PTS,true).filter(([k])=>L.hidden.includes(k));
+  p.innerHTML=`<div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1">Edit Tiles</h2><button class="pri" data-pe="done" style="min-height:46px;padding:0 22px">Done</button></div>
+  <div class="hint" style="margin-bottom:10px">Drag a tile to move it. Tap &#9998; to rename it, &minus; to hide it. Only your phone changes.</div>
+  <div class="pg2" id="peGrid">${vis.map(([k,l])=>`<div class="pt pe${/case|tout|em/.test(k)?" sf":""}" data-k="${k}" style="position:relative;touch-action:none;cursor:grab;animation:peW .25s ease-in-out infinite alternate"><span class="i"><svg viewBox="0 0 24 24">${ICON[k]||""}</svg></span><b>${E(l)}</b>
+   <button type="button" data-pe="hide" data-k="${k}" aria-label="Hide ${E(l)}" style="position:absolute;top:-8px;left:-8px;width:34px;height:34px;min-height:0;padding:0;border-radius:50%;background:#5d686b;color:#fff;font-size:22px;line-height:1">&minus;</button>
+   <button type="button" data-pe="ren" data-k="${k}" aria-label="Rename ${E(l)}" style="position:absolute;top:-8px;right:-8px;width:34px;height:34px;min-height:0;padding:0;border-radius:50%;background:#1f6f6b;color:#fff;font-size:17px;line-height:1">&#9998;</button></div>`).join("")}</div>
+  ${hid.length?`<h2 style="font-size:18px;margin-top:18px">Hidden (${hid.length})</h2>${hid.map(([k,l])=>`<div style="display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding:8px 0"><b style="flex:1;font-size:16px">${E(l)}</b><button data-pe="show" data-k="${k}">Show</button></div>`).join("")}`:""}
+  <div class="row" style="margin-top:16px"><button data-pe="reset">Restore Original Layout</button></div>`}
+ const st=document.createElement("style");st.textContent="@keyframes peW{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}#peGrid .pt.drag{opacity:.35}#peGrid .pt.ghost{position:fixed!important;z-index:60;pointer-events:none;animation:none!important;box-shadow:0 12px 30px rgba(0,0,0,.5)}";document.head.appendChild(st);
+ function start(){EDIT=true;draw()}
+ function stop(){EDIT=false;DRAG=null;try{home()}catch(e){}}
+ function rename(k){const L=LAY(),cur=L.names[k]||defName(k),v=prompt("New name for this tile ("+defName(k)+")",cur);if(v===null)return;const n=v.trim().replace(/\s+/g," ").slice(0,30);if(!n||n===defName(k))delete L.names[k];else L.names[k]=n;save();draw()}
+ /* order helpers */
+ const curOrder=()=>PHONELIST(PTS,true).map(x=>x[0]);
+ function moveBefore(k,target){const L=LAY();let o=curOrder().filter(x=>x!==k);const i=target?o.indexOf(target):o.length;o.splice(i<0?o.length:i,0,k);L.order=o}
+ /* clicks */
+ document.addEventListener("click",e=>{const b=e.target.closest("[data-pe]");if(!b||!ph()||!ph().contains(b))return;e.preventDefault();e.stopPropagation();const a=b.dataset.pe,k=b.dataset.k,L=LAY();
+  if(a==="edit")return start();if(a==="done")return stop();
+  if(a==="ren")return rename(k);
+  if(a==="hide"){if(PHONELIST(PTS).length<=1)return;L.hidden.push(k);save();return draw()}
+  if(a==="show"){L.hidden=L.hidden.filter(x=>x!==k);save();return draw()}
+  if(a==="reset"&&confirm("Put every tile back in the original order and names?")){L.order=[];L.hidden=[];L.names={};save();return draw()}},true);
+ /* drag to move */
+ document.addEventListener("pointerdown",e=>{if(!EDIT)return;const t=e.target.closest("#peGrid .pt");if(!t||e.target.closest("button"))return;e.preventDefault();
+  const r=t.getBoundingClientRect(),g=t.cloneNode(true);g.classList.add("ghost");g.style.width=r.width+"px";g.style.height=r.height+"px";g.style.left=r.left+"px";g.style.top=r.top+"px";document.body.appendChild(g);t.classList.add("drag");
+  DRAG={k:t.dataset.k,el:t,g,dx:e.clientX-r.left,dy:e.clientY-r.top,moved:false}});
+ document.addEventListener("pointermove",e=>{if(!DRAG)return;e.preventDefault();DRAG.moved=true;DRAG.g.style.left=(e.clientX-DRAG.dx)+"px";DRAG.g.style.top=(e.clientY-DRAG.dy)+"px";
+  const over=document.elementFromPoint(e.clientX,e.clientY),o=over&&over.closest("#peGrid .pt");if(!o||o===DRAG.el)return;const grid=document.getElementById("peGrid"),items=[...grid.children],i=items.indexOf(DRAG.el),j=items.indexOf(o);
+  if(j>i)o.after(DRAG.el);else o.before(DRAG.el)},{passive:false});
+ const end=()=>{if(!DRAG)return;const d=DRAG;DRAG=null;d.g.remove();d.el.classList.remove("drag");const grid=document.getElementById("peGrid");if(!grid)return;
+  const vis=[...grid.children].map(x=>x.dataset.k),L=LAY(),hid=curOrder().filter(k=>L.hidden.includes(k));L.order=vis.concat(hid);save();draw()};
+ document.addEventListener("pointerup",end);document.addEventListener("pointercancel",end);
+ /* press and hold a tile to start editing, like an iPhone */
+ document.addEventListener("pointerdown",e=>{if(EDIT)return;const t=e.target.closest("#phoneHome .pt[data-ph='go']");if(!t)return;clearTimeout(HOLD);HOLD=setTimeout(()=>{HOLD=-1;start()},650)},true);
+ ["pointerup","pointercancel","pointermove"].forEach(ev=>document.addEventListener(ev,e=>{if(ev==="pointermove"&&HOLD>0&&Math.abs(e.movementX)+Math.abs(e.movementY)<3)return;if(HOLD>0)clearTimeout(HOLD)},true));
+ document.addEventListener("click",e=>{if(HOLD===-1&&e.target.closest("#phoneHome")){HOLD=0;e.preventDefault();e.stopPropagation()}},true);
+ /* stay in edit mode if something re-renders the phone home */
+ const _h=home;home=function(){const r=_h.apply(this,arguments);if(EDIT&&window.PHONE&&PHONE())draw();return r};
+ const _s=show;show=function(v){if(v!=="home")EDIT=false;return _s.apply(this,arguments)};
 })();
 
 /* ===== Weather bar (always on top) + Daily Status Report weather ===== */
