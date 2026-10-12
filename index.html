@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Field Service: outage task library and parts bank (v47)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Job numbers and automatic DSR task lines (v48)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="cust">Project Info</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -4533,6 +4533,275 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  const _s=show;show=function(v){const r=_s.apply(this,arguments);draw();return r};
  draw();refresh(false);setInterval(()=>refresh(false),15*6e4);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refresh(false)});addEventListener("online",()=>refresh(true));
 })();
+
+/* ===== Job Numbers: every unit, task, hour and EWA is filed under a job number (v48) ===== */
+(function(){
+ const E=esc,LS=localStorage,nv=v=>String(v==null?"":v).trim();
+ const JB=()=>Array.isArray(DB.jobs)?DB.jobs:(DB.jobs=[]);
+ const MAIN=()=>{try{return nv(JOBNO())}catch(e){return ""}};
+ const byNo=n=>JB().find(j=>j.no===n);
+ const byId=id=>JB().find(j=>j.id===id);
+ const isE=j=>!!j&&j.kind==="EWA";
+ const CLS=s=>/complet|closed|paid|denied|reject/i.test(s||"");
+ const isOpen=j=>!!j&&!j.closed&&!(isE(j)&&CLS(j.status));
+ const jid=()=>"jb"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+ const nowTxt=()=>new Date().toLocaleString([],{month:"numeric",day:"numeric",year:"2-digit",hour:"numeric",minute:"2-digit"});
+ const HRS=()=>DB.hours||(DB.hours=[]);
+ const r2=n=>Math.round((+n||0)*100)/100;
+ const TAGK=["rent","delays","dmgTools","orders","issues"];
+ let ACT="";try{ACT=LS.getItem("tp-actjob")||""}catch(e){}
+ window.ACTJOB=()=>{const a=byNo(ACT);if(a&&isOpen(a))return a.no;const m=JB().find(j=>j.main)||JB().find(j=>!isE(j)&&isOpen(j))||JB()[0];return m?m.no:MAIN()};
+ window.setActJob=n=>{ACT=n||"";try{LS.setItem("tp-actjob",ACT)}catch(e){}};
+ let PEND="";window.JOBPEND=v=>{PEND=v||"";setTimeout(()=>{PEND=""},0)};
+ window.JOBS=JB;window.JOBOF=n=>byNo(n);
+ const unitJob=n=>{const u=U.find(x=>x.name===n);return u&&u.job||""};
+ const taskJob=id=>{const t=DB.tasks.find(x=>x.id===id);return t&&t.job||""};
+ const parentOf=j=>isE(j)?(j.parent||ACTJOB()):j.no;
+ const ewaNo=(title,parent)=>{const t=nv(title),m=t.match(/^(.*?)\s*[\/|]\s*(EWA)[\s#-]*(\d+)\s*$/i);if(m)return (nv(m[1])||parent)+"-EWA"+m[3].padStart(2,"0");return t};
+ function nextEwa(parent){let i=1,n;do{n=(parent||"JOB")+"-EWA"+String(i).padStart(2,"0");i++}while(byNo(n));return n}
+ function renameRefs(o,n){if(!o||!n||o===n)return;
+  U.forEach(u=>{if(u.job===o)u.job=n});DB.tasks.forEach(t=>{if(t.job===o)t.job=n});HRS().forEach(h=>{if(h.job===o)h.job=n});
+  TAGK.forEach(k=>(Array.isArray(DB[k])?DB[k]:[]).forEach(r=>{if(r&&r.job===o)r.job=n}));
+  JB().forEach(j=>{if(j.parent===o)j.parent=n});(DB.dsr_ewa||[]).forEach(r=>{if(nv(r.title)===o)r.title=n});
+  if(ACT===o)setActJob(n);const j=byNo(o);if(j&&j.main){try{ds().setup.jobNo=n}catch(e){}}}
+ /* EWA Tracker rows on the DSR mirror the EWA job numbers */
+ function ewaRow(j){const L=DB.dsr_ewa||(DB.dsr_ewa=[]);let r=L.find(x=>x.jobId===j.id);
+  if(!r){if(!isOpen(j))return;r={id:"ewa-"+j.id,jobId:j.id};L.push(r)}
+  Object.assign(r,{title:j.no,hrs:j.hrs||"",desc:j.desc||"",status:j.status||"",appr:j.appr||"No",comm:j.comm||""})}
+ function ewaSync(def){if(!Array.isArray(DB.dsr_ewa))DB.dsr_ewa=[];let ch=false;
+  DB.dsr_ewa.forEach(r=>{if(!r||typeof r!=="object")return;let j=r.jobId&&byId(r.jobId);
+   if(!j){const no=ewaNo(r.title,def)||nextEwa(def);j=byNo(no);if(!j){j={id:jid(),no,kind:"EWA",parent:def,created:tdy()};JB().push(j)}r.jobId=j.id;ch=true}
+   const t=nv(r.title);if(!t){r.title=j.no;ch=true}else if(t!==j.no){const n2=ewaNo(t,j.parent||def);if(n2&&n2!==j.no&&!byNo(n2)){renameRefs(j.no,n2);j.no=n2}r.title=j.no;ch=true}
+   [["hrs","hrs"],["desc","desc"],["status","status"],["appr","appr"],["comm","comm"]].forEach(([a,b])=>{if(nv(r[a])!==nv(j[b])){j[b]=r[a]==null?"":r[a];ch=true}})});
+  JB().filter(j=>isE(j)&&isOpen(j)&&!DB.dsr_ewa.some(r=>r.jobId===j.id)).forEach(j=>{ewaRow(j);ch=true});
+  return ch}
+ /* first run: build the job list, then file existing work under it */
+ function migrate(def){
+  const ew=JB().filter(isE),num=j=>(j.no.match(/EWA0*(\d+)$/i)||[])[1];
+  const ewaFor=t=>{const s=[t.title,t.note,t.comp,t.hold&&t.hold.type].join(" ");const m=s.match(/EWA[\s#-]*0*(\d+)/i);if(m){const j=ew.find(x=>num(x)===m[1]);if(j)return j.no}return ""};
+  const demo=def==="RGS-ST1-2611",E4=ew.find(x=>num(x)==="4"),E3=ew.find(x=>num(x)==="3"),E1=ew.find(x=>num(x)==="1"),E2=ew.find(x=>num(x)==="2");
+  DB.tasks.forEach(t=>{let j=ewaFor(t);
+   if(!j&&demo){const s=(t.title||"")+" "+(t.comp||"");
+    if(E4&&U[1]&&t.unit===U[1].name)j=E4.no;else if(E3&&/L-0|last.stage blad/i.test(s))j=E3.no;else if(E1&&/scaffold/i.test(s)&&/LP|exhaust|hood/i.test(s))j=E1.no;else if(E2&&/bolt/i.test(s)&&/heat/i.test(s)&&/third|3rd/i.test(s))j=E2.no}
+   if(j)t.job=j});
+  const m=byNo(def);if(m&&!m.title){m.title=demo?"Ridgeline ST1 major outage":(nv((ds().setup||{}).short)||(typeof SITE==="function"?SITE():"")||"Main job");if(!m.cust)m.cust=nv((ds().setup||{}).customer)}
+  if(demo){[[E1,"LP exhaust hood scaffolding"],[E2,"Third bolt heating cycle"],[E3,"L-0 blade replacement"],[E4,"Unit 2 valve scope"]].forEach(([j,t])=>{if(j&&!j.title)j.title=t})}
+  HRS().forEach(h=>{const tj=taskJob(h.tid);if(tj)h.job=tj})}
+ let BUSY=false;
+ function norm(){if(BUSY)return false;if(typeof PASTV!=="undefined"&&PASTV)return false;if(typeof WIPING!=="undefined"&&WIPING)return false;BUSY=true;let ch=false;
+  try{const mn=MAIN();let m=JB().find(j=>j.main);
+   if(!m&&mn){m=byNo(mn);if(m)m.main=true;else{m={id:jid(),no:mn,kind:"Job",main:true,title:"",cust:"",created:tdy()};JB().unshift(m)}ch=true}
+   if(m&&mn&&m.no!==mn&&!byNo(mn)){renameRefs(m.no,mn);m.no=mn;ch=true}
+   const def=m?m.no:"";
+   if(def){if(ewaSync(def))ch=true;
+    if(!DB.jobsV){migrate(def);DB.jobsV=1;ch=true}
+    const pj=byNo(PEND),pUnit=pj?(isE(pj)?(pj.parent||def):pj.no):"";
+    U.forEach(u=>{if(!u.job){u.job=pUnit||def;ch=true}});
+    DB.tasks.forEach(t=>{if(!t.job){t.job=(pj?pj.no:"")||unitJob(t.unit)||def;ch=true}});
+    HRS().forEach(h=>{if(!h.job){h.job=taskJob(h.tid)||unitJob(h.unit)||def;ch=true}});
+    TAGK.forEach(k=>(Array.isArray(DB[k])?DB[k]:[]).forEach(r=>{if(r&&typeof r==="object"&&!r.job){r.job=taskJob(r.tid)||unitJob(r.unit)||def;ch=true}}))}
+  }catch(e){try{console.warn("jobs",e)}catch(x){}}
+  BUSY=false;return ch}
+ /* every save files new records under a job number */
+ const P=Storage.prototype,prevSet=P.setItem;
+ P.setItem=function(k,v){if(this===localStorage&&(k==="tp-db-v1"||k===KEY)&&!BUSY){try{if(norm()){const o=k==="tp-db-v1"?KEY:"tp-db-v1";v=k==="tp-db-v1"?JSON.stringify(DB):JSON.stringify(U);prevSet.call(this,o,o==="tp-db-v1"?JSON.stringify(DB):JSON.stringify(U))}}catch(e){}}return prevSet.call(this,k,v)};
+ try{if(norm()){sv();save()}}catch(e){}
+ try{if(M.dsr_ewa&&M.dsr_ewa.f&&M.dsr_ewa.f[0])M.dsr_ewa.f[0][1]="EWA Job Number"}catch(e){}
+
+ /* ---------- numbers ---------- */
+ const tasksOf=no=>DB.tasks.filter(t=>t.job===no);
+ const hoursOf=no=>HRS().filter(h=>h.job===no);
+ const shSplit=rows=>{const o={Day:0,Night:0,x:0};rows.forEach(r=>{const s=(window.SHOF&&SHOF(r.who))||"";o[s==="Night"?"Night":s==="Day"?"Day":"x"]+=+r.hrs||0});return o};
+ const unitsOf=j=>isE(j)?[]:U.filter(u=>u.job===j.no);
+ const kids=j=>JB().filter(x=>isE(x)&&x.parent===j.no);
+ function stat(j){const T=tasksOf(j.no),H=hoursOf(j.no),s=shSplit(H),tot=s.Day+s.Night+s.x,exp=T.reduce((a,t)=>a+(+t.exp||0),0);return{T,open:T.filter(t=>t.st!=="Done").length,done:T.filter(t=>t.st==="Done").length,s,tot,exp,auth:+j.hrs||0}}
+ const jobOpts=(sel,openOnly)=>JB().filter(j=>!openOnly||isOpen(j)||j.no===sel).map(j=>`<option value="${E(j.no)}"${j.no===sel?" selected":""}>${E(j.no)}${isE(j)?" (EWA)":""}${j.title?" · "+E(j.title):""}</option>`).join("");
+ const pill=(t,bg,fg)=>`<span class="tag" style="background:${bg};color:${fg||"#fff"};margin-right:4px">${t}</span>`;
+ const tagsOf=j=>(j.main?pill("Main job","#1f6f6b"):"")+(isE(j)?pill("EWA","#9a5b00"):"")+(isE(j)?(j.appr==="Yes"?pill("Approved","#2f7d4a"):pill("Not approved","#b3342b")):"")+(!isOpen(j)?pill("Closed","#5d686b"):"")+(j.no===ACTJOB()?pill("Working job","#3b82c4"):"");
+
+ /* ---------- Job Numbers tab ---------- */
+ let JV="",JFM="open";
+ function card(j,indent){const s=stat(j),u=unitsOf(j);
+  return `<div class="rec"${indent?' style="margin-left:22px;border-left:4px solid #c47a00"':""}><b style="font-size:18px">${E(j.no)}</b><div>${tagsOf(j)}</div>${j.title?`<small>${E(j.title)}</small>`:""}${isE(j)&&j.desc&&j.desc!==j.title?`<small>${E(j.desc)}</small>`:""}
+  ${u.length?`<small>Units: ${E(u.map(x=>x.name).join(", "))}</small>`:""}
+  <small>Tasks: <b style="display:inline">${s.open}</b> open, <b style="display:inline">${s.done}</b> done &middot; Hours: <b style="display:inline">${f2(s.tot)}</b>${s.exp?" of "+f2(s.exp)+" expected":""}${isE(j)&&s.auth?" &middot; "+f2(s.auth)+" authorized":""}</small>
+  ${isE(j)&&s.auth&&s.tot>s.auth?`<small style="color:#b3342b;font-weight:700">Over the authorized hours by ${f2(s.tot-s.auth)} h</small>`:""}
+  <div class="row"><button data-jb="open" data-id="${j.id}">Open</button>${j.no!==ACTJOB()&&isOpen(j)?`<button data-jb="act" data-id="${j.id}">Make Working Job</button>`:""}</div></div>`}
+ function listView(){const sup=isSup(),all=JB(),act=ACTJOB();
+  const vis=j=>JFM==="all"||(JFM==="open"?isOpen(j):!isOpen(j));
+  const mains=all.filter(j=>!isE(j)),orph=all.filter(j=>isE(j)&&!byNo(j.parent)&&vis(j));
+  const pend=all.filter(j=>isE(j)&&isOpen(j)&&j.appr!=="Yes").length,hrs=HRS().filter(h=>byNo(h.job)&&byNo(h.job).no===act).reduce((a,h)=>a+(+h.hrs||0),0);
+  const chip=(v,l)=>`<button class="chip${JFM===v?" on":""}" data-jb="f" data-v="${v}">${l}</button>`;
+  $("#mod").innerHTML=`<div class="mh"><h2>Job Numbers</h2>${sup?`<button class="pri" data-jb="newjob">Add Job</button>`:""}</div>
+  <div class="stats"><span><b>${all.filter(isOpen).length}</b>open job numbers</span><span><b>${pend}</b>EWAs waiting on approval</span><span><b>${f2(hrs)}</b>hours on ${E(act||"working job")}</span></div>
+  <div class="hint" style="padding:0 16px">Every unit, task, hour, rental and EWA is filed under a job number. New tasks and units go to the working job unless you pick another one.</div>
+  <label style="padding:0 16px;display:block">Working job on this device<select id="jbAct">${jobOpts(act,true)}</select></label>
+  <div class="chips">${chip("open","Open")}${chip("closed","Closed")}${chip("all","All")}</div>`+
+  (mains.filter(m=>vis(m)||kids(m).some(vis)).map(m=>(vis(m)?card(m):"")+kids(m).filter(vis).map(k=>card(k,true)).join("")+(sup&&isOpen(m)?`<div class="row" style="padding:0 16px 8px 38px"><button data-jb="newewa" data-p="${E(m.no)}">Add EWA Under ${E(m.no)}</button></div>`:"")).join("")||`<div class="empty">No job numbers here. ${sup?"Tap Add Job, or enter the job number in Quick Start Setup.":"A supervisor adds them."}</div>`)+
+  (orph.length?`<h2 class="sec">Other EWAs</h2>`+orph.map(k=>card(k,true)).join(""):"")+`<div style="height:40px"></div>`}
+ function detail(j){const sup=isSup(),s=stat(j),u=unitsOf(j),ks=kids(j),T=s.T.slice().sort((a,b)=>(a.st==="Done")-(b.st==="Done")||String(b.due||"").localeCompare(String(a.due||"")));
+  const th=x=>`<td style="padding:4px 6px;border-bottom:1px solid var(--line)">${x}</td>`;
+  $("#mod").innerHTML=`<div class="mh"><h2>Job ${E(j.no)}</h2><button data-jb="back">All Jobs</button></div>
+  <div class="rec"><div>${tagsOf(j)}</div>${j.title?`<b>${E(j.title)}</b>`:""}${j.cust?`<small>Customer: ${E(j.cust)}</small>`:""}${isE(j)?`<small>Under job ${E(j.parent||"")}</small>${j.desc?`<small>Scope: ${E(j.desc)}</small>`:""}<small>Authorized: ${E(j.hrs||"0")} h &middot; Status: ${E(j.status||"Not set")} &middot; Approved: ${E(j.appr||"No")}${j.apprBy?" by "+E(j.apprBy)+" "+E(j.apprAt||""):""}</small>${j.comm?`<small>Comments: ${E(j.comm)}</small>`:""}`:""}
+  <div class="row" style="flex-wrap:wrap">${isOpen(j)?`<button class="pri" data-jb="addt" data-id="${j.id}">Add Tasks to This Job</button>`:""}${j.no!==ACTJOB()&&isOpen(j)?`<button data-jb="act" data-id="${j.id}">Make Working Job</button>`:""}<button data-jb="print" data-id="${j.id}">Print Job Report</button></div>
+  ${sup?`<div class="row" style="flex-wrap:wrap">${isE(j)&&j.appr!=="Yes"?`<button class="pri" data-jb="appr" data-id="${j.id}">Approve EWA</button>`:""}<button data-jb="edit" data-id="${j.id}">Edit</button><button data-jb="close" data-id="${j.id}">${j.closed?"Reopen Job":"Close Job"}</button>${!s.T.length&&!u.length&&!hoursOf(j.no).length&&!j.main?`<button class="danger" data-jb="del" data-id="${j.id}">Delete</button>`:""}</div>`:""}</div>
+  <h2 class="sec">Hours</h2><div class="stats"><span><b>${f2(s.s.Day)}</b>day shift</span><span><b>${f2(s.s.Night)}</b>night shift</span><span><b>${f2(s.tot)}</b>combined</span><span><b>${f2(s.exp)}</b>expected</span>${isE(j)?`<span><b>${f2(s.auth)}</b>authorized</span>`:""}</div>
+  ${u.length?`<h2 class="sec">Units</h2>`+u.map(x=>`<div class="rec"><b>${E(x.name)}</b><small>${E(x.done?"Complete":(STAGES[x.stage]||{}).n||"")}${x.hold?" &middot; On hold: "+E(x.hold):""}</small></div>`).join(""):""}
+  ${ks.length?`<h2 class="sec">EWAs under this job</h2>`+ks.map(k=>card(k,true)).join(""):""}
+  <h2 class="sec">Tasks (${s.open} open, ${s.done} done)</h2>`+
+  (T.map(t=>{const a=+sumH(t.id),x=+t.exp||0;return `<div class="rec${x&&a>x&&t.st!=="Done"?" hold":""}"><b>${E(t.title)}</b><small>${E(t.unit||"No unit")}${t.comp?" &middot; "+E(t.comp):""}</small><small>${E(t.who||"No one assigned")}${t.due?" &middot; "+E(t.due):""}</small><small>Status: <strong style="color:var(--ink)">${t.st==="Done"?"Completed":E(t.st==="In progress"?"Running":t.st||"Open")}</strong> &middot; ${f2(a)} h${x?" of "+f2(x)+" expected":""}</small><div class="row"><button data-jb="task" data-tid="${t.id}">Open Task</button>${sup?`<button data-jb="move" data-tid="${t.id}">Move to Another Job</button>`:""}</div></div>`}).join("")||`<div class="empty">No tasks on this job yet.</div>`)+`<div style="height:40px"></div>`}
+ window.jobsView=function(){const j=JV&&byId(JV);if(j)return detail(j);JV="";return listView()};
+ function setTaskJob(t,no){const old=t.job;t.job=no;HRS().forEach(h=>{if(h.tid===t.id)h.job=no});if(t.log||t.notes){(t.notes=t.notes||[]).push({by:ME?ME.title:"",at:nowTxt(),m:"Moved from job "+(old||"none")+" to job "+no})}sv()}
+ function pickJob(title,hint,cur,cb){const F=$("#dDatF");F.innerHTML=`<h2>${E(title)}</h2>${hint?`<div class="hint">${hint}</div>`:""}<label>Job Number<select id="pjS">${jobOpts(cur,true)}</select></label><div class="row"><button type="button" id="dX">Cancel</button><button type="button" class="pri" id="dS">Save</button></div>`;F.onchange=F.oninput=null;
+  F.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="dX")return $("#dDat").close();if(b.id!=="dS")return;const v=$("#pjS").value;$("#dDat").close();if(v&&v!==cur)cb(v)};$("#dDat").showModal()}
+ function jobForm(j,kind,parent){const sup=isSup();if(!sup)return;const isNew=!j,ew=isNew?kind==="EWA":isE(j);
+  const o=j?Object.assign({},j):{kind:ew?"EWA":"Job",no:ew?nextEwa(parent):"",parent:parent||"",title:"",cust:"",hrs:"",desc:"",status:ew?"Submitted to customer":"",appr:"No",comm:""};
+  const mains=JB().filter(x=>!isE(x));const F=$("#dDatF");
+  F.innerHTML=`<h2>${isNew?(ew?"Add EWA":"Add Job Number"):"Edit "+E(o.no)}</h2>${ew?`<div class="hint">Each EWA gets its own job number. Tasks and hours charged to it are tracked against the authorized hours.</div>`:""}
+  <label>${ew?"EWA job number":"Job number"}<input name="no" value="${E(o.no)}" autocomplete="off"></label>
+  ${ew?`<label>Under job<select name="parent">${mains.map(m=>`<option${m.no===o.parent?" selected":""}>${E(m.no)}</option>`).join("")}</select></label>`:""}
+  <label>${ew?"Short name":"Job name"}<input name="title" value="${E(o.title||"")}" placeholder="${ew?"e.g. L-0 blade replacement":"e.g. Unit 1 major outage"}"></label>
+  ${ew?`<label>Scope of the extra work<textarea name="desc" rows="3">${E(o.desc||"")}</textarea></label><label>Authorized hours<input name="hrs" inputmode="decimal" value="${E(o.hrs||"")}"></label><label>Status<input name="status" value="${E(o.status||"")}" placeholder="Submitted to customer, Approved, Completed"></label><label>Approved<select name="appr"><option${o.appr!=="Yes"?" selected":""}>No</option><option${o.appr==="Yes"?" selected":""}>Yes</option></select></label><label>Comments<input name="comm" value="${E(o.comm||"")}"></label>`:`<label>Customer<input name="cust" value="${E(o.cust||"")}"></label>`}
+  ${!isNew&&o.main?`<div class="hint">This is the main job from Quick Start Setup. Changing the number here changes it on every report.</div>`:""}
+  <div class="row"><button type="button" id="dX">Cancel</button><button type="button" class="pri" id="dS">Save</button></div>`;F.onchange=F.oninput=null;
+  F.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="dX")return $("#dDat").close();if(b.id!=="dS")return;const g=n=>F.elements[n]?nv(F.elements[n].value):undefined;
+   const no=g("no");if(!no)return alert("Enter the job number.");const dup=byNo(no);if(dup&&dup!==j)return alert("Job number "+no+" is already in the list.");
+   let r=j;if(isNew){r={id:jid(),kind:ew?"EWA":"Job",created:tdy(),by:ME?ME.title:""};JB().push(r);r.no=no}else if(no!==r.no){renameRefs(r.no,no);r.no=no}
+   ["title","cust","desc","hrs","status","appr","comm","parent"].forEach(k=>{const v=g(k);if(v!==undefined)r[k]=v});
+   if(isE(r)){if(r.appr==="Yes"&&!r.apprBy){r.apprBy=ME?ME.title:"";r.apprAt=nowTxt()}ewaRow(r)}
+   sv();$("#dDat").close();JV=r.id;jobsView()};
+  $("#dDat").showModal();setTimeout(()=>{try{F.elements.no.focus()}catch(x){}},50)}
+ function report(j){const s=stat(j),now=new Date().toLocaleString(),ks=kids(j);
+  const th="border:1px solid #000;padding:3px 5px;background:#ede9dc;font-weight:700;text-align:left",td="border:1px solid #000;padding:3px 5px;vertical-align:top";
+  const head=sub=>`<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:6px"><img src="${LOGO}" alt="" style="height:.5in"><div style="text-align:right"><div style="font:700 18px Arial,sans-serif">Job Report: ${E(j.no)}</div><div>${E(typeof SITE==="function"?SITE():"")}${j.title?" &middot; "+E(j.title):""}</div><div>${sub}</div></div></div>`;
+  const rows=s.T.map((t,i)=>{const sp=shSplit(HRS().filter(h=>h.tid===t.id));return `<tr><td style="${td}">${i+1}</td><td style="${td}"><b>${E(t.title)}</b><br>${E(t.unit||"")}${t.comp?" &middot; "+E(t.comp):""}</td><td style="${td}">${E(t.who||"")}</td><td style="${td}">${t.st==="Done"?"Completed "+E(t.doneAt||""):E(t.st||"Open")}</td><td style="${td};text-align:right">${f2(sp.Day)}</td><td style="${td};text-align:right">${f2(sp.Night)}</td><td style="${td};text-align:right"><b>${f2(sp.Day+sp.Night+sp.x)}</b></td><td style="${td};text-align:right">${t.exp?f2(t.exp):""}</td></tr>`});
+  const pages=[];pages.push(rows.slice(0,14));for(let i=14;i<rows.length;i+=22)pages.push(rows.slice(i,i+22));
+  const sum=`<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:10px"><tr><th style="${th}">Job</th><th style="${th}">Type</th><th style="${th}">Day Shift h</th><th style="${th}">Night Shift h</th><th style="${th}">Combined h</th><th style="${th}">Expected h</th>${isE(j)?`<th style="${th}">Authorized h</th>`:""}</tr><tr><td style="${td}"><b>${E(j.no)}</b></td><td style="${td}">${isE(j)?"EWA under "+E(j.parent||""):"Job"}</td><td style="${td}">${f2(s.s.Day)}</td><td style="${td}">${f2(s.s.Night)}</td><td style="${td}"><b>${f2(s.tot)}</b></td><td style="${td}">${f2(s.exp)}</td>${isE(j)?`<td style="${td}">${f2(s.auth)}</td>`:""}</tr>${ks.map(k=>{const q=stat(k);return `<tr><td style="${td}">${E(k.no)}</td><td style="${td}">EWA${k.appr==="Yes"?", approved":", not approved"}</td><td style="${td}">${f2(q.s.Day)}</td><td style="${td}">${f2(q.s.Night)}</td><td style="${td}"><b>${f2(q.tot)}</b></td><td style="${td}">${f2(q.exp)}</td></tr>`}).join("")}</table>${isE(j)&&j.desc?`<p style="margin:8px 0 0"><b>Scope:</b> ${E(j.desc)}</p>`:""}`;
+  const tbl=r=>`<table style="width:100%;border-collapse:collapse;font-size:10px;margin-top:10px"><tr><th style="${th}">#</th><th style="${th}">Task</th><th style="${th}">Crew</th><th style="${th}">Status</th><th style="${th}">Day h</th><th style="${th}">Night h</th><th style="${th}">Total h</th><th style="${th}">Exp. h</th></tr>${r.join("")||`<tr><td colspan="8" style="${td}">No tasks on this job.</td></tr>`}</table>`;
+  const h=pages.map((r,i)=>`<div class="pg" style="padding:.4in .5in;font-size:11px">${head("Day Shift, Night Shift and combined &middot; Printed "+E(now)+" &middot; Page "+(i+1)+" of "+pages.length)}${i===0?sum:""}${tbl(r)}</div>`).join("");
+  try{RPW=816;$("#pgsty").textContent="";$("#rptb").innerHTML=h;$("#rptw").hidden=false;fit()}catch(e){alert("Could not open the report.")}}
+ const MD=$("#mod");
+ MD.addEventListener("click",e=>{if(cur!=="jobs")return;const b=e.target.closest("button[data-jb]");if(!b)return;const k=b.dataset.jb,j=b.dataset.id?byId(b.dataset.id):null;
+  if(k==="f"){JFM=b.dataset.v;return jobsView()}
+  if(k==="back"){JV="";return jobsView()}
+  if(k==="open"&&j){JV=j.id;scrollTo(0,0);return jobsView()}
+  if(k==="act"&&j){setActJob(j.no);return jobsView()}
+  if(k==="newjob")return jobForm(null,"Job");
+  if(k==="newewa")return jobForm(null,"EWA",b.dataset.p);
+  if(k==="edit"&&j)return jobForm(j);
+  if(k==="appr"&&j&&isSup()){if(!confirm("Approve "+j.no+"? Your name and the time are recorded."))return;j.appr="Yes";if(!j.status||/submit|pending|wait/i.test(j.status))j.status="Approved";j.apprBy=ME?ME.title:"";j.apprAt=nowTxt();ewaRow(j);sv();return jobsView()}
+  if(k==="close"&&j&&isSup()){if(!j.closed&&tasksOf(j.no).some(t=>t.st!=="Done")&&!confirm("This job still has open tasks. Close it anyway?"))return;j.closed=!j.closed;if(isE(j)&&j.closed&&!CLS(j.status))j.status="Completed";if(isE(j)){if(j.closed)ewaRow(j);else{if(CLS(j.status))j.status="Approved";ewaRow(j)}}sv();return jobsView()}
+  if(k==="del"&&j&&isSup()){if(!confirm("Delete job "+j.no+"?"))return;DB.jobs=JB().filter(x=>x!==j);DB.dsr_ewa=(DB.dsr_ewa||[]).filter(r=>r.jobId!==j.id);JV="";sv();return jobsView()}
+  if(k==="addt"&&j){setActJob(j.no);window.TCPRESET=j.no;return stepPicker()}
+  if(k==="print"&&j)return report(j);
+  if(k==="task"){if(typeof taskDetail==="function")return taskDetail(b.dataset.tid)}
+  if(k==="move"&&isSup()){const t=DB.tasks.find(x=>x.id===b.dataset.tid);if(t)pickJob("Move Task","Hours already logged on this task move with it.",t.job,v=>{setTaskJob(t,v);jobsView()})}});
+ MD.addEventListener("change",e=>{if(cur==="jobs"&&e.target.id==="jbAct"){setActJob(e.target.value);jobsView()}});
+ /* register the tab and its home tile */
+ try{if(!TL.some(t=>t[0]==="jobs")){const i=TL.findIndex(t=>t[0]==="prog");TL.splice(i<0?0:i,0,["jobs","Job Numbers","Every job and EWA number with its units, tasks and hours"])}
+  ICON.jobs='<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V4h6v3M3 13h18M11 13v2h2v-2"/>';M.jobs={t:"Job Numbers",f:[],sum:()=>""};
+  const _m=mod;mod=function(k){if(k==="jobs")return jobsView();return _m.apply(this,arguments)};
+  const _s=show;show=function(v){if(v!=="jobs")JV="";const r=_s.apply(this,arguments);if(cur==="jobs"){const f=$("#fab");if(f)f.hidden=true}return r};
+  const _hb=hmBadge;hmBadge=function(k){if(k==="jobs"){const n=JB().filter(j=>isE(j)&&isOpen(j)&&j.appr!=="Yes").length;return n?n+" EWA"+(n===1?"":"s")+" to approve":""}return _hb.apply(this,arguments)};
+  if(!DB.jobsTile){const h=DB.home;if(h&&h.folders){const f=Object.values(h.folders).find(x=>(x.items||[]).includes("prog"))||Object.values(h.folders).find(x=>/unit|sched/i.test(x.name||""));if(f){f.items=(f.items||[]).filter(x=>x!=="jobs");f.items.unshift("jobs");if(/^Units & Schedule$/.test(f.name||""))f.name="Jobs, Units & Schedule"}}DB.jobsTile=1;sv()}
+ }catch(e){}
+
+ /* ---------- Task Creator: pick the job number first ---------- */
+ let TCJ="";
+ const fitsJob=(u,no)=>{const j=byNo(no);if(!j)return true;const pj=isE(j)?(j.parent||""):j.no;return u.job===pj||u.job===j.no};
+ function bkUnits(){const sel=$("#bkU");if(!sel)return;const ok=U.filter(u=>fitsJob(u,TCJ));[...sel.options].forEach(o=>{const u=U.find(x=>x.name===o.value);o.hidden=!!(ok.length&&u&&!fitsJob(u,TCJ))})}
+ function bkInject(){const B=$("#bkB");if(!B||B.querySelector("#bkJ"))return;const ul=B.querySelector("#bkU");if(!ul)return;const lab=ul.closest("label");if(!lab)return;
+  if(!TCJ||!byNo(TCJ))TCJ=ACTJOB();
+  lab.insertAdjacentHTML("beforebegin",`<label>Job Number<select id="bkJ">${jobOpts(TCJ,true)}</select></label>`);bkUnits()}
+ try{const B=$("#bkB");if(B){new MutationObserver(bkInject).observe(B,{childList:true});
+  const D=B.closest("dialog");
+  D.addEventListener("change",e=>{const t=e.target;
+   if(t.id==="bkJ"){TCJ=t.value;const u=U.find(x=>x.name===SPU);if(u&&!fitsJob(u,TCJ)){const n=U.find(x=>fitsJob(x,TCJ));if(n){const s=$("#bkU");s.value=n.name;s.dispatchEvent(new Event("change",{bubbles:true}))}}bkUnits()}
+   else if(t.id==="bkU"){const u=U.find(x=>x.name===t.value);if(u&&u.job&&!fitsJob(u,TCJ)){TCJ=u.job;const s=$("#bkJ");if(s)s.value=TCJ}}},true);
+  D.addEventListener("click",e=>{if(e.target.closest('[data-bk="go"]'))JOBPEND(TCJ||ACTJOB())},true)}}catch(e){}
+ try{const _sp=stepPicker;stepPicker=function(){const pre=window.TCPRESET;window.TCPRESET="";const r=_sp.apply(this,arguments);
+  const u=U.find(x=>x.name===SPU);TCJ=pre||((u&&u.job&&byNo(ACTJOB())&&fitsJob(u,ACTJOB()))?ACTJOB():(u&&u.job)||ACTJOB());
+  if(pre){const n=U.find(x=>fitsJob(x,pre));if(n&&(!u||!fitsJob(u,pre))){SPU=n.name}}
+  const old=$("#bkJ");if(old)old.closest("label").remove();bkInject();const s=$("#bkU");if(s&&SPU)s.value=SPU;return r}}catch(e){}
+ try{const sp=$("#dStep");if(sp)sp.addEventListener("click",e=>{if(e.target.closest("#spS"))JOBPEND(unitJob(SPU)||ACTJOB())},true)}catch(e){}
+
+ /* ---------- Task Creator list: job tag and job filter ---------- */
+ let JF="";
+ try{const _tv=tasksView;tasksView=function(){const r=_tv.apply(this,arguments);try{
+  if(JF&&!byNo(JF))JF="";
+  const ch=MD.querySelector(".chips");if(ch&&!MD.querySelector("#jbF")){const used=[...new Set(DB.tasks.map(t=>t.job).filter(Boolean))];
+   ch.insertAdjacentHTML("afterend",`<div class="chips" id="jbF" style="padding-top:0"><button class="chip${!JF?" on":""}" data-jf="">All jobs</button>${used.map(n=>`<button class="chip${JF===n?" on":""}" data-jf="${E(n)}">${E(n)}${isE(byNo(n))?" (EWA)":""}</button>`).join("")}</div>`)}
+  MD.querySelectorAll(".rec").forEach(rec=>{const b=rec.querySelector("button[data-id]");const t=b&&DB.tasks.find(x=>x.id===b.dataset.id);if(!t)return;
+   if(JF&&t.job!==JF){rec.hidden=true;return}
+   if(!rec.querySelector(".jbTag")){const j=byNo(t.job);const x=rec.querySelector("b");if(x)x.insertAdjacentHTML("afterend",`<div><button type="button" class="tag jbTag" data-jt="${t.id}" style="border:0;cursor:pointer;background:${isE(j)?"#9a5b00":"#1f6f6b"};color:#fff;min-height:0;padding:2px 8px">Job ${E(t.job||"none")}${isE(j)?" (EWA)":""}</button></div>`)}})}catch(e){}return r}}catch(e){}
+ MD.addEventListener("click",e=>{if(cur!=="tasks")return;const f=e.target.closest("button[data-jf]");if(f){JF=f.dataset.jf;return tasksView()}
+  const t0=e.target.closest("button[data-jt]");if(!t0)return;e.stopPropagation();const t=DB.tasks.find(x=>x.id===t0.dataset.jt);if(!t)return;
+  if(!isSup())return alert("This task is on job "+(t.job||"none")+". A supervisor can move it to another job.");
+  pickJob("Move Task to Another Job","Hours already logged on this task move with it.",t.job,v=>{setTaskJob(t,v);tasksView()})},true);
+
+ /* ---------- Task detail: show and change the job ---------- */
+ try{const _td=taskDetail;taskDetail=function(id){const r=_td.apply(this,arguments);try{const t=DB.tasks.find(x=>x.id===id),B=$("#tdB");if(t&&B&&!B.querySelector("#tdJob")){const h=B.querySelector("h2");const j=byNo(t.job);
+   const html=isSup()?`<label id="tdJobL">Job Number<select id="tdJob">${jobOpts(t.job,true)}</select></label>`:`<div class="hint" id="tdJob">Job ${E(t.job||"none")}${isE(j)?" (EWA)":""}</div>`;
+   if(h)h.insertAdjacentHTML("afterend",html);else B.insertAdjacentHTML("afterbegin",html)}}catch(e){}return r}}catch(e){}
+ document.addEventListener("change",e=>{if(e.target.id!=="tdJob")return;const t=DB.tasks.find(x=>x.id===(typeof TDID!=="undefined"?TDID:""));if(t&&e.target.value&&e.target.value!==t.job){setTaskJob(t,e.target.value)}});
+
+ /* ---------- Units: job number on add, card and detail ---------- */
+ try{const f=$("#fAdd");if(f&&!f.querySelector("[name=job]")){const h=f.querySelector("h2");h.insertAdjacentHTML("afterend",`<label>Job Number<select name="job" id="uAddJob"></select></label>`);
+   $("#dAdd").addEventListener("toggle",()=>{const s=$("#uAddJob");if(s)s.innerHTML=JB().filter(j=>!isE(j)&&isOpen(j)).map(j=>`<option value="${E(j.no)}"${j.no===parentOf(byNo(ACTJOB())||{})?" selected":""}>${E(j.no)}${j.title?" · "+E(j.title):""}</option>`).join("")||`<option value="">Set the job number in Quick Start first</option>`});
+   const pj=f.querySelector("[name=project]");if(pj)pj.placeholder="Outage name";
+   f.addEventListener("submit",()=>{const s=$("#uAddJob");JOBPEND(s?s.value:"")},true)}}catch(e){}
+ try{const _a=$("#add");if(_a){const o=_a.onclick;_a.onclick=function(){const r=o&&o.apply(this,arguments);const s=$("#uAddJob");if(s)s.innerHTML=JB().filter(j=>!isE(j)&&isOpen(j)).map(j=>`<option value="${E(j.no)}"${j.no===parentOf(byNo(ACTJOB())||{})?" selected":""}>${E(j.no)}${j.title?" · "+E(j.title):""}</option>`).join("")||`<option value="">Set the job number in Quick Start first</option>`;return r}}}catch(e){}
+ try{const _r=render;render=function(){const r=_r.apply(this,arguments);try{document.querySelectorAll("#board .card[data-id]").forEach(c=>{const u=U.find(x=>x.id===c.dataset.id);if(!u||c.querySelector(".jbU"))return;const b=c.querySelector("b");if(b)b.insertAdjacentHTML("afterend",`<small class="jbU" style="font-weight:700">Job ${E(u.job||"none")}</small>`)})}catch(e){}return r}}catch(e){}
+ try{const _o=openUnit;openUnit=function(id){const r=_o.apply(this,arguments);try{const u=U.find(x=>x.id===id),B=$("#unitBody");if(u&&B&&!B.querySelector("#uJob")){const h=B.querySelector("h2");const html=isSup()?`<label>Job Number<select id="uJob">${JB().filter(j=>!isE(j)&&(isOpen(j)||j.no===u.job)).map(j=>`<option value="${E(j.no)}"${j.no===u.job?" selected":""}>${E(j.no)}${j.title?" · "+E(j.title):""}</option>`).join("")}</select></label>`:`<div class="hint" id="uJob">Job ${E(u.job||"none")}</div>`;if(h)h.insertAdjacentHTML("afterend",html)}}catch(e){}return r}}catch(e){}
+ document.addEventListener("change",e=>{if(e.target.id!=="uJob")return;const B=$("#unitBody"),nm=B&&B.querySelector("h2")?B.querySelector("h2").textContent:"";const u=U.find(x=>x.name===nm);if(!u)return;const old=u.job,v=e.target.value;if(!v||v===old)return;
+  u.job=v;log(u,"Moved from job "+(old||"none")+" to job "+v);const T=DB.tasks.filter(t=>t.unit===u.name&&t.job===old);if(T.length&&confirm("Move this unit's "+T.length+" task(s) on job "+old+" to job "+v+" as well?"))T.forEach(t=>setTaskJob(t,v));save();sv();render()});
+
+ /* ---------- Home: open job numbers under the big count ---------- */
+ try{const _h=home;home=function(){const r=_h.apply(this,arguments);try{const s=$("#sum");if(s&&!s.querySelector("#hmJobs")){const O=JB().filter(isOpen),m=O.filter(j=>!isE(j)),e=O.filter(isE);if(O.length)s.insertAdjacentHTML("beforeend",`<button type="button" id="hmJobs" class="att" style="margin-top:8px;width:100%;text-align:left" onclick="show('jobs')"><b>Job ${E(ACTJOB())}</b>${m.length>1?m.length+" open jobs · ":""}${e.length} open EWA${e.length===1?"":"s"}${e.filter(j=>j.appr!=="Yes").length?" · "+e.filter(j=>j.appr!=="Yes").length+" waiting on approval":""}</button>`)}}catch(e){}return r}}catch(e){}
+ try{if(cur==="home")home()}catch(e){}
+})();
+
+/* ===== DSR: every task worked that day goes on that day's report automatically (v48) ===== */
+(function(){
+ const nv=v=>String(v==null?"":v).trim();
+ const HR=()=>DB.hours||(DB.hours=[]);
+ const mid=()=>{const d=new Date();d.setHours(0,0,0,0);return d.getTime()};
+ const lbl=t=>{const c=nv(t.comp)||nv(t.note)||"General work";return t.unit?t.unit+" · "+c:c};
+ const RUNS=t=>{try{return runners(t)}catch(e){return []}};
+ function worked(date){const ids=new Set(),td=tdy();HR().forEach(h=>{if(h.date===date&&+h.hrs>0)ids.add(h.tid)});
+  DB.tasks.forEach(t=>{if(t.st==="Done"&&t.doneAt===date)ids.add(t.id);if(date===td&&RUNS(t).length)ids.add(t.id)});
+  return DB.tasks.filter(t=>ids.has(t.id))}
+ function line(t,date){const hs=HR().filter(h=>h.tid===t.id&&h.date===date);const o={Day:0,Night:0,x:0},who=new Set();
+  hs.forEach(h=>{const s=(window.SHOF&&SHOF(h.who))||"";o[s==="Night"?"Night":s==="Day"?"Day":"x"]+=+h.hrs||0;if(h.who)who.add(h.who)});
+  if(date===tdy())RUNS(t).forEach(n=>{const r=RUN()[n];if(!r)return;const s=(window.SHOF&&SHOF(n))||"";o[s==="Night"?"Night":s==="Day"?"Day":"x"]+=Math.max(0,(Date.now()-Math.max(r.since,mid()))/36e5);who.add(n)});
+  const tot=o.Day+o.Night+o.x,run=date===tdy()&&RUNS(t).length;
+  const st=t.st==="Done"&&t.doneAt===date?"Completed":run?"In progress":t.st==="Done"?"Completed":"Worked, not finished";
+  const crew=who.size?[...who]:(t.who||"").split(/,\s*/).filter(Boolean);
+  const job=(typeof JOBNO==="function"&&t.job&&t.job!==JOBNO())?" · Job "+t.job:"";
+  return t.title+" — "+st+(tot>0?", "+f2(tot)+" crew-hrs"+(o.Day&&o.Night?" (Day "+f2(o.Day)+", Night "+f2(o.Night)+")":""):"")+(crew.length?". Crew: "+crew.join(", "):"")+job+(t.holdPt?" · Hold point: "+t.holdPt:"")}
+ function sync(){if(typeof PASTV!=="undefined"&&PASTV)return false;let d;try{d=ds()}catch(e){return false}const date=d.setup.date||tdy();
+  const A=(d.auto&&d.auto.date===date)?d.auto:(d.auto={date,keys:[],off:[]});A.keys=A.keys||[];A.off=A.off||[];
+  const rows=Array.isArray(DB.dsr_comp)?DB.dsr_comp:(DB.dsr_comp=[]);let ch=false;
+  A.keys.slice().forEach(k=>{if(!rows.some(r=>r.akey===k)){if(!A.off.includes(k))A.off.push(k);A.keys=A.keys.filter(x=>x!==k);ch=true}});
+  const G={};worked(date).forEach(t=>{const k=lbl(t);(G[k]=G[k]||[]).push(t)});
+  Object.keys(G).forEach(k=>{if(A.off.includes(k))return;const ts=G[k],gen=ts.map(t=>line(t,date));
+   let r=rows.find(x=>x.akey===k);if(!r){r={id:"auto|"+date+"|"+k,akey:k,title:k,note:"",photos:[],qph:[],auto:[]};rows.push(r);ch=true}
+   const old=r.auto||[],man=(r.note||"").split("\n").filter(x=>x.trim()&&!old.includes(x));
+   const keep=gen.filter((g,i)=>!man.some(m=>m.startsWith(ts[i].title+" —")||m.trim()===ts[i].title));
+   const note=keep.concat(man).join("\n");if(note!==(r.note||"")||JSON.stringify(keep)!==JSON.stringify(old)){r.note=note;r.auto=keep;ch=true}
+   if(!A.keys.includes(k)){A.keys.push(k);ch=true}});
+  rows.filter(r=>r.akey&&!G[r.akey]&&(r.auto||[]).length).forEach(r=>{const old=r.auto;r.note=(r.note||"").split("\n").filter(x=>x.trim()&&!old.includes(x)).join("\n");r.auto=[];ch=true});
+  for(let i=rows.length-1;i>=0;i--){const r=rows[i];if(r.akey&&!G[r.akey]&&!nv(r.note)&&!(r.photos||[]).length&&!(r.qph||[]).length){rows.splice(i,1);A.keys=A.keys.filter(x=>x!==r.akey);ch=true}}
+  if(ch)sv();return ch}
+ window.DSRTASKS=sync;
+ try{const _r=dsrRoll;dsrRoll=function(manual){let d;try{d=ds()}catch(e){}if(d&&(manual||d.setup.date<tdy()))try{sync()}catch(e){}const r=_r.apply(this,arguments);if(r)try{sync()}catch(e){}return r}}catch(e){}
+ try{const _v=dsrView;dsrView=function(){try{dsrRoll(false)}catch(e){}try{sync()}catch(e){}const r=_v.apply(this,arguments);try{const b=document.querySelector('#mod [data-ds="dsr_comp"] small');if(b)b.textContent=DB.dsr_comp.length+" components · tasks worked today are added automatically"}catch(e){}return r}}catch(e){}
+ try{const _p=previewDSR;previewDSR=async function(){try{sync()}catch(e){}return _p.apply(this,arguments)}}catch(e){}
+ try{const _m=mod;mod=function(k){if(k==="dsr_comp"){try{dsrRoll(false)}catch(e){}try{sync()}catch(e){}}const r=_m.apply(this,arguments);
+  if(k==="dsr_comp")try{const M0=$("#mod"),h=M0.querySelector(".mh");if(h&&!M0.querySelector("#dsrAutoH")){let dt="";try{dt=ds().setup.date}catch(e){}h.insertAdjacentHTML("afterend",`<div class="hint" id="dsrAutoH" style="padding:0 16px">Every task worked on ${esc(dt||"this report date")} is on this report automatically, grouped by component, with crew and hours. Lines you type are kept. Delete an entry to leave it off this report.</div>`)}}catch(e){}
+  return r}}catch(e){}
+})();
+
 
 /* ===== Back button on every tab ===== */
 (function(){var NAV=[],goingBack=false;
