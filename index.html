@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 11, 2026 &middot; iPad home layout per person (v41)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 11, 2026 &middot; Easier Live Sync connect (v42)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Shop Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Shop Needs</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="cust">Argon Project Info</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -3973,8 +3973,16 @@ window.QRSVG=(function(){
  const b64u=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
  const unb64u=s=>{s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return decodeURIComponent(escape(atob(s)))};
  window.JOINURL=()=>{const c=window.syncCode?syncCode():"";return c?appURL()+"?join="+b64u(c):""};
- window.JOINPARSE=t=>{t=String(t||"").trim();const m=t.match(/[?&]join=([A-Za-z0-9_-]+)/);if(m){try{return unb64u(m[1])}catch(e){}}return t};
- const _sc=window.syncConnect;if(_sc)window.syncConnect=function(code,pw,isFirst){if(typeof code==="string")code=JOINPARSE(code);return _sc.call(this,code,pw,isFirst)};
+ const fixQ=s=>String(s).replace(/[“”„″]/g,'"').replace(/[‘’]/g,"'");
+ window.JOINPARSE=t=>{t=fixQ(String(t||"").trim());const m=t.match(/[?&]join=([A-Za-z0-9_-]+)/);if(m){try{return unb64u(m[1])}catch(e){}}const i=t.indexOf("{"),j=t.lastIndexOf("}");if(i>0&&j>i&&/"fb"\s*:/.test(t))return t.slice(i,j+1);return t};
+ const fbOf=t=>{const o={};["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId"].forEach(k=>{const m=t.match(new RegExp('["\']?'+k+'["\']?\\s*:\\s*["\']([^"\']+)["\']'));if(m)o[k]=m[1]});return o.apiKey&&o.projectId?o:null};
+ const slug=s=>String(s||"").trim().toLowerCase().replace(/[^a-z0-9-]+/g,"-").replace(/^-+|-+$/g,"");
+ const _sc=window.syncConnect;if(_sc)window.syncConnect=function(code,pw,isFirst){if(typeof code==="string"){code=JOINPARSE(code);let ok=true;try{JSON.parse(code)}catch(e){ok=false}
+   if(!ok){const fb=fbOf(code);if(!fb)throw new Error("That is not a setup code. On a device that shows LIVE, open Live Sync and tap Copy Setup Code (or scan the QR code). You can also paste the Firebase config here.");
+    const site=prompt("Firebase config found. Enter the site name exactly as on the first iPad's Live Sync screen (after Site:).",slug(window.SITE?SITE():"site"));if(!site)throw new Error("The site name is needed.");
+    const email=prompt("Site account email (Firebase, Authentication, Users tab):","");if(!email||!/@/.test(email))throw new Error("The site email is needed.");
+    code=JSON.stringify({fb,site:slug(site),email:email.trim()})}}
+  return _sc.call(this,code,pw,isFirst)};
  const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
  const store=(k,v)=>{try{v?localStorage.setItem(k,v):localStorage.removeItem(k)}catch(e){}},read=k=>{try{return localStorage.getItem(k)||""}catch(e){return ""}};
  /* a join link opened this page: keep the code, clean the address bar */
