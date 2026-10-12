@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 11, 2026 &middot; Easier Live Sync connect (v42)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 11, 2026 &middot; Live Sync: email and password only (v43)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Shop Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Shop Needs</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="cust">Argon Project Info</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -4073,6 +4073,35 @@ window.QRSVG=(function(){
  /* stay in edit mode if something re-renders the phone home */
  const _h=home;home=function(){const r=_h.apply(this,arguments);if(EDIT&&window.PHONE&&PHONE())draw();return r};
  const _s=show;show=function(v){if(v!=="home")EDIT=false;return _s.apply(this,arguments)};
+})();
+
+/* ===== Live Sync built in for TurbinePros: connect with the site email and password only ===== */
+(function(){
+ const E=esc,EK="tp-site-email",SK="tp-site-name";
+ const FB={apiKey:"AIzaSyDZQw-J16UUrm7ggdCiP6-6CkbCJJAL_iE",authDomain:"turbinepros-tp-tracker.firebaseapp.com",projectId:"turbinepros-tp-tracker",storageBucket:"turbinepros-tp-tracker.firebasestorage.app",messagingSenderId:"181359924868",appId:"1:181359924868:web:86d9623d81ebf2efa614d1"};
+ const DEFSITE="houston-shop";
+ const get=k=>{try{return localStorage.getItem(k)||""}catch(e){return ""}},put=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+ window.TPBUILTIN={fb:FB,site:DEFSITE};
+ /* sign-in screen: email and password, setup code tucked away */
+ function easy(){const t=document.getElementById("lkC");if(!t||document.getElementById("lkE"))return;const lab=t.closest("label"),paste=document.getElementById("lkPaste"),scanned=!!t.value;
+  try{$("#lkT").textContent="Connect to Live Sync"}catch(x){}const hint=document.querySelector("#lkB .hint");if(hint&&!scanned)hint.textContent="Enter the site email and password your supervisor gave you.";
+  const box=document.createElement("details");box.id="lkAdv";box.style.margin="8px 0";box.innerHTML=`<summary>${scanned?"Setup code (from the QR code)":"Use a setup code or a different site instead"}</summary><label>Site name<input id="lkS" value="${E(get(SK)||DEFSITE)}" autocapitalize="none" autocomplete="off"></label>`;
+  lab.before(box);box.appendChild(lab);if(paste)box.appendChild(paste.closest(".row")||paste);if(scanned)box.open=true;
+  box.insertAdjacentHTML("beforebegin",scanned?"":`<label>Site email<input id="lkE" type="email" autocapitalize="none" autocomplete="username" value="${E(get(EK))}" placeholder="the site account email"></label>`);
+  const pw=document.getElementById("lkP2");if(pw)pw.setAttribute("autocomplete","current-password");
+  const e=document.getElementById("lkE");if(e&&!e.value)setTimeout(()=>e.focus(),100)}
+ document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#lock button[data-sy2]"))setTimeout(easy,30)},true);
+ /* before Connect runs: build the code from the built-in settings */
+ document.addEventListener("click",e=>{if(!e.target.closest||!e.target.closest("#lkGo"))return;const t=document.getElementById("lkC"),em=document.getElementById("lkE");if(!t)return;
+  if(String(t.value).trim())return;if(!em)return;const email=em.value.trim(),site=((document.getElementById("lkS")||{}).value||DEFSITE).trim().toLowerCase().replace(/[^a-z0-9-]+/g,"-");
+  if(!/@/.test(email)){e.stopImmediatePropagation();e.preventDefault();alert("Type the site email first.");em.focus();return}
+  put(EK,email);put(SK,site);t.value=JSON.stringify({fb:FB,site,email})},true);
+ /* supervisor Live Sync screen: the Firebase settings are already filled in */
+ function fill(){const f=document.getElementById("syF");if(f&&!f.value){f.value=JSON.stringify(FB,null,1);const l=f.closest("label");if(l&&!document.getElementById("syBuilt"))l.insertAdjacentHTML("beforebegin",`<div class="hint" id="syBuilt">TurbinePros Firebase settings are already filled in. Enter the site email and password and tap Turn On Live Sync.</div>`)}
+  const s=document.getElementById("syS");if(s&&get(SK)&&s.value!==get(SK))s.value=get(SK);const em=document.getElementById("syE");if(em&&!em.value&&get(EK))em.value=get(EK)}
+ const _m=mod;mod=function(k){const r=_m.apply(this,arguments);if(k==="sync")try{fill()}catch(e){}return r};
+ const _d=window.SYNCDRAW;window.SYNCDRAW=function(){const r=_d&&_d.apply(this,arguments);try{if(cur==="sync")fill()}catch(e){}return r};
+ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('#mod [data-sy="first"]');if(!b)return;const em=document.getElementById("syE"),s=document.getElementById("syS");if(em&&em.value.trim())put(EK,em.value.trim());if(s&&s.value.trim())put(SK,s.value.trim().toLowerCase())},true);
 })();
 
 /* ===== Weather bar (always on top) + Daily Status Report weather ===== */
