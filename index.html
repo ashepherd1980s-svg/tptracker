@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v49.1)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v50)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -295,8 +295,8 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <h2>Add unit</h2>
 <label>Unit name<input name="name" required placeholder="e.g. Unit 1 Steam Turbine"></label>
 <label>Customer<input name="customer" value=""></label>
-<label>Turbine<select name="ttype"><option>Steam</option><option>Gas</option></select></label>
-<label>Maker<select name="maker"><option>GE</option><option>Westinghouse</option><option>Siemens</option><option>Toshiba</option><option>Mitsubishi</option><option>Alstom</option><option>Other</option></select></label>
+<label>Turbine<select name="ttype"><option>Steam</option><option>Gas</option><option>Aero</option><option>Hydro</option></select></label>
+<label>Maker<select name="maker"><option>GE</option><option>Westinghouse</option><option>Siemens</option><option>Toshiba</option><option>Mitsubishi</option><option>Alstom</option><option>Ansaldo</option><option>Solar Turbines</option><option>Rolls-Royce</option><option>Pratt &amp; Whitney</option><option>Voith</option><option>Andritz</option><option>Hitachi</option><option>Other</option></select></label>
 <label>Model<input name="model" placeholder="e.g. D11, A10, 7FA"></label>
 <label>Project<input name="project" placeholder="Outage name or job number"></label>
 <label>Serial number<input name="serial" placeholder="Nameplate serial"></label>
@@ -1748,7 +1748,7 @@ window.BPARTS=BPARTS;window.BSECS=BSECS;
  #bkB .bkAuto{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}#bkB .bkTag{display:inline-block;font-size:13px;font-weight:700;border:2px solid currentColor;border-radius:6px;padding:1px 7px;margin:2px 4px 2px 0}#bkB .bkTag.h{color:#e5675d}#bkB .bkTag.f{color:#5aa3e0}#bkB .bkTag.r{color:#4fb57a}#bkB .bkHz{display:inline-block;font-size:13px;background:var(--line);border-radius:6px;padding:2px 7px;margin:2px 3px 2px 0}`;document.head.appendChild(st);
  let Q="",TY="Steam",MODE="steps",CUR=null,PICKS=[],SEC="",STG="",TSK="",CUST="",COMPS=[],HRS="";
  try{TY=localStorage.getItem("tp-bank-ty")||"Steam";MODE=localStorage.getItem("tp-bank-mode")||"steps"}catch(e){}
- const ty=()=>TY==="Gas"?"gas":"steam";
+ const ty=()=>({Gas:"gas",Aero:"aero",Hydro:"hydro"})[TY]||"steam";
  const norm=s=>String(s||"").toLowerCase();
  function match(x,q){const hay=norm(x.p+" "+x.sec+" "+x.a);return norm(q).split(/\s+/).filter(Boolean).every(w=>hay.includes(w)||hay.split(/[^a-z0-9#\-\/]+/).some(t=>t.startsWith(w)))}
  const acts=sec=>BSACT[sec]||BACT;
@@ -1797,7 +1797,7 @@ window.BPARTS=BPARTS;window.BSECS=BSECS;
   <label>Unit<select id="bkU">${U.length?U.map(u=>`<option${u.name===SPU?" selected":""}>${E(u.name)}</option>`).join(""):"<option value=''>No units yet</option>"}</select></label>
   <label>Work Date<input id="bkD" type="date" value="${SPD}"></label>
   <span class="label" style="font-size:14px;font-weight:700">Crew (tap to select)</span><div class="bkCh" id="bkCrew">${ppl.map(p=>`<button type="button" data-w="${E(p.title)}" class="${SPW.has(p.title)?"on":""}">${E(p.title)}</button>`).join("")||'<small class="hint">No crew added yet.</small>'}</div>
-  <div class="chips" style="padding:10px 0 4px">${[["steps","Step by Step"],["search","Search Parts"]].map(([k,l])=>`<button type="button" class="chip${MODE===k?" on":""}" data-bk="mode" data-v="${k}">${l}</button>`).join("")}${MODE==="steps"?["Steam","Gas"].map(t=>`<button type="button" class="chip${ty()===t.toLowerCase()?" on":""}" data-bk="ty" data-v="${t}">${t}</button>`).join(""):""}</div>
+  <div class="chips" style="padding:10px 0 4px">${[["steps","Step by Step"],["search","Search Parts"]].map(([k,l])=>`<button type="button" class="chip${MODE===k?" on":""}" data-bk="mode" data-v="${k}">${l}</button>`).join("")}${MODE==="steps"?["Steam","Gas","Aero","Hydro"].map(t=>`<button type="button" class="chip${ty()===t.toLowerCase()?" on":""}" data-bk="ty" data-v="${t}">${t}</button>`).join(""):""}</div>
   <div id="bkMain">${MODE==="steps"?stepsHTML():searchHTML()}</div><p class="hint" id="bkMsg" aria-live="polite"></p>
   <div id="bkP">${picksBox()}</div>
   <div class="srow"><button type="button" data-bk="x">Cancel</button><button type="button" class="pri" data-bk="go" ${PICKS.length?"":"disabled"}>Create ${PICKS.length} Task${PICKS.length===1?"":"s"}</button></div>`}
@@ -2339,7 +2339,7 @@ async function loadDemoData(){
  save();sv();try{localStorage.setItem("tp-seeded","1");localStorage.setItem("tp-demo-v1","1");sessionStorage.removeItem("tp-me")}catch(e){}
  location.reload();
 }
-document.querySelectorAll(".hUnit").forEach(b=>b.onclick=()=>show("qs"));
+document.querySelectorAll(".hUnit").forEach(b=>b.onclick=()=>show(M.jsw?"jsw":"qs"));
 
 /* ===== Home layout: rearrange, folders, rename (supervisors) ===== */
 if(!ICON.jsa)ICON.jsa='<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9zM9 13l2 2 4-4"/>';
@@ -3320,7 +3320,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   $("#vBody").innerHTML=`<h2>${E(r.title)}</h2><small>${E(r.type)}${r.permitNo?" &middot; Permit "+E(r.permitNo):""}${r.unit?" &middot; "+E(r.unit):""} &middot; ${E(stOf(r))}</small>`+(img?`<img src="${VU}" alt="" style="width:100%;border-radius:10px;margin-top:8px">`:pdf?`<iframe src="${VU}" title="${E(r.title)}" style="width:100%;height:55vh;border:0;border-radius:10px;margin-top:8px;background:#fff"></iframe>`:"")+
   `<div class="row"><a class="lnk" href="${VU}" target="_blank" rel="noopener">Open Full Screen</a>${navigator.canShare?`<button type="button" id="lvSh">Share</button>`:""}<button type="button" id="lvX">Close</button></div>`;
   $("#vBody").onclick=async e=>{const x=e.target.closest("button");if(!x)return;if(x.id==="lvX")$("#dView").close();if(x.id==="lvSh"){try{const f=new File([b],(r.file&&r.file.name)||"LOTO.pdf",{type:ty});if(navigator.canShare({files:[f]}))await navigator.share({files:[f],title:r.title})}catch(z){}}};$("#dView").showModal()}
- window.lotoDocView=docView;
+ window.lotoDocView=docView;window.lotoDocForm=docForm;window.lotoLockForm=lockForm;
  /* locks */
  function lockForm(){const F=$("#dDatF"),act=LO().docs.filter(d=>stOf(d)==="Active");
   F.innerHTML=`<h2>Record Lock On</h2><div class="hint">Every person working under a lockout records their own lock.</div><label>Name<select id="lkN">${DB.people.map(p=>`<option${ME&&p.title===ME.title?" selected":""}>${E(p.title)}</option>`).join("")}</select></label><label>Lock number<input id="lkL" inputmode="numeric"></label>
@@ -3341,7 +3341,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   <table style="width:100%;border-collapse:collapse;margin-top:8px"><tr><th style="${th}">Locks</th><th style="${th}">Day Shift</th><th style="${th}">Night Shift</th><th style="${th}">Combined</th></tr>${rowC("On now",l=>!l.off)}${rowC("Removed",l=>!!l.off)}${rowC("All recorded",()=>true)}</table>
   <div style="font:700 13px Arial,sans-serif;margin:10px 0 4px">Documents and permits</div><table style="width:100%;border-collapse:collapse;font-size:10px"><tr><th style="${th}">Permit</th><th style="${th}">Document</th><th style="${th}">Unit / equipment</th><th style="${th}">Issued / expires</th><th style="${th}">Signed off</th><th style="${th}">Zero energy</th><th style="${th}">Status</th></tr>${D.map(d=>`<tr><td style="${td}">${E(d.permitNo||"")}</td><td style="${td}"><b>${E(d.title)}</b><br>${E(d.type)}</td><td style="${td}">${E(d.unit||"Site")}<br>${E(d.equip||"")}</td><td style="${td}">${E(d.issued||"")}<br>${E(d.expires||"")}</td><td style="${td}">${d.signed?E((d.signedBy||"")+" "+(d.signedAt||"")):"No"}</td><td style="${td}">${E((d.zeroBy||"")+" "+(d.zeroAt||""))}</td><td style="${td}">${E(stOf(d))}</td></tr>`).join("")||`<tr><td colspan="7" style="${td}">None.</td></tr>`}</table>
   <div style="font:700 13px Arial,sans-serif;margin:10px 0 4px">Lock register</div><table style="width:100%;border-collapse:collapse;font-size:10px"><tr><th style="${th}">Name</th><th style="${th}">Shift</th><th style="${th}">Lock #</th><th style="${th}">Unit / point</th><th style="${th}">Permit</th><th style="${th}">On</th><th style="${th}">Off</th></tr>${L.slice().reverse().slice(0,30).map(l=>`<tr><td style="${td}">${E(l.name)}</td><td style="${td}">${E(l.shift||"")}</td><td style="${td}">${E(l.lockNo)}</td><td style="${td}">${E(l.unit||"")}<br>${E(l.point||"")}</td><td style="${td}">${E(l.permit||"")}</td><td style="${td}">${E(l.on)}</td><td style="${td}">${l.off?E(l.off):"<b>ON</b>"}</td></tr>`).join("")||`<tr><td colspan="7" style="${td}">No locks recorded.</td></tr>`}</table></div>`}
- function reRender(){if(cur==="loto")lotoView();else if(cur==="safety")safetyView()}
+ function reRender(){if(cur==="loto")lotoView();else if(cur==="safety")safetyView();else if(window.V50DRAW)V50DRAW()}
  /* events (FME LOTO screen and Safety summary) */
  const MD=$("#mod");
  MD.addEventListener("click",e=>{if(cur!=="loto"&&cur!=="safety")return;const b=e.target.closest("button[data-lo]");if(!b)return;e.stopPropagation();const k=b.dataset.lo,id=b.dataset.id;
@@ -4873,6 +4873,373 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  const _h=home;home=function(){const r=_h.apply(this,arguments);try{const o=document.getElementById("glance");if(o)o.remove();const h=build();if(h){const a=document.getElementById("attn");if(a)a.insertAdjacentHTML("beforebegin",h)}}catch(e){}return r};
  document.getElementById("home").addEventListener("click",e=>{const b=e.target.closest("button[data-gl]");if(!b)return;e.stopPropagation();e.preventDefault();show(b.dataset.gl)},true);
  try{if(cur==="home")home()}catch(e){}
+})();
+
+/* ===== v50: First-Day Job Setup (8 steps), banks, Start Shift button, automatic shift handoff. Time tracking is not changed. ===== */
+(function(){
+ const E=esc,MD=$("#mod"),nv=v=>{v=String(v==null?"":v).trim();return /^n\/?a$/i.test(v)?"":v};
+ const nowTxt=()=>new Date().toLocaleString([],{month:"numeric",day:"numeric",year:"2-digit",hour:"numeric",minute:"2-digit"});
+ const curSh=()=>(window.CURSHIFT&&CURSHIFT())||"Day";
+ const wdOf=sh=>{const d=new Date();if(sh==="Night"&&d.getHours()<14)d.setDate(d.getDate()-1);return ymd(d)};
+ const W=()=>{let w=DB.wiz;if(!w||typeof w!=="object")w=DB.wiz={};w.scope=w.scope||{};return w};
+ const ALLP=()=>(DB.people||[]).concat(DB.pplOther||[]);
+ const isCrew=p=>p&&!SUPR.includes(p.role);
+ const OBJ=st=>st==="q"?QSD():st==="s"?ds().setup:st==="c"?ds().contacts:ds().comp;
+ const GET=(st,k)=>{const v=OBJ(st)[k];return v==null?"":String(v)};
+ const LO=()=>{const o=DB.loto||(DB.loto={});o.docs=o.docs||[];o.locks=o.locks||[];return o};
+ const PERMS=()=>DB.jobPermits&&typeof DB.jobPermits==="object"?DB.jobPermits:(DB.jobPermits={});
+
+ /* ---------------- banks: people, customer / plant (kept with the app data and in their own storage) ---------------- */
+ const BK=()=>{let b=DB.banks;if(!b||typeof b!=="object"){let s=null;try{s=JSON.parse(localStorage.getItem("tp-banks-v1")||"null")}catch(e){}b=DB.banks=(s&&typeof s==="object")?s:{}}b.people=Array.isArray(b.people)?b.people:[];b.plants=Array.isArray(b.plants)?b.plants:[];return b};
+ const bkStore=()=>{try{localStorage.setItem("tp-banks-v1",JSON.stringify(BK()))}catch(e){}};
+ const PF=[["q","site"],["s","plant"],["s","truck"],["q","gate"],["q","hours"],["q","wxLoc"],["s","customer"],["s","short"],["q","unitCust"],["q","bill"],["q","ap"],["q","apPh"],["c","dCust"],["q","custPh"],["c","nCust"],["c","dPlant"],["q","plantPh"],["c","nPlant"],["q","emFirst"],["q","ctrl"],["q","em"],["q","siteEm"],["q","muster"],["q","hosp"],["q","hospAddr"],["q","hospPh"],["q","clinic"],["q","aed"],["q","hseq"],["m","holder"]];
+ const plantOf=n=>BK().plants.find(p=>nv(p.site).toLowerCase()===nv(n).toLowerCase());
+ function plantSave(){const site=nv(QSD().site);if(!site)return;const b=BK();let r=plantOf(site);if(!r){r={id:"pl"+Date.now().toString(36),site,v:{},jobs:[]};b.plants.push(r)}
+  r.site=site;PF.forEach(([st,k])=>{const v=nv(GET(st,k));if(v)r.v[st+"."+k]=v});if(nv(LO().box))r.v.box=nv(LO().box);
+  const j=nv(JOBNO());if(j&&!r.jobs.some(x=>x.job===j))r.jobs.push({job:j,date:tdy()});r.last=tdy();bkStore()}
+ function plantApply(r){PF.forEach(([st,k])=>{const v=r.v[st+"."+k];if(v!==undefined&&v!=="")OBJ(st)[k]=v});if(r.v.box&&!nv(LO().box))LO().box=r.v.box;sv()}
+ function peopleSave(){const b=BK(),site=nv(QSD().site),job=nv(JOBNO());ALLP().forEach(p=>{const n=nv(p.title);if(!n)return;let r=b.people.find(x=>x.name.toLowerCase()===n.toLowerCase());
+  if(!r){r={name:n,role:p.role||"",phone:p.phone||"",jobs:[]};b.people.push(r)}if(p.role)r.role=p.role;if(nv(p.phone))r.phone=nv(p.phone);
+  if((site||job)&&!r.jobs.some(x=>x.site===site&&x.job===job))r.jobs.push({site,job,date:tdy()});r.last=tdy()});bkStore()}
+ const pastJobs=r=>(r&&r.jobs||[]).filter(x=>!(x.site===nv(QSD().site)&&x.job===nv(JOBNO()))).map(x=>[x.site,x.job].filter(Boolean).join(" ")).filter(Boolean);
+
+ /* ---------------- scope bank: heavy-duty gas, aeroderivative, steam, hydro (no wind or solar) ---------------- */
+ const TYPES=[["gas","Heavy-Duty Gas","Gas"],["aero","Aeroderivative","Aero"],["steam","Steam","Steam"],["hydro","Hydro","Hydro"]];
+ const T2U=k=>(TYPES.find(t=>t[0]===k)||[])[2]||"Steam",U2T=v=>(TYPES.find(t=>t[2]===v)||["steam"])[0];
+ const MODELS={
+  gas:["GE Frame 5 (MS5001 / MS5002)","GE Frame 6B (MS6001B)","GE 6F.03 (6FA)","GE Frame 7E / 7EA (MS7001E/EA)","GE 7F (7FA)","GE 7HA","GE Frame 9E (MS9001E)","GE 9F / 9HA","Siemens SGT-800","Siemens SGT5-2000E (V94.2)","Siemens SGT6-5000F (W501F)","Siemens SGT-8000H","Westinghouse W501D5A","Mitsubishi M501F / M501G","Mitsubishi M701F","Mitsubishi M501J","Ansaldo AE94.2","Ansaldo AE94.3A","Alstom GT11N2","Alstom GT13E2","Alstom GT24 / GT26"],
+  aero:["GE LM2500","GE LM2500+ / LM2500+G4","GE LM5000","GE LM6000 PC / PF / PG","GE LMS100","Rolls-Royce Trent 60","Rolls-Royce RB211","Rolls-Royce Industrial Avon","Pratt & Whitney FT8","Mitsubishi Power Aero FT4000","Solar Turbines Saturn 20","Solar Turbines Centaur 40 / 50","Solar Turbines Mercury 50","Solar Turbines Taurus 60 / 70","Solar Turbines Mars 90 / 100","Solar Turbines Titan 130 / 250"],
+  steam:["GE D11 (HP/IP and LP)","GE A10","GE G2","GE D5 / D8","Westinghouse BB44","Westinghouse BB243","Siemens SST-5000","Siemens SST-600 / SST-800 (industrial)","Toshiba (reheat, tandem compound)","Mitsubishi (reheat, tandem compound)","Alstom (reheat, tandem compound)","Elliott / Dresser-Rand (industrial)"],
+  hydro:["Francis (vertical)","Francis (horizontal)","Kaplan","Propeller (fixed blade)","Pelton","Bulb","Pump-turbine (Francis)"]};
+ const MAKERS={gas:["GE","Siemens","Mitsubishi","Westinghouse","Ansaldo","Alstom","Other"],aero:["GE","Rolls-Royce","Pratt & Whitney","Solar Turbines","Siemens","Mitsubishi","Other"],steam:["GE","Westinghouse","Siemens","Toshiba","Mitsubishi","Alstom","Other"],hydro:["Voith","Andritz","GE","Toshiba","Hitachi","Other"]};
+ const OUT={gas:[["Combustion Inspection",["DECK","COMB"]],["Hot Gas Path Inspection",["DECK","COMB","TURB","EXH"]],["Major Inspection",null],["Borescope Inspection",["DECK","COMP","TURB"]]],
+  aero:[["Borescope Inspection",["DECK","ENCL","ENG"]],["Hot Section Repair",["DECK","ENCL","ENG"]],["Engine Change-Out",["DECK","ENCL","INLET","ENG","PT"]],["Package & Auxiliary Overhaul",["DECK","ENCL","INLET","EXH","GEN"]]],
+  steam:[["Valve Inspection",["DECK","HP","IP"]],["Minor Inspection",["DECK","HP","IP"]],["Major Overhaul",null],["LP Turbine Inspection",["DECK","LPA","LPB"]],["Generator Inspection",["DECK","GEN"]]],
+  hydro:[["Annual Maintenance",["DECK","GOV","GEN"]],["Minor Inspection",["DECK","INTAKE","TURB","GOV"]],["Major Overhaul",null],["Runner & Wicket Gate Refurbishment",["DECK","INTAKE","TURB","GOV"]]]};
+ try{if(window.OB&&OB.UNITS&&!OB.UNITS.aero){
+  OB.HZ.water="Water / drowning";if(window.OBJSA)OBJSA.water={hz:["ENVIRONMENTAL/Leaks/Spills","PHYSICAL/Slipping"],em:["Rescue Team"]};
+  const GEN=OB.UNITS.gas.GEN,MOB=OB.LIB.gas["Mobilization"],DEMOB=OB.LIB.gas["Demobilization"];
+  OB.UNITS.aero={DECK:{name:"Site / Package",c:{}},
+   ENCL:{name:"Package & Enclosure",c:{enclosure:["Enclosure doors and panels","Enclosure vent fans","Fire and gas detection","Fire suppression (CO2 / water mist)","Enclosure lighting"],skid:["Lube oil skid","Lube oil coolers","Fuel gas skid","Liquid fuel skid","Hydraulic start skid","Water wash skid"],probe:["Vibration sensors","Speed pickups","Exhaust gas thermocouples"]}},
+   INLET:{name:"Inlet & Filter House",c:{filters:["Pre-filters","Final filters","Coalescers / weather hoods"],casing:["Inlet plenum","Bellmouth","Inlet screen"],system:["Anti-icing system","Inlet chilling / fogging"]}},
+   ENG:{name:"Gas Generator (engine)",c:{compressor:["LPC / booster","HPC rotor","HPC variable stator vanes","HPC casing"],combustion:["Combustor liner","Fuel nozzles","Fuel manifold","Igniters"],turbine:["HPT stage 1 nozzles","HPT stage 1 blades","HPT stage 2","LPT / IPT stages"],bearing:["Bearing sumps","Engine bearings"],gearbox:["Accessory gearbox","Transfer gearbox"],ports:["Borescope ports"],mounts:["Engine mounts","Engine trunnions"]}},
+   PT:{name:"Power Turbine",c:{rotor:["Power turbine rotor"],casing:["Power turbine casing"],bearing:["PT bearings"],coupling:["Coupling shaft","Flex coupling"]}},
+   EXH:{name:"Exhaust",c:{casing:["Exhaust collector","Exhaust diffuser","Exhaust stack / silencer"],probe:["Exhaust thermocouples"]}},GEN};
+  OB.UNITS.hydro={DECK:{name:"Site / Powerhouse",c:{}},
+   INTAKE:{name:"Intake & Water Passages",c:{gates:["Intake headgate","Draft tube gates / stop logs","Trash racks"],valve:["Main inlet valve (butterfly / spherical)","Bypass valve"],passage:["Penstock","Spiral case","Draft tube"]}},
+   TURB:{name:"Turbine",c:{runner:["Runner","Runner seal rings (wearing rings)","Runner cone"],gates:["Wicket gates","Wicket gate bushings","Stay vanes","Facing plates"],casing:["Head cover","Bottom ring","Discharge ring"],seal:["Shaft seal / packing box"],bearing:["Turbine guide bearing"],shaft:["Turbine shaft","Turbine–generator coupling"]}},
+   GOV:{name:"Governor & Gate Mechanism",c:{hpu:["Governor HPU","Accumulators","Oil sump"],servo:["Gate servomotors"],linkage:["Operating ring","Gate links and levers","Shear pins / breaking links"],controls:["Gate position feedback","Speed sensing"]}},
+   GEN:{name:"Generator",c:{bearing:["Upper guide bearing","Thrust bearing","Lower guide bearing"],rotor:["Rotor rim and poles","Brakes and jacks"],stator:["Stator core","Stator windings","Air coolers"],collector:["Collector rings","Brush rigging"],probe:["Bearing RTDs","Air gap sensors","Vibration probes"]}}};
+  OB.LIB.aero={"Mobilization":MOB,
+   "Cooldown & LOTO":[{n:"Engine cooldown after shutdown",u:["ENG"],c:"turbine",h:["hot"],r:"Cooldown log"},{n:"LOTO fuel, start system and lube oil",u:["DECK"],h:["stored","fuel","elec"],hold:"LOTO verified by plant"},{n:"Lock out fire suppression before enclosure entry",u:["ENCL"],c:"enclosure",h:["co2","conf"],hold:"Fire suppression locked out and verified"},{n:"Gas test enclosure before entry",u:["ENCL"],h:["fuel","conf"],r:"Gas test record"},{n:"Try/verify & zero-energy walkdown",u:["DECK"],h:["stored","elec"],hold:"Zero-energy verified, permits signed"}],
+   "Deck Prep":[{n:"Open enclosure, remove access panels",u:["ENCL"],c:"enclosure",h:["lift","pinch","sharp"]},{n:"Set FME controls at engine openings",u:["ENG"],c:"ports",h:[],f:1},{n:"Engine handling equipment and rails setup",u:["DECK"],h:["susp","pinch"]}],
+   "As-Found Readings":[{n:"Borescope inspection per OEM work scope",u:["ENG"],c:"ports",h:["hot","sharp"],r:"Borescope report",f:1,hold:"OEM borescope disposition received"},{n:"Record as-found vibration and bearing data",u:["ENG","PT"],c:"bearing",h:["rot"],r:"Vibration and bearing data"},{n:"Inlet filter differential pressure",u:["INLET"],c:"filters",h:[],r:"Inlet filter DP readings"}],
+   "Disassembly":[{n:"Disconnect engine fuel, air, oil and electrical",u:["ENG"],h:["fuel","chem","elec"],f:1},{n:"Remove fuel nozzles",u:["ENG"],c:"combustion",h:["fuel","sharp"],f:1,r:"Fuel nozzle condition"},{n:"Remove engine from enclosure",u:["ENG"],c:"mounts",h:["susp","pinch"],hold:"Lift plan approved"},{n:"Remove power turbine",u:["PT"],c:"rotor",h:["susp","pinch"]}],
+   "Clean & Inspect":[{n:"Compressor water wash",u:["ENG"],c:"compressor",h:["chem","slip"]},{n:"Inspect inlet, bellmouth and screens",u:["INLET"],c:"casing",h:["fall"],f:1},{n:"Replace inlet filters",u:["INLET"],c:"filters",h:["fall","dust","lift"]},{n:"Inspect exhaust collector and diffuser",u:["EXH"],c:"casing",h:["conf","sharp"],r:"Exhaust inspection"},{n:"Inspect lube oil system and filters",u:["ENCL"],c:"skid",h:["chem","slip"],r:"Lube oil sample"}],
+   "Repairs":[{n:"Replace hot section parts per OEM",u:["ENG"],c:"turbine",h:["sharp","pinch"],f:1,hold:"OEM rep sign-off"},{n:"Replace fuel nozzles",u:["ENG"],c:"combustion",h:["fuel"],f:1},{n:"Repair package auxiliaries",u:["ENCL"],c:"skid",h:["chem","elec"]}],
+   "Reassembly":[{n:"Install engine and align to driven equipment",u:["ENG","PT"],c:"coupling",h:["susp","pinch"],r:"Alignment readings",hold:"Alignment accepted"},{n:"Reconnect fuel, air, oil and electrical",u:["ENG"],h:["fuel","elec"],r:"Torque record"},{n:"Install fuel nozzles",u:["ENG"],c:"combustion",h:["fuel"],r:"Torque record",f:1}],
+   "Closeout":[{n:"FME closeout and final borescope",u:["ENG"],c:"ports",h:[],f:1,hold:"FME closeout signed"},{n:"Close enclosure and restore fire suppression",u:["ENCL"],c:"enclosure",h:["co2"],hold:"Fire suppression returned to service"},{n:"Release LOTO to the plant",u:["DECK"],h:["stored"],hold:"Plant accepts LOTO release"}],
+   "Startup & Testing":[{n:"Crank and leak check",u:["ENG"],h:["rot","fuel","noise"],r:"Leak check"},{n:"Run and record vibration and temperatures",u:["ENG","PT"],h:["rot","hot","noise"],r:"Startup vibration data"}],
+   "Demobilization":DEMOB};
+  OB.LIB.hydro={"Mobilization":MOB,
+   "Cooldown & LOTO":[{n:"Close intake gate and dewater unit",u:["INTAKE"],c:"gates",h:["water","stored"],hold:"Plant confirms water passages dewatered"},{n:"LOTO governor HPU, gates and inlet valve",u:["GOV","INTAKE"],c:"hpu",h:["stored","elec"],hold:"LOTO verified by plant"},{n:"Lock out generator, brakes and excitation",u:["GEN"],h:["elec","rot"]},{n:"Try/verify & zero-energy walkdown",u:["DECK"],h:["stored","elec","water"],hold:"Zero-energy verified, permits signed"}],
+   "Deck Prep":[{n:"Confined space permit and gas test for spiral case / draft tube",u:["INTAKE"],c:"passage",h:["conf","water"],r:"Gas test record",hold:"Confined space permit issued"},{n:"Scaffold and access in draft tube",u:["INTAKE"],c:"passage",h:["fall","conf","water"]},{n:"Barricades, fall protection & FME zone",u:["DECK"],h:["fall"],f:1}],
+   "As-Found Readings":[{n:"Record as-found bearing clearances",u:["TURB","GEN"],c:"bearing",h:["pinch"],r:"Bearing clearance readings"},{n:"Record wicket gate clearances",u:["TURB"],c:"gates",h:["conf","pinch"],r:"Wicket gate clearances"},{n:"Record runner seal ring clearances",u:["TURB"],c:"runner",h:["conf"],r:"Seal ring clearances"},{n:"Record shaft runout and alignment",u:["TURB","GEN"],c:"shaft",h:["rot"],r:"Runout and alignment readings"}],
+   "Disassembly":[{n:"Remove shaft seal / packing box",u:["TURB"],c:"seal",h:["pinch","water"],f:1},{n:"Remove turbine guide bearing",u:["TURB"],c:"bearing",h:["pinch","lift"],f:1},{n:"Disconnect gate linkages and servomotors",u:["GOV"],c:"linkage",h:["stored","pinch"]},{n:"Remove head cover",u:["TURB"],c:"casing",h:["susp","pinch"],hold:"Lift plan approved"}],
+   "Rotor Removal":[{n:"Uncouple turbine shaft from generator",u:["TURB","GEN"],c:"shaft",h:["susp","pinch"]},{n:"Lift runner out of the pit",u:["TURB"],c:"runner",h:["susp","pinch"],hold:"Lift plan approved"}],
+   "Clean & Inspect":[{n:"Inspect runner for cavitation and cracks",u:["TURB"],c:"runner",h:["conf","sharp"],r:"Runner inspection / NDE"},{n:"Inspect wicket gates, bushings and facing plates",u:["TURB"],c:"gates",h:["conf"],r:"Wicket gate inspection"},{n:"Inspect spiral case and draft tube",u:["INTAKE"],c:"passage",h:["conf","fall","water"],r:"Water passage inspection"},{n:"Inspect generator bearings and brakes",u:["GEN"],c:"bearing",h:["pinch"],r:"Bearing inspection"}],
+   "Repairs":[{n:"Cavitation weld repair and grind",u:["TURB"],c:"runner",h:["hotwork","conf","dust","noise"],hold:"Weld procedure approved"},{n:"Replace wicket gate bushings and seals",u:["TURB"],c:"gates",h:["pinch","lift"]},{n:"Rebabbitt or replace bearing shoes",u:["TURB","GEN"],c:"bearing",h:["hot","lift"]}],
+   "Reassembly":[{n:"Install runner and head cover",u:["TURB"],c:"runner",h:["susp","pinch"],r:"Seal ring clearances"},{n:"Couple shaft and check alignment",u:["TURB","GEN"],c:"shaft",h:["pinch"],r:"Runout and alignment readings",hold:"Alignment accepted"},{n:"Set bearing clearances",u:["TURB","GEN"],c:"bearing",h:["pinch"],r:"Bearing clearance readings"},{n:"Reconnect gate linkages and set gate stroke",u:["GOV"],c:"linkage",h:["stored","pinch"],r:"Gate stroke and timing"}],
+   "Closeout":[{n:"FME closeout of water passages",u:["INTAKE","TURB"],h:["conf"],f:1,hold:"FME closeout signed"},{n:"Remove scaffold and close access doors",u:["INTAKE"],c:"passage",h:["fall","conf"]},{n:"Release LOTO and watering-up to the plant",u:["DECK"],h:["water","stored"],hold:"Plant accepts LOTO release"}],
+   "Startup & Testing":[{n:"Water up and check for leaks",u:["INTAKE","TURB"],h:["water"],r:"Leak check"},{n:"Spin-up and record bearing temps and vibration",u:["TURB","GEN"],h:["rot","noise"],r:"Startup vibration data"}],
+   "Demobilization":DEMOB}}}catch(e){}
+ const scopeTy=()=>W().scope.type||(U[0]&&U[0].ttype?U2T(U[0].ttype):"");
+ const outSecs=(ty,o)=>{const x=(OUT[ty]||[]).find(a=>a[0]===o);return x&&x[1]?x[1]:Object.keys((window.OB&&OB.UNITS[ty])||{})};
+ const compCount=(ty,secs)=>{const U2=(window.OB&&OB.UNITS[ty])||{};let n=0;secs.forEach(s=>{const c=(U2[s]||{}).c||{};Object.values(c).forEach(a=>n+=a.length)});return n};
+ const libTasks=(ty,secs,stages)=>{const L=(window.OB&&OB.LIB[ty])||{},out=[];(stages||OB.STAGES).forEach(st=>(L[st]||[]).forEach((t,i)=>{const sec=t.u.find(u=>secs.includes(u));if(sec)out.push({key:st+"|"+i,stage:st,t,sec})}));return out};
+ const readCount=(ty,secs)=>[...new Set(libTasks(ty,secs).filter(x=>x.t.r).map(x=>x.t.r))].length;
+ function taskFrom(x,unit,who,ty){const t=x.t,S=OB.UNITS[ty][x.sec]||{name:"Site"},sec=S.name,hz=t.h||[],J={hz:[],ppe:[],em:[],se:[],crane:0};
+  hz.forEach(k=>{const m=(window.OBJSA||{})[k];if(!m)return;["hz","ppe","em","se"].forEach(q=>(m[q]||[]).forEach(v=>{if(!J[q].includes(v))J[q].push(v)}));if(m.crane)J.crane=1});
+  const cat=t.c?t.c.charAt(0).toUpperCase()+t.c.slice(1):"",title=(x.sec==="DECK"?"":sec+": ")+t.n,o={id:uid(),title,unit,who,due:tdy(),st:"Open",note:sec,comp:cat?sec+" "+cat:x.stage,exp:t.hr||0,stage:x.stage,jsa:J};
+  const hzt=hz.map(k=>OB.HZ[k]).filter(Boolean).join(", ");if(hzt)o.haz=hzt;if(t.hold)o.holdPt=t.hold;if(t.r)o.sheet=t.r;if(t.f)o.fme=1;return Object.assign(o,cmeta(title),{})}
+
+ /* ---------------- JSA built from a chosen set of tasks ---------------- */
+ const SC=()=>curSh()==="Night"?"NS":"DS";
+ function permitsText(){const P=PERMS(),L=PERMLIST.filter(([k])=>P[k]==="need"||P[k]==="have").map(([k,l])=>l+(P[k]==="have"?" (on file)":" (needed)"));return L.length?L.join(", "):(Object.keys(P).length?"N/A":"")}
+ function fillFrom(r,ts){jsaPad(r);if(r.final||!ts.length)return false;const free=[0,1,2,3].filter(i=>{const t=r.tasks[i];return t.auto||(e0(t.act)&&e0(t.tools)&&e0(t.haz)&&e0(t.ctl))});if(!free.length)return false;
+  const gi={},G=[];ts.forEach(t=>{const g=t.note||"Other";if(!(g in gi)){gi[g]=G.length;G.push({n:[],tools:[],haz:[],ctl:[],hz:[],ppe:[],em:[],se:[],lifts:[]})}const o=G[gi[g]],i=stepInfo(t.title);
+   o.n.push(t.title);o.tools.push(t.tools||i.tools.join(", "));o.haz.push(t.haz||i.haz.join(", "));o.ctl.push(t.ctl||i.ctl.join(", "));["hz","ppe","em","se"].forEach(k=>o[k].push(...i[k]));if(i.crane)o.lifts.push(t.title)});
+  while(G.length>free.length){const x=G.pop(),y=G[G.length-1];["n","tools","haz","ctl","hz","ppe","em","se","lifts"].forEach(k=>y[k].push(...x[k]))}
+  const lifts=[];G.forEach((o,k)=>{const t=r.tasks[free[k]];t.act=o.n.join("; ");t.tools=uq(o.tools);t.haz=uq(o.haz);t.ctl=uq(o.ctl);t.auto=true;
+   o.hz.forEach(key=>{r.haz[key]=true;r.none["haz_"+key.split("/")[0]]=false});o.ppe.forEach(n=>{r.ppe[n]=true;r.none.ppe=false});o.em.forEach(n=>{r.em[n]=true;r.none.em=false});o.se.forEach(n=>{r.se[n]=true;r.none.se=false});lifts.push(...o.lifts)});
+  if(lifts.length){r.crane.na=false;lifts.forEach(n=>{if(r.crane.lifts.some(l=>l.item===n))return;const i=r.crane.lifts.findIndex(l=>e0(l.item)&&!l.sig&&!l.type);if(i>=0){r.crane.lifts[i].item=n;r.crane.shown=Math.max(r.crane.shown,i+1)}})}
+  return true}
+ /* builds the JSA without leaving the current screen; returns the JSA */
+ function buildJSA(unit,ts){const back=cur;newJSA(false,unit,tdy());const r=jget();cur=back;if(!r)return null;
+  r.shift=SC();const c=ds().contacts,P=curSh()==="Night"?"n":"d";if(nv(c[P+"Fore"]))r.foreman=nv(c[P+"Fore"]);else if(ME&&ME.role==="Foreman")r.foreman=ME.title;if(nv(c[P+"Sup"]))r.sup=nv(c[P+"Sup"]);
+  const crew=[...new Set(ts.flatMap(t=>String(t.who||"").split(/,\s*/).filter(Boolean)))];if(crew.length&&e0(r.manpower))r.manpower=String(crew.length);
+  if(e0(r.permits)){const p=permitsText();if(p)r.permits=p}
+  fillFrom(r,ts);sv();return r}
+ const todaysJSA=()=>(DB.jsas||[]).filter(j=>j.date===tdy()&&(!j.shift||j.shift===SC()));
+
+ /* ---------------- First-Day Job Setup ---------------- */
+ const ROLES=M.people.f[1][3];
+ const PERMLIST=[["hot","Hot work"],["conf","Confined space"],["crane","Crane / critical lift"],["height","Working at height"],["elec","Electrical / energized work"],["break","Line break / system opening"],["excav","Excavation"],["rad","Radiography / NDE"]];
+ const FD=(st,k,l,t,o)=>({st,k,l,t:t||"text",o});
+ let STEP=0,NEWP={name:"",role:"Millwright",phone:"",shift:"",pin:""},PICK7=null,CREW7=new Set(),UNIT7="",MSG="";
+ const crewList=()=>ALLP().filter(isCrew);
+ const STEPS=[
+  {t:"Job and Site",miss:()=>{const m=[];if(!nv(QSD().site))m.push("Plant / site name");if(!nv(JOBNO()))m.push("Job number");if(!W().scope.type)m.push("Turbine type");if(!U.length)m.push("At least one unit");return m}},
+  {t:"Customer and Plant Contacts",miss:()=>nv(GET("c","dCust"))||nv(GET("c","dPlant"))?[]:["Customer site rep or plant contact"]},
+  {t:"TurbinePros Team",miss:()=>nv(GET("c","dSup"))?[]:["Day supervisor"]},
+  {t:"Crew",miss:()=>crewList().length?[]:["At least one crew member"]},
+  {t:"Safety and Emergency",req:1,miss:()=>{const m=[];if(!EMPRIMARY().set)m.push("Emergency number");if(!nv(QSD().muster))m.push("Muster point");if(!nv(QSD().hosp))m.push("Nearest hospital");return m}},
+  {t:"LOTO and Permits",req:1,miss:()=>{const m=[],P=PERMS(),un=PERMLIST.filter(([k])=>!P[k]);if(un.length)m.push("Permits checklist: "+un.length+" not answered");
+   if(!W().noLoto){if(!LO().docs.length)m.push("Upload the plant LOTO document (or tick No plant LOTO yet)");else if(!(window.LOTOAPPROVED&&LOTOAPPROVED()))m.push("Approve the LOTO");if(!nv(LO().box))m.push("Lock box location")}return m}},
+  {t:"First-Day JSA",req:1,miss:()=>(DB.jsas||[]).some(j=>j.date===tdy())?[]:["Build today's JSA"]},
+  {t:"Review and Finish",miss:()=>[]}];
+ const done=i=>!STEPS[i].miss().length;
+ const canGo=n=>{for(let i=0;i<n;i++)if(STEPS[i].req&&!done(i))return false;return true};
+ const firstBlock=n=>{for(let i=0;i<n;i++)if(STEPS[i].req&&!done(i))return i;return -1};
+ function fld(f){const id="jw_"+f.st+"_"+f.k,v=GET(f.st,f.k);
+  if(f.t==="area")return `<label for="${id}">${E(f.l)}<textarea id="${id}" data-jw="${f.st}.${f.k}" rows="2">${E(v)}</textarea></label>`;
+  if(f.t==="sel")return `<label for="${id}">${E(f.l)}<select id="${id}" data-jw="${f.st}.${f.k}">${f.o.map(o=>`<option${v===o?" selected":""}>${E(o)}</option>`).join("")}</select></label>`;
+  return `<label for="${id}">${E(f.l)}<input id="${id}" data-jw="${f.st}.${f.k}" type="${f.t==="date"?"date":"text"}" value="${E(v)}"${f.t==="name"?' list="jwNames" autocomplete="off"':""}${f.t==="tel"?' inputmode="tel"':""}></label>`}
+ const grid=a=>`<div class="jwg">${a.join("")}</div>`;
+ const chipBtn=(attr,v,l,on)=>`<button type="button" class="chip${on?" on":""}" ${attr}="${E(v)}">${E(l)}</button>`;
+ function names(){const s=new Set();BK().people.forEach(p=>s.add(p.name));ALLP().forEach(p=>s.add(p.title));return `<datalist id="jwNames">${[...s].sort().map(n=>`<option value="${E(n)}">`).join("")}</datalist>`}
+ function s1(){const w=W(),sc=w.scope,ty=sc.type||"",P=BK().plants.slice().sort((a,b)=>(b.last||"")>(a.last||"")?1:-1),cur1=plantOf(QSD().site);
+  const secs=ty?outSecs(ty,sc.outage):[];
+  return (P.length?`<div class="rec jwbank"><b>Customer / plant bank</b><small>${P.length} saved plant${P.length===1?"":"s"}. Pick one to fill in the address, gate, contacts, hospital and emergency numbers at once.</small><div class="jwrow"><select id="jwPlant"><option value="">Pick a plant...</option>${P.map(p=>`<option value="${E(p.id)}"${cur1&&cur1.id===p.id?" selected":""}>${E(p.site)}${p.jobs.length?" ("+p.jobs.length+" job"+(p.jobs.length===1?"":"s")+")":""}</option>`).join("")}</select><button type="button" class="pri" data-jx="plant">Fill In</button></div></div>`:`<div class="hint">The plant bank is empty. Everything you enter here is saved to it when you finish, so the next job at this plant fills in by itself.</div>`)+
+  grid([fld(FD("q","site","Plant / site name")),fld(FD("s","jobNo","Job number")),fld(FD("s","customer","Customer (full legal name)")),fld(FD("s","short","Customer short name for report headers")),fld(FD("q","po","Customer PO number")),fld(FD("q","unitCust","Customer name on new units"))])+
+  `<h3 class="jwh">Turbine type (scope bank)</h3><div class="chips jwch">${TYPES.map(([k,l])=>chipBtn("data-jty",k,l,ty===k)).join("")}</div>`+
+  (ty?`<div class="jwg"><label>Model<input id="jwModel" list="jwModels" value="${E(sc.model||"")}" autocomplete="off" placeholder="Pick or type the model"></label><datalist id="jwModels">${MODELS[ty].map(m=>`<option value="${E(m)}">`).join("")}</datalist>
+   <label>Maker<select id="jwMaker">${MAKERS[ty].map(m=>`<option${(sc.maker||"")===m?" selected":""}>${E(m)}</option>`).join("")}</select></label></div>
+   <h3 class="jwh">Outage type</h3><div class="chips jwch">${OUT[ty].map(([o])=>chipBtn("data-jout",o,o,sc.outage===o)).join("")}</div>
+   ${sc.outage?`<div class="rec jwbank"><b>${E(sc.outage)}${sc.model?" &middot; "+E(sc.model):""}</b><small>Loads from the scope bank: ${libTasks(ty,secs).length} standard tasks, ${compCount(ty,secs)} components, ${readCount(ty,secs)} reading sheets, across ${secs.map(k=>E((OB.UNITS[ty][k]||{}).name||k)).join(", ")}.</small><small>Spec values for readings come from TurbinePros procedures and the OEM manual. Check them before the crew relies on them.</small></div>`:""}`:"")+
+  grid([fld(FD("q","start","Job start","date")),fld(FD("q","end","Planned finish","date")),fld(FD("s","plant","Site address","area")),fld(FD("s","truck","Truck receiving address","area")),fld(FD("q","gate","Gate and check-in instructions","area")),fld(FD("q","hours","Site work hours")),fld(FD("q","wxLoc","Weather location (city, state or ZIP)")),fld(FD("s","shift","Default shift","sel",["Days","Nights"]))])+
+  `<h3 class="jwh">Units on this job (${U.length})</h3>`+(U.map(u=>`<div class="rec"><b>${E(u.name)}</b><small>${E([u.ttype?u.ttype+" Turbine":"",u.maker,u.model].filter(Boolean).join(" "))}</small></div>`).join("")||`<div class="hint">No units yet. Add the turbine you are working on.</div>`)+
+  `<div class="jwrow"><input id="jwUnit" placeholder="e.g. Unit 1 ${E(ty?T2U(ty):"")} Turbine" autocomplete="off"><button type="button" data-jx="unit">Add Unit</button></div>${ty?`<small class="hint">New units are set to ${E(T2U(ty))}${sc.maker?", "+E(sc.maker):""}${sc.model?", "+E(sc.model):""}.</small>`:""}`}
+ function s2(){const r=plantOf(QSD().site);return (r?`<div class="rec jwbank"><b>${E(r.site)} is in the plant bank</b><small>Fill in the contacts saved from the last job here.</small><div class="row"><button type="button" class="pri" data-jx="plantc">Fill In Contacts</button></div></div>`:"")+
+  grid([fld(FD("c","dCust","Customer site rep (day)","name")),fld(FD("q","custPh","Customer rep phone / email","tel")),fld(FD("c","nCust","Customer site rep (night)","name")),fld(FD("c","dPlant","Plant contact (day)","name")),fld(FD("q","plantPh","Plant contact phone","tel")),fld(FD("c","nPlant","Plant contact (night)","name")),fld(FD("q","bill","Customer billing address","area")),fld(FD("q","ap","Accounts payable contact")),fld(FD("q","apPh","Accounts payable phone / email","tel"))])}
+ function s3(){return `<div class="hint">Names fill in from the people bank as you type.</div>`+grid([fld(FD("q","pm","Project manager","name")),fld(FD("c","dSup","Day supervisor","name")),fld(FD("c","nSup","Night supervisor","name")),fld(FD("c","dTd","Day technical director","name")),fld(FD("c","nTd","Night technical director","name")),fld(FD("c","dFore","Day foreman","name")),fld(FD("c","nFore","Night foreman","name")),fld(FD("c","dLen","Day shift length")),fld(FD("c","nLen","Night shift length")),fld(FD("c","oName","Office contact","name")),fld(FD("c","oPh","Office phone / email","tel")),fld(FD("q","co","Company name")),fld(FD("q","coAddr","TurbinePros office address","area"))])}
+ function s4(){const all=ALLP(),have=new Set(all.map(p=>p.title.toLowerCase())),bank=BK().people.filter(p=>!have.has(p.name.toLowerCase())).sort((a,b)=>(b.last||"")>(a.last||"")?1:-1),sh=NEWP.shift||curSh();
+  const row=p=>`<div class="rec"><b>${E(p.title)}</b><small>${E(p.role||"")}${p.phone?" &middot; "+E(p.phone):""} &middot; ${E(p.shift||"Day")} Shift &middot; PIN ${E(p.pin||"")}</small>${(()=>{const b=BK().people.find(x=>x.name.toLowerCase()===p.title.toLowerCase()),pj=pastJobs(b);return pj.length?`<small>Past jobs: ${E(pj.slice(-4).join(", "))}</small>`:""})()}${p===ME?"":`<div class="row"><button type="button" class="danger" data-jx="rm" data-pn="${E(p.title)}">Remove</button></div>`}</div>`;
+  const grp=s=>all.filter(p=>(p.shift||"Day")===s);
+  return `<div class="hint">Add everyone on the job. After the last person, tap <b>Crew Done</b> and setup goes straight to Safety and Emergency.</div>`+
+  (bank.length?`<h3 class="jwh">From the people bank (${bank.length})</h3><div class="chips jwch">${bank.slice(0,40).map(p=>`<button type="button" class="chip" data-jbp="${E(p.name)}">${E(p.name)}<small style="display:block;font-size:12px;color:var(--mute)">${E(p.role||"")}${p.jobs&&p.jobs.length?" &middot; "+p.jobs.length+" past job"+(p.jobs.length===1?"":"s"):""}</small></button>`).join("")}</div>`:"")+
+  `<div class="rec jwadd" id="jwAdd"><b>Add a person</b><div class="jwg"><label>Name<input id="jpN" list="jwNames" value="${E(NEWP.name)}" autocomplete="off"></label><label>Role<select id="jpR">${ROLES.map(r=>`<option${NEWP.role===r?" selected":""}>${E(r)}</option>`).join("")}</select></label><label>Phone<input id="jpP" inputmode="tel" value="${E(NEWP.phone)}"></label><label>PIN (4 digits, for sign-in)<span class="jwrow" style="margin:0"><input id="jpI" inputmode="numeric" maxlength="4" value="${E(NEWP.pin)}"><button type="button" data-jx="pin">New PIN</button></span></label></div>
+  <div class="chips jwch">${["Day","Night"].map(s=>chipBtn("data-jsh",s,s+" Shift",sh===s)).join("")}</div><div class="row"><button type="button" class="pri" data-jx="addp" style="min-height:52px">Add to Crew</button></div><small id="jwPMsg" style="color:var(--done)">${E(MSG)}</small></div>`+
+  ["Day","Night"].map(s=>{const g=grp(s);return `<h3 class="jwh">${s} Shift (${g.length})</h3>`+(g.map(row).join("")||`<div class="hint">Nobody on ${s} Shift yet.</div>`)}).join("")}
+ function s5(){return grid([fld(FD("q","emFirst","First call in an emergency","sel",["Automatic: control room if listed, otherwise the site emergency number","Control room","Site emergency number","Site emergency or security"])),fld(FD("q","ctrl","Control room phone (plant emergencies)","tel")),fld(FD("q","em","Site emergency number (ambulance, fire, police; not always 911)","tel")),fld(FD("q","siteEm","Site emergency or security phone","tel")),fld(FD("q","muster","Muster point")),fld(FD("q","hosp","Nearest hospital")),fld(FD("q","hospAddr","Hospital address")),fld(FD("q","hospPh","Hospital phone","tel")),fld(FD("q","clinic","Occupational clinic or urgent care")),fld(FD("q","aed","First aid, AED and eye wash locations","area")),fld(FD("c","sName","Safety contact","name")),fld(FD("c","sPh","Safety phone / email","tel")),fld(FD("q","hseq","Incident reporting contact")),fld(FD("c","qName","Quality contact","name")),fld(FD("c","qPh","Quality phone / email","tel"))])}
+ function s6(){const L=LO(),ok=window.LOTOAPPROVED&&LOTOAPPROVED(),P=PERMS(),crew=(DB.people||[]).filter(p=>p.role!=="Project Manager"),on=L.locks.filter(l=>!l.off),act=L.docs.filter(d=>d.status==="Active"),w=W();
+  return (L.docs.length?(ok?`<div class="rec" style="border:3px solid #2f7d4a"><b style="color:#3fae66">LOTO APPROVED</b><small>Approved by ${E(L.appr.by)} ${E(L.appr.at)}</small></div>`:`<div class="rec" style="border:3px solid #b3342b"><b style="color:#e5675d">LOTO NOT APPROVED</b><small>Phones show STOP WORK until you approve it.</small><div class="row"><button type="button" class="pri" data-jx="appr">Approve LOTO</button></div></div>`):"")+
+  `<h3 class="jwh">Plant LOTO documents (${L.docs.length})</h3>`+(L.docs.map(d=>`<div class="rec"><b>${E(d.title)}</b><small>${E(d.type||"")}${d.permitNo?" &middot; Permit "+E(d.permitNo):""} &middot; ${E(d.status||"")}</small><div class="row"><button type="button" data-jx="lview" data-id="${E(d.id)}">View</button></div></div>`).join("")||`<div class="hint">No LOTO documents yet.</div>`)+
+  `<div class="row"><button type="button" class="pri" data-jx="scan">Scan Document</button><button type="button" class="pri" data-jx="up">Upload File</button></div>
+  <label class="chk" style="color:inherit;font-size:15px;padding:4px 0"><input type="checkbox" id="jwNoLoto"${w.noLoto?" checked":""}><span>No plant LOTO yet (mobilization only)</span></label>
+  <div class="jwg"><label>Lock box location<input id="jwBox" value="${E(L.box||"")}" placeholder="e.g. Group lockbox GLB-7, turbine deck"></label>${fld(FD("m","holder","Plant LOTO holder","name"))}${fld(FD("m","lotoSt","LOTO status (Daily Status Report)","sel",["","Signed On","Signed Off"]))}</div>
+  <h3 class="jwh">Permits checklist</h3>`+PERMLIST.map(([k,l])=>`<div class="jwperm"><b>${E(l)}</b><div class="chips jwch">${[["na","Not needed"],["need","Needed"],["have","On file"]].map(([v,t])=>`<button type="button" class="chip${P[k]===v?" on":""}" data-jperm="${k}" data-v="${v}">${t}</button>`).join("")}</div></div>`).join("")+
+  `<h3 class="jwh">Crew locked on (${on.length} lock${on.length===1?"":"s"} on)</h3><div class="hint">Enter each person's lock number and tap Lock On. It goes on the LOTO lock register${L.box?" at "+E(L.box):""}.</div>`+
+  crew.map(p=>{const l=on.find(x=>x.name===p.title);return `<div class="jwlock${l?" on":""}"><b>${E(p.title)}</b>${l?`<span>Lock #${E(l.lockNo)} &#10003;</span><button type="button" data-jx="loff" data-id="${E(l.id)}">Remove</button>`:`<input data-jlk="${E(p.title)}" inputmode="numeric" placeholder="Lock #"><button type="button" class="pri" data-jx="lon" data-pn="${E(p.title)}">Lock On</button>`}</div>`}).join("")+(crew.length?"":`<div class="hint">Add the crew in step 4 first.</div>`)+
+  (act.length?"":`<small class="hint">Locks are recorded without a permit number until a LOTO document is uploaded.</small>`)}
+ function s7(){const ty=scopeTy(),sc=W().scope,secs=ty?outSecs(ty,sc.outage):[],js=(DB.jsas||[]).filter(j=>j.date===tdy()),units=U.map(u=>u.name);if(!UNIT7||!units.includes(UNIT7))UNIT7=units[0]||"";
+  const today=DB.tasks.filter(t=>t.due===tdy()&&t.unit===UNIT7&&t.st!=="Done");
+  const L=ty?libTasks(ty,secs,["Mobilization","Cooldown & LOTO","Deck Prep"]):[];if(!PICK7){const have=new Set(DB.tasks.filter(t=>t.due===tdy()&&t.unit===UNIT7).map(t=>t.title)),nm=x=>(x.sec==="DECK"?"":((OB.UNITS[ty][x.sec]||{}).name||"")+": ")+x.t.n;PICK7=new Set(L.filter(x=>x.stage==="Mobilization"&&!have.has(nm(x))).map(x=>x.key))}
+  const crew=(DB.people||[]).concat(DB.pplOther||[]).filter(p=>/Millwright|Foreman|Laborer|Field Engineer|Safety/.test(p.role||""));
+  let h=js.map(j=>{const m=jsaMissing(j);return `<div class="rec" style="border-left:5px solid #2f7d4a"><b>JSA for today: ${E(j.unit||"")} &middot; ${E(j.shift||"")}</b><small>${j.final?"Finalized":m.length+" item"+(m.length===1?"":"s")+" still to answer"} &middot; Signed ${j.crew.length} of ${E(j.manpower||"?")}</small><div class="row"><button type="button" class="pri" data-jx="jopen" data-id="${E(j.id)}">Open JSA to Review and Sign</button></div></div>`}).join("");
+  if(!units.length)return h+`<div class="rec hold"><b>Add a unit in step 1 first</b><small>The JSA and tasks are filed under a unit.</small></div>`;
+  h+=`<label>Unit<select id="jwU7">${units.map(u=>`<option${u===UNIT7?" selected":""}>${E(u)}</option>`).join("")}</select></label>`;
+  if(today.length)h+=`<h3 class="jwh">Tasks already set for today (${today.length})</h3>`+today.map(t=>`<div class="rec"><b>${E(t.title)}</b><small>${E(t.who||"Not assigned")}${t.holdPt?" &middot; Hold point":""}${t.fme?" &middot; FME":""}${t.sheet?" &middot; Readings: "+E(t.sheet):""}</small></div>`).join("")+`<div class="row"><button type="button" class="pri" data-jx="jbuild">Build JSA From These Tasks</button></div>`;
+  if(!ty)return h+`<div class="hint">Pick the turbine type in step 1 to load first-day tasks from the scope bank.</div>`;
+  const stg={};L.forEach(x=>(stg[x.stage]=stg[x.stage]||[]).push(x));
+  h+=`<h3 class="jwh">First-day tasks from the scope bank</h3><div class="hint">${E(T2U(ty))}${sc.outage?" &middot; "+E(sc.outage):""}. Tick the work for today. Hazards, hold points, FME and reading sheets fill in from the bank.</div>`+
+   Object.keys(stg).map(s=>`<details class="fsec" open><summary>${E(s)} (${stg[s].filter(x=>PICK7.has(x.key)).length} of ${stg[s].length})</summary>${stg[s].map(x=>`<label class="jwt"><input type="checkbox" data-jt7="${E(x.key)}"${PICK7.has(x.key)?" checked":""}><span>${E((x.sec==="DECK"?"":(OB.UNITS[ty][x.sec]||{}).name+": ")+x.t.n)}${x.t.hold?` <small style="color:#e5675d">Hold point</small>`:""}${x.t.f?` <small style="color:#5aa3e0">FME</small>`:""}${x.t.r?` <small style="color:#4fb57a">Readings</small>`:""}</span></label>`).join("")}</details>`).join("")+
+   `<h3 class="jwh">Crew for these tasks (tap names)</h3><div class="chips jwch">${crew.map(p=>chipBtn("data-jc7",p.title,p.title,CREW7.has(p.title))).join("")||`<small class="hint">Add the crew in step 4.</small>`}</div>
+   <div class="row"><button type="button" class="pri" data-jx="jcreate" style="min-height:56px">Create ${PICK7.size} Task${PICK7.size===1?"":"s"} and Build JSA</button></div>`;
+  return h}
+ function s8(){return STEPS.slice(0,7).map((s,i)=>{const m=s.miss();return `<div class="rec${m.length?" hold":""}"${m.length?' style="border-left:5px solid #b3342b"':' style="border-left:5px solid #2f7d4a"'}><b>${i+1}. ${E(s.t)}${s.req?" (required)":""} ${m.length?"":"&#10003;"}</b>${m.map(x=>`<small style="color:#e5675d">Missing: ${E(x)}</small>`).join("")}<div class="row"><button type="button" data-jgo="${i}">Edit</button></div></div>`}).join("")+
+  `<div class="hint">Finish saves this plant and crew to the banks for the next job.</div>`}
+ const BODY=[s1,s2,s3,s4,s5,s6,s7,s8];
+ const st=document.createElement("style");st.textContent=`#jw{padding:0 16px 40px}#jw .jwg{display:grid;grid-template-columns:1fr;gap:0 14px}@media(min-width:760px){#jw .jwg{grid-template-columns:1fr 1fr}}#jw .jwh{margin:16px 0 6px;font-size:17px}#jw .jwrow{display:flex;gap:8px;align-items:center;margin:8px 0}#jw .jwrow>input,#jw .jwrow>select{flex:1;min-width:0}#jw .jwch{padding:4px 0}
+ .jwnav{position:sticky;top:40px;z-index:8;background:var(--bg,#111);padding:8px 16px 6px;border-bottom:1px solid var(--line)}.jwdots{display:flex;gap:6px;overflow-x:auto;padding:6px 0}.jwdots button{flex:0 0 auto;min-height:40px;min-width:40px;border-radius:20px;padding:0 10px;font-weight:800}.jwdots button.ok{background:rgba(47,125,74,.25);border-color:#2f7d4a}.jwdots button.on{background:var(--acc,#1f6f6b);color:#fff;border-color:transparent}.jwdots button.req:not(.ok){border-color:#b3342b}.jwdots button[disabled]{opacity:.4}
+ .jwfoot{display:flex;gap:10px;padding:14px 0}.jwfoot button{flex:1;min-height:56px;font-size:18px}.jwbank{border-left:5px solid var(--acc,#1f6f6b)}.jwperm{border-bottom:1px solid var(--line);padding:6px 0}#jw label.jwt{display:flex!important;flex-direction:row!important;align-items:flex-start;gap:12px;padding:10px 4px;margin:0;border-bottom:1px solid var(--line);color:inherit;font-size:16px;cursor:pointer}#jw label.jwt input{width:24px!important;height:24px;min-height:0!important;flex:0 0 24px;margin:1px 0 0;padding:0}#jw label.jwt span{flex:1}.jwperm b{display:block}
+ .jwlock{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line);padding:6px 0}.jwlock b{flex:1}.jwlock input{width:110px}.jwlock.on span{color:#3fae66;font-weight:800}
+ #ssBtn{display:flex;align-items:center;gap:14px;width:100%;text-align:left;min-height:76px;padding:12px 16px;border-radius:16px;background:linear-gradient(135deg,#1f6f6b,#14504d);color:#fff;border:0;margin:10px 0 0}#ssBtn b{font-size:22px;display:block}#ssBtn small{color:#d6efec;font-size:14px}#ssBtn .go{font-size:30px}#ssWrap{padding:0 16px}@media(min-width:820px){#ssWrap{padding:0 24px}}
+ body.phone #home>#ssWrap:not(#phoneHome):not(#shHome){display:block!important;padding:8px 16px 0}#jwBan{margin:10px 16px 0;border-left:5px solid #e0a04e}@media(min-width:820px){#jwBan{margin:10px 24px 0}}
+ #ss .ssT{display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line);padding:8px 0;flex-wrap:wrap}#ss .ssT>div{flex:1 1 260px}#ss .ssT b{font-size:16px}`;document.head.appendChild(st);
+ function jwView(){if(!isSup()){MD.innerHTML=`<div class="mh"><h2>First-Day Job Setup</h2></div><div class="rec hold"><b>Supervisors only</b><small>The supervisor runs the first-day setup.</small></div>`;return}
+  const n=STEP,blk=firstBlock(8),req=STEPS[n].req,m=STEPS[n].miss(),dn=STEPS.filter((s,i)=>i<7&&done(i)).length;
+  MD.innerHTML=`<div class="mh"><h2>First-Day Job Setup</h2></div><div class="jwnav"><small><b style="font-size:16px;color:var(--ink)">Step ${n+1} of 8: ${E(STEPS[n].t)}</b>${req?" &middot; required":""} &middot; ${dn} of 7 steps complete</small><div class="prg"><i style="width:${Math.round(100*(n+1)/8)}%"></i></div>
+  <div class="jwdots" role="tablist">${STEPS.map((s,i)=>`<button type="button" role="tab" aria-selected="${i===n}" aria-label="Step ${i+1}: ${E(s.t)}" class="${i===n?"on ":""}${i<7&&done(i)?"ok ":""}${s.req?"req":""}" data-jgo="${i}"${canGo(i)?"":" disabled"}>${i<7&&done(i)&&i!==n?"&#10003;":i+1}</button>`).join("")}</div></div>
+  <div id="jw">${names()}${BODY[n]()}
+  ${m.length&&n<7?`<div class="rec${req?" hold":""}" id="jwMiss"><b>${req?"Required before you go on":"Not filled in yet (you can skip this step)"}</b>${m.map(x=>`<small>${E(x)}</small>`).join("")}</div>`:`<div id="jwMiss"></div>`}
+  <div class="jwfoot">${n?`<button type="button" data-jx="back">&larr; Back</button>`:""}${n<7?`<button type="button" class="pri" data-jx="next"${req&&m.length?" disabled":""}>${n===3?"Crew Done &rarr;":m.length&&!req?"Skip for Now &rarr;":"Next &rarr;"}</button>`:`<button type="button" class="pri" data-jx="finish"${blk>=0?" disabled":""}>Finish &rarr; Home</button>`}</div>
+  <div class="row"><button type="button" data-jx="qs">Open All Fields (Quick Start Setup)</button></div></div>`}
+ function go(i){i=Math.max(0,Math.min(7,i));if(!canGo(i))i=firstBlock(i);STEP=i;W().step=i;MSG="";plantSave();sv();jwView();scrollTo(0,0)}
+ /* live save while typing, without redrawing */
+ let tmr=0;
+ function refreshNav(){const n=STEP,m=STEPS[n].miss(),req=STEPS[n].req,x=$("#jwMiss"),nx=MD.querySelector('[data-jx="next"]');
+  if(x){if(m.length&&n<7){x.className="rec"+(req?" hold":"");x.innerHTML=`<b>${req?"Required before you go on":"Not filled in yet (you can skip this step)"}</b>`+m.map(v=>`<small>${E(v)}</small>`).join("")}else{x.className="";x.innerHTML=""}}
+  if(nx){nx.disabled=!!(req&&m.length);nx.innerHTML=n===3?"Crew Done &rarr;":m.length&&!req?"Skip for Now &rarr;":"Next &rarr;"}
+  MD.querySelectorAll(".jwdots button").forEach(b=>{const i=+b.dataset.jgo;b.classList.toggle("ok",i<7&&done(i));b.disabled=!canGo(i)})}
+ MD.addEventListener("input",e=>{if(cur!=="jsw")return;const t=e.target;
+  if(t.dataset&&t.dataset.jw){const[s,k]=t.dataset.jw.split(".");OBJ(s)[k]=t.value;clearTimeout(tmr);tmr=setTimeout(()=>{sv();refreshNav()},300);return}
+  if(t.id==="jwModel"){W().scope.model=t.value;clearTimeout(tmr);tmr=setTimeout(()=>sv(),300)}
+  else if(t.id==="jwBox"){LO().box=t.value;clearTimeout(tmr);tmr=setTimeout(()=>{sv();refreshNav()},300)}
+  else if(t.id==="jpN"){NEWP.name=t.value;const b=BK().people.find(x=>x.name.toLowerCase()===t.value.trim().toLowerCase());if(b){NEWP.role=b.role||NEWP.role;NEWP.phone=b.phone||NEWP.phone;const r=$("#jpR"),p=$("#jpP");if(r&&ROLES.includes(NEWP.role))r.value=NEWP.role;if(p)p.value=NEWP.phone}}
+  else if(t.id==="jpP")NEWP.phone=t.value;else if(t.id==="jpI")NEWP.pin=t.value});
+ MD.addEventListener("change",e=>{if(cur!=="jsw")return;const t=e.target;
+  if(t.dataset&&t.dataset.jw){const[s,k]=t.dataset.jw.split(".");OBJ(s)[k]=t.value;sv();refreshNav();return}
+  if(t.id==="jwMaker"){W().scope.maker=t.value;sv()}else if(t.id==="jpR")NEWP.role=t.value;
+  else if(t.id==="jwNoLoto"){W().noLoto=t.checked;sv();refreshNav()}
+  else if(t.id==="jwU7"){UNIT7=t.value;jwView()}
+  else if(t.dataset&&t.dataset.jt7!==undefined){t.checked?PICK7.add(t.dataset.jt7):PICK7.delete(t.dataset.jt7);const b=MD.querySelector('[data-jx="jcreate"]');if(b)b.textContent="Create "+PICK7.size+" Task"+(PICK7.size===1?"":"s")+" and Build JSA"}});
+ function addUnit(){const i=$("#jwUnit"),n=i?i.value.trim():"";if(!n)return alert("Type the unit name first, e.g. Unit 1 Gas Turbine.");if(U.some(u=>u.name.toLowerCase()===n.toLowerCase()))return alert("That unit is already on the job.");
+  const sc=W().scope,u={id:"u"+Date.now(),name:n,customer:nv(QSD().unitCust)||nv(ds().setup.customer)||"",ttype:sc.type?T2U(sc.type):"Steam",maker:sc.maker||"",model:(sc.maker&&String(sc.model||"").startsWith(sc.maker+" "))?sc.model.slice(sc.maker.length+1):(sc.model||""),project:sc.outage||"",serial:"",src:nv(QSD().site),dest:sc.outage||"",eta:"",stage:0,checks:{},hold:"",done:false,log:[]};
+  try{const j=window.ACTJOB?ACTJOB():nv(JOBNO());if(j)u.job=j}catch(x){}log(u,"Unit added in First-Day Job Setup");U.push(u);save();
+  const s=ds().setup;if(!nv(s.unit))s.unit=U.map(x=>x.name).join(", ");sv();jwView()}
+ function addPerson(){const n=NEWP.name.trim().replace(/\s+/g," "),pin=String(NEWP.pin||"").trim(),sh=NEWP.shift||curSh();if(!n)return alert("Enter the person's name.");
+  if(ALLP().some(p=>p.title.toLowerCase()===n.toLowerCase()))return alert(n+" is already on the crew.");if(!/^\d{4}$/.test(pin))return alert("The PIN must be exactly 4 digits. Tap New PIN to make one.");
+  if(ALLP().some(p=>String(p.pin)===pin))return alert("Someone already uses PIN "+pin+". Tap New PIN.");
+  const p={title:n,role:NEWP.role||"Millwright",pin,phone:NEWP.phone.trim(),note:"",shift:sh};
+  if(window.CURSHIFT&&CURSHIFT()&&sh!==CURSHIFT())(DB.pplOther=DB.pplOther||[]).push(p);else DB.people.push(p);
+  const c=ds().contacts,cnt=s=>String(ALLP().filter(x=>isCrew(x)&&(x.shift||"Day")===s).length);if(/^\d*$/.test(nv(c.dCrew)))c.dCrew=cnt("Day");if(/^\d*$/.test(nv(c.nCrew)))c.nCrew=cnt("Night");
+  peopleSave();sv();MSG="Added "+n+" ("+sh+" Shift, PIN "+pin+"). Add the next person or tap Crew Done.";NEWP={name:"",role:NEWP.role,phone:"",shift:sh,pin:""};jwView();setTimeout(()=>{const a=$("#jwAdd");if(a)a.scrollIntoView({block:"start"});const i=$("#jpN");if(i)i.focus()},30)}
+ const newPin=()=>{const used=new Set(ALLP().map(p=>String(p.pin)));let p;do{p=String(1000+Math.floor(Math.random()*9000))}while(used.has(p));return p};
+ function lockOn(name){const i=MD.querySelector(`[data-jlk="${CSS.escape(name)}"]`),l=i?i.value.trim():"";if(!l)return alert("Enter the lock number for "+name+".");const L=LO();
+  if(L.locks.some(x=>!x.off&&x.lockNo===l))return alert("Lock #"+l+" is already recorded as on.");const d=L.docs.find(x=>x.status==="Active");
+  L.locks.push({id:"lk"+Date.now().toString(36),name,lockNo:l,unit:d&&d.unit||"",point:nv(L.box),permit:d?(d.permitNo||d.title):"",on:nowTxt(),off:"",shift:(window.SHOF&&SHOF(name))||curSh(),by:ME?ME.title:""});sv();jwView()}
+ function createTasks(){const ty=scopeTy();if(!ty)return;if(!PICK7.size)return alert("Tick at least one task.");if(!UNIT7)return alert("Pick the unit.");
+  if(!CREW7.size&&!confirm("No crew is selected. Create the tasks without anyone assigned?"))return;const sc=W().scope,who=[...CREW7].join(", ");
+  const L=libTasks(ty,outSecs(ty,sc.outage),["Mobilization","Cooldown & LOTO","Deck Prep"]).filter(x=>PICK7.has(x.key)),made=[];
+  L.forEach(x=>{const t=taskFrom(x,UNIT7,who,ty);if(DB.tasks.some(o=>o.title===t.title&&o.unit===UNIT7&&o.due===tdy()))return;DB.tasks.push(t);made.push(t)});sv();
+  buildToday()}
+ function buildToday(){const ts=DB.tasks.filter(t=>t.due===tdy()&&t.unit===UNIT7&&t.st!=="Done");if(!ts.length)return alert("No tasks for "+UNIT7+" today.");
+  const ex=(DB.jsas||[]).find(j=>j.date===tdy()&&j.unit===UNIT7&&!j.final&&(!j.shift||j.shift===SC()));let r;
+  if(ex){r=ex;fillFrom(r,ts);if(e0(r.permits)){const p=permitsText();if(p)r.permits=p}sv()}else r=buildJSA(UNIT7,ts);
+  PICK7=null;CREW7=new Set();jwView();if(r)alert("Today's JSA for "+UNIT7+" is built from "+ts.length+" task"+(ts.length===1?"":"s")+" with their hazards. Open it to review with the crew and sign.")}
+ MD.addEventListener("click",e=>{if(cur!=="jsw")return;
+  const g=e.target.closest("[data-jgo]");if(g){e.stopPropagation();return go(+g.dataset.jgo)}
+  const ty=e.target.closest("[data-jty]");if(ty){const w=W();if(w.scope.type!==ty.dataset.jty){w.scope={type:ty.dataset.jty,maker:MAKERS[ty.dataset.jty][0]};PICK7=null}sv();return jwView()}
+  const o=e.target.closest("[data-jout]");if(o){const w=W();w.scope.outage=o.dataset.jout;const s=ds().setup;if(!nv(s.sow)||s.sowAuto){s.sow=w.scope.outage+(w.scope.model?", "+w.scope.model:"");s.sowAuto=1}PICK7=null;sv();return jwView()}
+  const bp=e.target.closest("[data-jbp]");if(bp){const b=BK().people.find(x=>x.name===bp.dataset.jbp);if(b){NEWP.name=b.name;NEWP.role=ROLES.includes(b.role)?b.role:"Millwright";NEWP.phone=b.phone||"";NEWP.pin=newPin()}MSG="";jwView();setTimeout(()=>{const a=$("#jwAdd");if(a)a.scrollIntoView({block:"center"})},30);return}
+  const sh=e.target.closest("[data-jsh]");if(sh){NEWP.shift=sh.dataset.jsh;NEWP.name=($("#jpN")||{}).value||NEWP.name;NEWP.phone=($("#jpP")||{}).value||NEWP.phone;NEWP.pin=($("#jpI")||{}).value||NEWP.pin;return jwView()}
+  const pm=e.target.closest("[data-jperm]");if(pm){PERMS()[pm.dataset.jperm]=pm.dataset.v;sv();pm.parentNode.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b===pm));return refreshNav()}
+  const c7=e.target.closest("[data-jc7]");if(c7){const n=c7.dataset.jc7;CREW7.has(n)?CREW7.delete(n):CREW7.add(n);c7.classList.toggle("on",CREW7.has(n));return}
+  const b=e.target.closest("[data-jx]");if(!b)return;const k=b.dataset.jx;
+  if(k==="next"){if(STEPS[STEP].req&&!done(STEP))return;return go(STEP+1)}
+  if(k==="back")return go(STEP-1);
+  if(k==="qs")return show("qs");
+  if(k==="plant"){const id=($("#jwPlant")||{}).value,r=BK().plants.find(p=>p.id===id);if(!r)return alert("Pick a plant first.");if(nv(QSD().site)&&nv(QSD().site).toLowerCase()!==r.site.toLowerCase()&&!confirm("Replace the site details with "+r.site+"?"))return;plantApply(r);return jwView()}
+  if(k==="plantc"){const r=plantOf(QSD().site);if(r){plantApply(r);jwView()}return}
+  if(k==="unit")return addUnit();
+  if(k==="pin"){NEWP.name=($("#jpN")||{}).value||"";NEWP.phone=($("#jpP")||{}).value||"";NEWP.pin=newPin();const i=$("#jpI");if(i)i.value=NEWP.pin;return}
+  if(k==="addp"){NEWP.name=($("#jpN")||{}).value||"";NEWP.role=($("#jpR")||{}).value||NEWP.role;NEWP.phone=($("#jpP")||{}).value||"";NEWP.pin=($("#jpI")||{}).value||"";return addPerson()}
+  if(k==="rm"){const n=b.dataset.pn;if(ME&&n===ME.title)return alert("You cannot remove your own account.");if(!confirm("Remove "+n+" from the crew?"))return;["people","pplOther"].forEach(a=>{if(Array.isArray(DB[a]))DB[a]=DB[a].filter(p=>p.title!==n)});sv();return jwView()}
+  if(k==="scan"||k==="up"){if(!window.lotoDocForm)return show("loto");return lotoDocForm(k==="scan"?"scan":"up",null)}
+  if(k==="lview")return window.lotoDocView&&lotoDocView(b.dataset.id);
+  if(k==="appr"){const L=LO();L.appr={by:ME.title,at:nowTxt(),ver:L.ver||0};sv();return jwView()}
+  if(k==="lon")return lockOn(b.dataset.pn);
+  if(k==="loff"){const l=LO().locks.find(x=>x.id===b.dataset.id);if(l&&confirm("Record lock #"+l.lockNo+" ("+l.name+") as removed?")){l.off=nowTxt();sv();jwView()}return}
+  if(k==="jcreate")return createTasks();
+  if(k==="jbuild")return buildToday();
+  if(k==="jopen"){window.V50RET="jsw";show("jsa");return jsaEdit(b.dataset.id)}
+  if(k==="finish"){if(firstBlock(8)>=0)return go(firstBlock(8));plantSave();peopleSave();W().done=tdy();sv();alert("First-day setup is complete. The plant and crew are saved to the banks for the next job.");return show("home")}});
+
+ /* ---------------- Start Shift: other shift's update, work and assignments, shift JSA ---------------- */
+ let SS=0,SSMORE=false;
+ const SSK=()=>wdOf(curSh())+"|"+curSh();
+ const SSR=()=>{const o=DB.ssf&&typeof DB.ssf==="object"?DB.ssf:(DB.ssf={});return o[SSK()]||(o[SSK()]={})};
+ const HO=()=>DB.handoff||(DB.handoff=[]);
+ function lastHand(){const sh=curSh(),wd=wdOf(sh);return HO().filter(h=>!(h.shift===sh&&h.date===wd)).sort((a,b)=>(b.ts||0)-(a.ts||0))[0]||null}
+ function snap(){const td=tdy(),run=t=>runners(t).length>0;
+  const open=DB.tasks.filter(t=>t.st!=="Done"&&(run(t)||t.st==="In progress"||t.st==="Paused"||(t.due&&t.due<=td)));
+  open.sort((a,b)=>(run(b)-run(a))||((b.st==="In progress")-(a.st==="In progress"))||String(a.due||"").localeCompare(String(b.due||"")));
+  const L=DB.loto||{},docs=(L.docs||[]).filter(d=>d.status==="Active"),locks=(L.locks||[]).filter(l=>!l.off);
+  return {wip:open.slice(0,30).map(t=>({id:t.id,title:t.title,unit:t.unit||"",st:run(t)?"Running":(t.st||"Open"),who:t.who||"",due:t.due||""})),
+   safety:{loto:!(L.docs||[]).length?"No permits on file":(window.LOTOAPPROVED&&LOTOAPPROVED()?"Approved":"NOT VERIFIED"),docs:docs.length,locks:locks.map(l=>l.name+" #"+l.lockNo),fme:(DB.fmea||[]).filter(a=>a.st==="Open").map(a=>(a.unit?a.unit+": ":"")+(a.loc||a.title||"FME area")),holds:DB.tasks.filter(t=>t.hold&&!t.hold.rel).map(t=>t.title+(t.hold.type?" ("+t.hold.type+")":""))},at:nowTxt()}}
+ const snapItems=s=>[{k:"Open work",t:s.wip.length?s.wip.length+" task"+(s.wip.length===1?"":"s")+": "+s.wip.slice(0,6).map(w=>w.title+" ("+w.st+(w.who?", "+w.who:"")+")").join("; ")+(s.wip.length>6?"; ...":""):"None"},
+  {k:"Safety status",t:"LOTO "+s.safety.loto+", "+s.safety.locks.length+" lock"+(s.safety.locks.length===1?"":"s")+" on"+"; FME areas open: "+(s.safety.fme.length?s.safety.fme.join(", "):"none")+"; hold points waiting: "+(s.safety.holds.length?s.safety.holds.join(", "):"none")}];
+ function snapHTML(s){const S=s.safety;
+  return `<h3 class="jwh">Open work (${s.wip.length})</h3>`+(s.wip.map(w=>`<div class="rec"><b>${E(w.title)}</b><small>${E(w.unit)} &middot; ${E(w.st)}${w.who?" &middot; "+E(w.who):" &middot; not assigned"}${w.due?" &middot; due "+E(w.due):""}</small></div>`).join("")||`<div class="hint">No open work.</div>`)+
+  `<h3 class="jwh">Safety status</h3><div class="rec" style="border-left:5px solid ${/NOT/.test(S.loto)?"#b3342b":"#2f7d4a"}"><b>LOTO: ${E(S.loto)}</b><small>${S.docs} active permit${S.docs===1?"":"s"} &middot; ${S.locks.length} lock${S.locks.length===1?"":"s"} on${S.locks.length?": "+E(S.locks.join(", ")):""}</small></div>
+  <div class="rec${S.fme.length?" hold":""}"><b>FME areas open (${S.fme.length})</b>${S.fme.length?`<small>${E(S.fme.join(", "))}</small>`:"<small>None</small>"}</div>
+  <div class="rec${S.holds.length?" hold":""}"><b>Hold points waiting (${S.holds.length})</b>${S.holds.map(h=>`<small>${E(h)}</small>`).join("")||"<small>None</small>"}</div>`}
+ const crewOn=()=>(DB.people||[]).filter(p=>!SUPR.includes(p.role)&&!(window.ONSHIFT&&!ONSHIFT(p.title)));
+ function ssTasks(){const td=tdy(),onS=n=>!window.ONSHIFT||ONSHIFT(n),who=t=>String(t.who||"").split(/,\s*/).filter(Boolean),run=t=>runners(t).length>0;
+  const A=DB.tasks.filter(t=>t.st!=="Done"&&(!who(t).length||who(t).some(onS)||runners(t).some(onS)));
+  const rank=t=>run(t)?0:(t.st==="In progress"||t.st==="Paused")?1:(t.due&&t.due<td)?2:t.due===td?3:4;
+  return A.sort((a,b)=>rank(a)-rank(b)||String(a.due||"9").localeCompare(String(b.due||"9")))}
+ function ssView(){const sh=curSh(),wd=wdOf(sh),R=SSR(),h=lastHand(),needRead=!!(h&&!h.ack),ph=window.PHONE&&PHONE();
+  if(!(window.ISFORE&&ISFORE())){MD.innerHTML=`<div class="mh"><h2>Start Shift</h2></div><div class="rec hold"><b>Foremen and supervisors</b><small>The foreman starts the shift.</small></div>`;return}
+  if(SS>0&&needRead)SS=0;
+  const lab=["Update from the last shift","Work and assignments","Shift JSA"];
+  let body="";
+  if(SS===0){body=h?`<div class="rec" style="border-left:5px solid ${h.ack?"#2f7d4a":"#e0a04e"}"><b>${E(h.shift)} Shift handoff &middot; ${E(h.by||"")}</b><small>${E(h.at||"")}${h.auto?" &middot; built automatically at end of shift":""}</small>${h.text?`<small style="color:var(--ink);white-space:pre-wrap">${E(h.text)}</small>`:""}${(h.items||[]).filter(x=>!/^(Open work|Safety status)$/.test(x.k)).map(x=>`<small style="color:var(--ink)">&bull; ${E(x.k)}: ${E(x.t)}</small>`).join("")}${h.ack?`<small>Read by ${E(h.ack.by)} ${E(h.ack.at)}</small>`:""}</div>`+(h.snap?snapHTML(h.snap):`<div class="hint">This handoff was sent before automatic handoffs. Current status is below.</div>`+snapHTML(snap()))
+    :`<div class="rec"><b>No handoff from the last shift</b><small>Here is where things stand right now.</small></div>`+snapHTML(snap());
+   body+=`<div class="jwfoot">${needRead?`<button type="button" class="pri" data-ss="read">I Read It &rarr;</button>`:`<button type="button" class="pri" data-ss="to1">Next: Work and Assignments &rarr;</button>`}</div>`}
+  else if(SS===1){const T=ssTasks(),crew=crewOn(),L=SSMORE?T:T.slice(0,15);
+   body=`<div class="hint">Running and in-progress work is at the top, then today's and the next tasks. Tap names to assign people.</div>`+
+   (L.map(t=>{const w=String(t.who||"").split(/,\s*/).filter(Boolean),run=runners(t);return `<div class="ssT"><div><b>${E(t.title)}</b><small style="display:block;color:var(--mute)">${E(t.unit||"")} &middot; ${run.length?"Running":E(t.st||"Open")}${t.due?" &middot; due "+E(t.due):""}${t.holdPt?" &middot; Hold point":""}${t.fme?" &middot; FME":""}${t.hold&&!t.hold.rel?" &middot; ON HOLD":""}</small></div><div class="chips" style="padding:0">${crew.map(p=>`<button type="button" class="chip${w.includes(p.title)?" on":""}" data-ssw="${E(p.title)}" data-tid="${E(t.id)}">${E(p.title)}</button>`).join("")||`<small class="hint">No crew on this shift.</small>`}</div></div>`}).join("")||`<div class="empty">No open tasks. Create today's work in the Task Creator.</div>`)+
+   (T.length>15&&!SSMORE?`<div class="row"><button type="button" data-ss="more">Show all ${T.length} tasks</button></div>`:"")+
+   `<div class="jwfoot"><button type="button" data-ss="to0">&larr; Back</button><button type="button" class="pri" data-ss="to2">Assignments Done &rarr;</button></div>`}
+  else{const js=todaysJSA(),onS=n=>!window.ONSHIFT||ONSHIFT(n),mine=t=>String(t.who||"").split(/,\s*/).filter(Boolean).some(onS);
+   const units=[...new Set(ssTasks().filter(t=>mine(t)).map(t=>t.unit).filter(Boolean))];
+   body=js.map(j=>{const m=jsaMissing(j);return `<div class="rec" style="border-left:5px solid ${j.final?"#2f7d4a":"#e0a04e"}"><b>${E(sh)} Shift JSA &middot; ${E(j.unit||"")}</b><small>${j.final?"Finalized":m.length+" item"+(m.length===1?"":"s")+" still to answer"} &middot; Signed ${j.crew.length} of ${E(j.manpower||"?")}</small>${ph?`<small>Review and sign it on the iPad.</small>`:`<div class="row"><button type="button" class="pri" data-ss="jopen" data-id="${E(j.id)}">${j.final?"Open JSA":"Open JSA to Review and Sign"}</button></div>`}</div>`}).join("")+
+   (units.filter(u=>!js.some(j=>j.unit===u)).map(u=>{const n=ssTasks().filter(t=>t.unit===u&&mine(t)).length;return `<div class="rec"><b>${E(u)}</b><small>${n} assigned task${n===1?"":"s"} on this shift</small><div class="row"><button type="button" class="pri" data-ss="jbuild" data-u="${E(u)}">Build JSA From Assigned Tasks</button></div></div>`}).join(""))+
+   (!js.length&&!units.length?`<div class="rec hold"><b>No assigned work on this shift</b><small>Assign people in the last step, then build the JSA.</small></div>`:"")+
+   `<div class="jwfoot"><button type="button" data-ss="to1">&larr; Back</button><button type="button" class="pri" data-ss="fin">Done &rarr; Home</button></div>`}
+  MD.innerHTML=`<div class="mh"><h2>Start Shift</h2></div><div class="jwnav"><small><b style="font-size:16px;color:var(--ink)">${E(sh)} Shift &middot; ${E(new Date(wd+"T12:00:00").toLocaleDateString([],{weekday:"short",month:"short",day:"numeric"}))}</b> &middot; Step ${SS+1} of 3: ${E(lab[SS])}</small><div class="prg"><i style="width:${Math.round(100*(SS+1)/3)}%"></i></div></div><div id="ss" style="padding:0 16px 40px">${body}</div>`}
+ MD.addEventListener("click",e=>{if(cur!=="ssf")return;const w=e.target.closest("[data-ssw]");if(w){const t=DB.tasks.find(x=>x.id===w.dataset.tid);if(!t)return;const n=w.dataset.ssw,a=String(t.who||"").split(/,\s*/).filter(Boolean),i=a.indexOf(n);if(i>=0)a.splice(i,1);else a.push(n);t.who=a.join(", ");sv();w.classList.toggle("on",i<0);return}
+  const b=e.target.closest("[data-ss]");if(!b)return;const k=b.dataset.ss,R=SSR();
+  if(k==="read"){const h=lastHand();if(h){h.ack={by:ME?ME.title:"",at:nowTxt()}}R.read={by:ME?ME.title:"",at:nowTxt()};sv();SS=1;return ssView()}
+  if(k==="to0"){SS=0;return ssView()}if(k==="to1"){SS=1;return ssView()}if(k==="more"){SSMORE=true;return ssView()}
+  if(k==="to2"){R.assigned={by:ME?ME.title:"",at:nowTxt()};sv();SS=2;return ssView()}
+  if(k==="jopen"){window.V50RET="ssf";show("jsa");return jsaEdit(b.dataset.id)}
+  if(k==="jbuild"){const u=b.dataset.u,onS=n=>!window.ONSHIFT||ONSHIFT(n),ts=ssTasks().filter(t=>t.unit===u&&String(t.who||"").split(/,\s*/).filter(Boolean).some(onS));const r=buildJSA(u,ts);ssView();if(r&&!(window.PHONE&&PHONE())){window.V50RET="ssf";show("jsa");jsaEdit(r.id)}return}
+  if(k==="fin"){R.started={by:ME?ME.title:"",at:nowTxt()};sv();return show("home")}});
+
+ /* ---------------- automatic handoff at end of shift ---------------- */
+ let PEND=null;
+ document.addEventListener("click",e=>{try{const b=e.target.closest&&e.target.closest('#dDatF button[data-gh="ok"],#mod button[data-se="end"]');if(!b||!ME)return;
+  const sh=curSh(),s=snap(),t0=Date.now(),viaSend=b.dataset.se==="end";PEND=s;
+  setTimeout(()=>{const H=HO(),wd=wdOf(sh),last=H.filter(h=>h.shift===sh&&h.date===wd&&(h.ts||0)>=t0-2*36e5).sort((a,b)=>b.ts-a.ts)[0];
+   if(last){last.snap=s;last.items=(last.items||[]).filter(x=>!/^(Open work|Safety status)$/.test(x.k)).concat(snapItems(s));sv()}
+   else if(!viaSend){H.push({id:"ho"+Date.now().toString(36),shift:sh,by:ME.title,at:nowTxt(),ts:Date.now(),date:wdOf(sh),unit:"",text:"",items:snapItems(s),snap:s,auto:true,photos:[],hours:[],ack:null});sv()}PEND=null},400)}catch(x){}},true);
+
+ /* ---------------- register screens, home buttons, tiles ---------------- */
+ M.jsw={t:"First-Day Job Setup",f:[],sum:()=>""};M.ssf={t:"Start Shift",f:[],sum:()=>""};
+ ICON.jsw='<path d="M4 20h16M6 20V9l6-5 6 5v11"/><path d="M10 20v-5h4v5"/>';ICON.ssf='<circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/>';
+ if(!TL.some(t=>t[0]==="jsw"))TL.unshift(["jsw","First-Day Job Setup","Guided setup: job, crew, LOTO, permits, first JSA"]);
+ try{if(window.PHONEALLOW)PHONEALLOW.add("ssf")}catch(e){}
+ const _mo=mod;mod=function(k){if(k==="jsw"){if(W().step!=null&&!jwView.opened){STEP=Math.min(7,+W().step||0);jwView.opened=1}return jwView()}if(k==="ssf")return ssView();return _mo.apply(this,arguments)};
+ const _sh=show;show=function(v){if(v==="ssf"&&cur!=="ssf"){const R=SSR(),h=lastHand();SS=((h&&!h.ack)||(!R.read&&!R.assigned))?0:R.assigned?2:1;SSMORE=false}
+  if(v!=="jsa")window.V50RET="";const r=_sh.apply(this,arguments);try{if(cur==="jsw"||cur==="ssf")$("#fab").hidden=true}catch(e){}return r};
+ function navTop(){try{const n=MD.querySelector(".jwnav");if(!n)return;const w=document.getElementById("wxBar"),h=document.querySelector("header");let t=0;if(w&&w.offsetParent)t+=w.getBoundingClientRect().height;if(h&&!h.hidden&&getComputedStyle(h).position==="sticky")t+=h.getBoundingClientRect().height;n.style.top=Math.round(t)+"px"}catch(e){}}
+ new MutationObserver(()=>{if(cur==="jsw"||cur==="ssf")navTop()}).observe(MD,{childList:true});
+ window.V50DRAW=()=>{if(cur==="jsw")jwView();else if(cur==="ssf")ssView()};
+ /* JSA opened from setup or Start Shift: a way back */
+ const _je=jsaEdit;jsaEdit=function(){const r=_je.apply(this,arguments);try{const to=window.V50RET;if(to&&cur==="jsa"&&!$("#v50Ret")){const d=document.createElement("div");d.className="row";d.id="v50Ret";d.style.padding="6px 16px";d.innerHTML=`<button type="button" class="pri" style="min-height:52px;flex:1">&larr; Back to ${to==="jsw"?"First-Day Job Setup":"Start Shift"}</button>`;d.querySelector("button").onclick=()=>show(to);const mh=MD.querySelector(".mh");if(mh)mh.after(d);else MD.prepend(d)}}catch(e){}return r};
+ /* the Supervisor Setup folder gets the setup tile first */
+ const addTile=h=>{try{const f=Object.values((h||{}).folders||{}).find(f=>/Supervisor Setup/i.test(f.name||""));if(f&&!f.items.includes("jsw"))f.items.unshift("jsw")}catch(e){}};
+ const _hd=window.HMDEF;if(_hd)window.HMDEF=function(){const h=_hd.apply(this,arguments);addTile(h);return h};
+ try{if(!DB.homeV11){addTile(DB.home);Object.values(DB.homeBy||{}).forEach(addTile);DB.homeV11=1;sv()}}catch(e){}
+ function ssLabel(){const R=SSR(),h=lastHand(),js=todaysJSA(),sh=curSh();
+  if(R.started){const j=js[js.length-1];return ["Shift Started",j?(j.final?"JSA finalized":"JSA: "+jsaMissing(j).length+" to answer, "+j.crew.length+" signed"):"JSA not built yet"]}
+  if(h&&!h.ack)return ["Start Shift / JSA","Read the "+h.shift+" Shift update first"];
+  return ["Start Shift / JSA",sh+" Shift: update, assignments, JSA"]}
+ const ssBtn=()=>{const[a,b]=ssLabel();return `<button type="button" id="ssBtn" data-ssgo="1"><span class="go">&#9654;</span><span><b>${E(a)}</b><small>${E(b)}</small></span></button>`};
+ const _h=home;home=function(){const r=_h.apply(this,arguments);try{["ssWrap","jwBan"].forEach(i=>{const o=document.getElementById(i);if(o)o.remove()});if(!ME)return r;
+  const ph=window.PHONE&&PHONE(),fore=window.ISFORE&&ISFORE();
+  if(ph){const P=document.getElementById("phoneHome");if(P&&fore){const d=document.createElement("div");d.id="ssWrap";d.innerHTML=ssBtn();P.before(d)}return r}
+  const hm=document.getElementById("home"),anchor=document.getElementById("glance")||document.getElementById("attn");if(!hm)return r;
+  if(isSup()&&!W().done){const n=STEPS.slice(0,7).filter((s,i)=>done(i)).length,d=document.createElement("div");d.id="jwBan";d.className="rec";d.innerHTML=`<b>First-Day Job Setup: ${n} of 7 steps done</b><small>Job, contacts, crew, safety, LOTO and permits, and the first JSA, one step at a time.</small><div class="row"><button type="button" class="pri" data-jwgo="1">${n?"Continue Setup":"Start Setup"}</button></div>`;if(anchor)anchor.before(d);else hm.appendChild(d)}
+  if(fore){const d=document.createElement("div");d.id="ssWrap";d.innerHTML=ssBtn();const a2=document.getElementById("jwBan")||anchor;if(a2)a2.before(d);else hm.appendChild(d)}}catch(e){}return r};
+ document.getElementById("home").addEventListener("click",e=>{const b=e.target.closest("[data-ssgo],[data-jwgo]");if(!b)return;e.preventDefault();e.stopPropagation();show(b.dataset.ssgo?"ssf":"jsw")},true);
+ try{const mm=document.querySelector("#dMore .more");if(mm&&!mm.querySelector('[data-k="jsw"]')){const x=document.createElement("button");x.dataset.k="jsw";x.textContent="First-Day Job Setup";x.style.fontWeight="700";mm.insertBefore(x,mm.firstChild)}}catch(e){}
+ /* the banks start with the people and plant already in the app */
+ try{if(!DB.banksV1){if(ALLP().length)peopleSave();plantSave();DB.banksV1=1;sv()}}catch(e){}
+ setTimeout(()=>{try{if(cur==="home")home()}catch(e){}},0);
 })();
 
 /* ===== Installable web app: offline cache + keep storage ===== */
