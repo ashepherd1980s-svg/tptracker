@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 11, 2026 &middot; Live Sync: email and password only (v43)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Simple layout: 5 folders, merged screens, no icon counter (v45)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Shop Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Shop Needs</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="cust">Argon Project Info</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -306,6 +306,8 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dUnit"><div class="dlg" id="unitBody"></div></dialog>
 
 <script>
+window.TPREMOVED=["fm_brk","fm_ntf","brk_rep"];window.TPRENAME={"tasks": "Task Creator", "crew": "Millwright Task Tracker", "jsa": "Daily JSA", "dsr": "Daily Report", "delay": "Delay Tracker", "qtools": "Camera & Calculator", "fm_media": "Photo Files", "data": "Data Entry", "fm_msg": "Messages", "fm_hand": "Shift Turnover", "fm_eos": "End of Shift", "loto": "LOTO", "fme": "FME", "fm_em": "Site Emergency Contact", "prog": "Unit Progress Tracker", "mcal": "Whiteboard Calendar", "tools": "Damaged Tooling", "qs": "Quick Start Setup", "people": "Employees", "costs": "Time Tracker", "sync": "Live Sync", "reset": "App Data Reset", "safety": "Safety Tools", "fm_case": "HSEQ Link", "fm_tout": "Stop Work", "status": "Daily Status", "sstat": "To-Date Status", "fm_req": "Tooling Request", "shop": "Expendable Request", "vend": "Vendor Shipments", "fm_rcv": "Shipping & Receiving", "rent": "Rentals", "fm_hold": "Hold Points"};
+
 const STAGES=[
 {n:"Receiving",s:"Arrives on site",c:["Bill of lading checked against shipment","Damage inspection and photos taken","Nameplate and serial number recorded","Material receipt logged","Preservation condition checked"]},
 {n:"Teardown",s:"Disassembly",c:["Safety plan and lockout reviewed","Disassembly sequence approved","Hardware tagged and bagged","Components inventoried","Initial findings recorded"]},
@@ -2020,7 +2022,7 @@ const hmHasMine=()=>!!(ME&&DB.homeBy&&DB.homeBy[ME.title]);
 var HMED=HMED||false,HMSEL=HMSEL||new Set(),HMSKIP=false,HMOPEN=null;
 function HMORIG(k){const x=TL.find(t=>t[0]===k);return x?x[1]:k}
 function tName(k){return (DB.home&&DB.home.names&&DB.home.names[k])||HMORIG(k)}
-function hmIs(k){return (TL.some(t=>t[0]===k)||["qs","delay","tools","loto","mcal","fm_media","fm_hold","fm_hand","fm_case","fm_tout","fm_em","sync","fm_msg","crew","fm_req","fm_rcv","fm_brk","brk_rep","fm_eos","fm_ntf"].includes(k))&&k!=="cust"}
+function hmIs(k){if((window.TPREMOVED||[]).includes(k))return false;return (TL.some(t=>t[0]===k)||["g_safe","g_stat","g_req","g_ord","qs","delay","tools","loto","mcal","fm_media","fm_hold","fm_hand","fm_case","fm_tout","fm_em","sync","fm_msg","crew","fm_req","fm_rcv","fm_brk","brk_rep","fm_eos","fm_ntf"].includes(k))&&k!=="cust"}
 function hmVis(k){return hmIs(k)&&((k!=="costs"&&k!=="dsr"&&k!=="reset")||isSup())}
 function hmLayout(){const h=HM();h.folders=h.folders||{};h.names=h.names||{};
  const used=new Set();Object.values(h.folders).forEach(f=>{f.items=(f.items||[]).filter(k=>hmIs(k)&&!used.has(k)&&used.add(k))});
@@ -2078,7 +2080,7 @@ function hmClick(e){if(HMSKIP){HMSKIP=false;e.preventDefault();return true}
   if(a==="edit"){HMED=true;HMSEL.clear();hmRender()}
   else if(a==="done"){HMED=false;HMSEL.clear();home()}
   else if(a==="nf"){const o=HM().order,s=o.filter(k=>HMSEL.has(k));if(s.length)hmNewFolder(s,o.indexOf(s[0]))}
-  else if(a==="def"&&isSup()){if(confirm("Put the default layout back to the standard folders (Daily Work, Safety & FME, Units & Schedule, Supervisor Setup, Shop Needs) with original names? Your own layout also goes back to it.")){DB.home=window.HMDEF?HMDEF():{order:[],folders:{},names:{}};if(DB.homeBy&&ME)delete DB.homeBy[ME.title];HMSEL.clear();sv();hmRender()}}
+  else if(a==="def"&&isSup()){if(confirm("Put the default layout back to the standard folders (Daily Work, Safety, Units & Schedule, Shop & Supply, Supervisor Setup) with original names? Your own layout also goes back to it.")){DB.home=window.HMDEF?HMDEF():{order:[],folders:{},names:{}};if(DB.homeBy&&ME)delete DB.homeBy[ME.title];HMSEL.clear();sv();hmRender()}}
  if(a==="mine0"){if(confirm("Drop your own layout and use the default layout?")){if(DB.homeBy&&ME)delete DB.homeBy[ME.title];HMED=false;HMSEL.clear();sv();home()}}
  if(a==="mkdef"&&isSup()){if(confirm("Make your layout the default for everyone? People who already arranged their own keep theirs.")){hmMine();DB.home=JSON.parse(JSON.stringify(DB.homeBy[ME.title]));delete DB.homeBy[ME.title];HMED=false;HMSEL.clear();sv();home();alert("Done. This is now the default layout.")}}
   else if(a==="l"||a==="r")hmMove(x.k,a==="l"?-1:1);
@@ -2566,7 +2568,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
    DL().push({id:"dl"+Date.now().toString(36),cat:PCAT,shift:(window.CURSHIFT&&CURSHIFT())||"Day",start:Date.now(),end:0,note,tasks:ts.map(t=>({tid:t.id,title:t.title,unit:t.unit||"",who:ran[t.id]})),crew,by:ME?ME.title:""});
    sv();dlg.close();upBar();show("delay")}});
  function endDelay(d,resume){d.end=Date.now();d.endBy=ME?ME.title:"";d.resumed=!!resume;
-  if(resume)d.tasks.forEach(x=>{const t=DB.tasks.find(y=>y.id===x.tid);if(!t||t.st==="Done")return;(x.who||[]).forEach(n=>{if(!RUN()[n])RUN()[n]={tid:t.id,since:Date.now()}});fixSt(t)});
+  if(resume)d.tasks.forEach(x=>{const t=DB.tasks.find(y=>y.id===x.tid);if(!t||t.st==="Done")return;(x.who||[]).forEach(n=>{if(window.ONSHIFT&&!ONSHIFT(n))return;if(!RUN()[n])RUN()[n]={tid:t.id,since:Date.now()}});fixSt(t)});
   sv();upBar()}
  /* filters and summary */
  function inF(d){const k=dkey(d.start);return (!DF.sh||shOf(d)===DF.sh)&&(DF.cat==="all"||d.cat===DF.cat)&&(!DF.from||k>=DF.from)&&(!DF.to||k<=DF.to)}
@@ -3276,11 +3278,13 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  let MU="",MT="",MN="";const MISC="Miscellaneous";
  function mediaView(){const L=MEDIA().slice().sort((a,b)=>b.ts-a.ts).slice(0,40),ph=PHONE();if(MU===""&&LAST.unit&&U.some(u=>u.name===LAST.unit))MU=LAST.unit;
   const uo=`<option value="">Pick a unit</option>`+U.map(u=>`<option${u.name===MU?" selected":""}>${E(u.name)}</option>`).join("")+`<option${MU===MISC?" selected":""}>${MISC}</option>`;
-  $("#mod").innerHTML=`<div class="mh"><h2>Photo &amp; Video Log</h2></div><div style="padding:0 16px">
+  $("#mod").innerHTML=`<div class="mh"><h2>Photo Files</h2></div><div style="padding:0 16px">
   <label>Unit<select id="mdU">${uo}</select></label>${MU&&MU!==MISC?`<label>Task<select id="mdT">${taskOpts(MT,t=>t.unit===MU)}</select></label>`:""}<label>Description<input id="mdN" placeholder="Required: what this shows" value="${E(MN)}"></label>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${photoIn("mdP",true)}${photoIn("mdV",false,"video/*")}</div><div class="hint">Task photos also appear in the Daily Report. Videos over 20 MB stay on this phone.</div></div>
-  <h2 class="sec">Recent</h2>`+(L.map(m=>`<div class="rec"><b>${m.kind==="video"?"Video":"Photo"} &middot; ${E(m.unit||"No unit")}</b><small>${E(m.ttl||"")}${m.note?" &middot; "+E(m.note):""}</small><small>${E(m.at)} &middot; ${E(m.by)} &middot; ${E(m.shift)} Shift</small>${m.kind==="video"?`<div class="row"><button data-fm2="play" data-id="${m.id}">Play Video</button></div>`:`<img class="th" data-p="${m.id}" alt="Photo">`}</div>`).join("")||`<div class="empty" style="padding:10px 16px">No photos or videos yet.</div>`)+`<div style="height:40px"></div>`;
+  <h2 class="sec">Recent</h2>`+(L.map(m=>`<div class="rec"><b>${m.kind==="video"?"Video":"Photo"} &middot; ${E(m.unit||"No unit")}</b><small>${E(m.ttl||"")}${m.note?" &middot; "+E(m.note):""}</small><small>${E(m.at)} &middot; ${E(m.by)} &middot; ${E(m.shift)} Shift</small>${m.kind==="video"?`<div class="row"><button data-fm2="play" data-id="${m.id}">Play Video</button></div>`:`<img class="th" data-p="${m.id}" alt="Photo">`}${mDelOk(m)?`<div class="row"><button data-fm2="del" data-id="${m.id}" style="color:#e5675d">Delete</button></div>`:""}</div>`).join("")||`<div class="empty" style="padding:10px 16px">No photos or videos yet.</div>`)+`<div style="height:40px"></div>`;
   loadTh()}
+ const mFinal=d=>!!d&&Object.keys(DB.dsrHist||{}).some(k=>k.replace(/\+*$/,"")===d);
+ const mDelOk=m=>!!ME&&(isSup()||m.by===ME.title)&&!mFinal(m.date);
  async function addMedia(files,kind){const u=$("#mdU").value,tid=$("#mdT")?$("#mdT").value:"",note=$("#mdN").value.trim(),tk=DB.tasks.find(x=>x.id===tid);if(!note){alert("Add a description first, then take the "+(kind==="video"?"video":"photo")+".");const f=$(kind==="video"?"#mdV":"#mdP");if(f)f.value="";$("#mdN").focus();return}MU=u;MT=tid;MN="";
   for(const f of [...files]){const id=uidm(kind==="video"?"v":"p");if(kind==="video"){if(f.size>150e6){alert("That video is too large to save. Keep videos under 2 minutes.");continue}await pPut(id,f)}else{const d=await shrink(f);if(!d)continue;await pPut(id,d)}
    MEDIA().push({id,kind,mime:f.type||"",unit:u||(tk?tk.unit:""),tid,ttl:tk?tk.title:"",note,by:ME?ME.title:"",at:nowTxt(),ts:Date.now(),date:tdy(),shift:curSh(),size:f.size});
@@ -3391,6 +3395,8 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
    else if(k==="note"){const n=prompt("Note for "+t.title);if(n&&n.trim()){(t.notes=t.notes||[]).push({t:new Date().toLocaleString(),by:ME?ME.title:"",m:n.trim()});sv()}}
    return tasksPhone()}
   if(cur==="fm_media"&&b.dataset.fm2==="play")return playVideo(b.dataset.id);
+  if(cur==="fm_media"&&b.dataset.fm2==="del"){const m=MEDIA().find(x=>x.id===b.dataset.id);if(!m)return;if(!mDelOk(m))return alert("This Daily Report is finalized. Photos on it can no longer be deleted.");if(!confirm("Delete this "+(m.kind==="video"?"video":"photo")+"? It also comes off the Daily Report."))return;
+   DB.media=MEDIA().filter(x=>x.id!==m.id);DB.tphotos=TPH().filter(x=>x.id!==m.id);try{pDel(m.id)}catch(x){}sv();return mediaView()}
   if(cur==="fm_hold"&&b.dataset.fh){if(b.dataset.fh==="new")return holdForm("");const t=DB.tasks.find(x=>x.id===b.dataset.id);if(t&&ISFORE()){t.hold.rel={by:ME.title,at:nowTxt()};(t.notes=t.notes||[]).push({t:new Date().toLocaleString(),by:ME.title,m:"Hold point released: "+t.hold.type});sv();holdView()}return}
   if(cur==="fm_case"&&b.dataset.fc){const k=b.dataset.fc;if(k==="new")return newCase(b.dataset.v);const c=CASES().find(x=>x.id===b.dataset.id);if(!c)return;if(k==="open")return caseForm(JSON.parse(JSON.stringify(c)));if(k==="print"){fprev(caseHTML(c));try{await fillImgs()}catch(x){}}return}
   if(cur==="fm_tout"&&b.dataset.ft){if(b.dataset.ft==="new")return toutForm();const x=TOUTS().find(y=>y.id===b.dataset.id);if(x&&confirm("Clear this time out? Work can continue.")){x.cleared={by:ME?ME.title:"",at:nowTxt()};sv();toutView()}return}
@@ -3401,8 +3407,8 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   if(cur==="fm_media"){if(t.id==="mdU"){MU=t.value;MT="";MN=$("#mdN").value;return mediaView()}if(t.id==="mdT"){MT=t.value}if(t.id==="mdP")return addMedia(t.files,"photo");if(t.id==="mdV")return addMedia(t.files,"video")}
   if(cur==="fm_hand"&&t.id==="hoP"){HOPH=HOPH.concat(await savePhotos(t.files));$("#hoTh").innerHTML=thumbsOf(HOPH);loadTh()}});
  /* ---------------- phone home screen ---------------- */
- const PT=[["fm_msg","Messages"],["fm_tasks","Crew Tasks"],["crew","Crew Board"],["delay","Delays"],["fm_brk","Breaks"],["fm_media","Photos & Video"],["fm_hold","Hold Point"],["fm_req","Parts & Expendables"],["fm_rcv","Receive Delivery"],["fm_case","Safety"],["fm_tout","Time Out"],["fm_em","Emergency"],["loto","LOTO"],["tools","Broken Tool"],["fme","FME Log"],["fm_hand","Shift Turnover"],["fm_eos","End of Shift"],["fm_ntf","Icon Counter"]];
- const ALLOW=new Set(["home","fm_ntf","fm_msg","crew","fm_req","fm_rcv","fm_brk","brk_rep","fm_eos","fm_tasks","delay","fm_media","fm_hold","fm_case","fm_tout","fm_em","loto","fme","tools","fm_hand"]);
+ const PT=[["fm_msg","Messages"],["fm_tasks","Crew Tasks"],["crew","Millwright Task Tracker"],["delay","Delays"],["fm_media","Photo Files"],["g_req","Requests"],["g_ord","Orders & Deliveries"],["g_safe","Safety"],["fm_em","Site Emergency Contact"],["loto","LOTO"],["tools","Damaged Tooling"],["fme","FME"],["fm_hand","Shift Turnover"],["fm_eos","End of Shift"]];
+ const ALLOW=new Set(["home","fm_msg","crew","fm_req","fm_rcv","fm_eos","fm_tasks","delay","fm_media","fm_hold","fm_case","fm_tout","fm_em","loto","fme","tools","fm_hand"]);window.PHONEALLOW=ALLOW;
  const ph=document.createElement("div");ph.id="phoneHome";ph.hidden=true;const hm=document.getElementById("home");if(hm)hm.appendChild(ph);
  const st=document.createElement("style");st.textContent=`body.phone #home>*:not(#phoneHome):not(#shHome){display:none!important}body.phone #tab,body.phone #fab{display:none!important}body.phone{padding-bottom:20px!important}
  #phoneHome{padding:8px 16px 30px}#phoneHome .pg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}#phoneHome .pt{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-height:118px;padding:14px;text-align:left;border-radius:16px;background:var(--card);border:1px solid var(--line)}
@@ -3412,7 +3418,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  window.PHONEVIEW=function(){if(!PHONE()||cur!=="home")return false;phoneHome();return true};
  function phoneHome(){document.body.classList.add("phone");ph.hidden=false;
   if(!ISFORE()){ph.innerHTML=`<h2>Field App</h2><div class="rec"><b>The phone app is for foremen and supervisors</b><small>Ask a supervisor to set your role to Foreman, or use the iPad.</small></div><div class="row"><button data-ph="out">Sign Out</button></div>`;return}
-  ph.innerHTML=`<h2>Field App</h2><div class="pg2">${(window.PHONELIST?PHONELIST(PT):PT).map(([k,l])=>`<button type="button" class="pt${/case|tout|em/.test(k)?" sf":""}" data-ph="go" data-k="${k}"><span class="i"><svg viewBox="0 0 24 24">${ICO[k]||ICON[k]||""}</svg></span><b>${E(l)}</b><em>${E(badge(k))}</em></button>`).join("")}</div>
+  ph.innerHTML=`<h2>Field App</h2><div class="pg2">${(window.PHONELIST?PHONELIST(PT):PT).map(([k,l])=>`<button type="button" class="pt${/case|tout|em|safe/.test(k)?" sf":""}" data-ph="go" data-k="${k}"><span class="i"><svg viewBox="0 0 24 24">${ICO[k]||ICON[k]||""}</svg></span><b>${E(l)}</b><em>${E(badge(k))}</em></button>`).join("")}</div>
   <div class="row" style="margin-top:14px"><button data-pe="edit">Edit Tiles</button>${isSup()?`<button data-ph="full">Open Full App</button>`:""}<button data-ph="out">Sign Out</button></div>`}
  ph.addEventListener("click",e=>{const b=e.target.closest("button[data-ph]");if(!b)return;const a=b.dataset.ph;
   if(a==="go"){const k=b.dataset.k;if(k==="tools"){show("tools");return setTimeout(()=>{const n=document.querySelector('#mod [data-tl="new"]');if(n)n.click()},60)}return show(k)}
@@ -3429,7 +3435,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   if(ATT.length&&$("#attn"))$("#attn").innerHTML=`<h2>Needs attention</h2>`+ATT.slice(0,8).map((a,i)=>`<button class="att" data-i="${i}"><b>${E(a[0])}</b>${E(a[1])}</button>`).join("")}catch(e){}return r};
  /* Safety tab: field cases and time outs at the top */
  const _sv=safetyView;safetyView=function(){const r=_sv.apply(this,arguments);try{const oc=CASES().filter(c=>c.st!=="Closed"),ot=TOUTS().filter(x=>!x.cleared);
-  const h=`<div class="rec" style="border-left:5px solid #b3342b"><b>From the field</b><small>${oc.length} open safety case${oc.length===1?"":"s"} &middot; ${ot.length} time out${ot.length===1?"":"s"} in effect</small><div class="row"><button class="pri" data-act="fcase">Safety Cases</button><button data-act="ftout">Time Outs</button><button data-act="fem">Emergency Card</button></div></div>`;
+  const h=`<div class="rec" style="border-left:5px solid #b3342b"><b>From the field</b><small>${oc.length} open HSEQ case${oc.length===1?"":"s"} &middot; ${ot.length} Stop Work${ot.length===1?"":"s"} in effect</small><div class="row"><button class="pri" data-act="fcase">HSEQ Link</button><button data-act="ftout">Stop Work</button><button data-act="fem">Site Emergency Contact</button></div></div>`;
   const f=document.querySelector("#mod .mh");if(f)f.insertAdjacentHTML("afterend",h)}catch(e){}return r};
  MD.addEventListener("click",e=>{if(cur!=="safety")return;const b=e.target.closest("button[data-act]");if(!b)return;const m={fcase:"fm_case",ftout:"fm_tout",fem:"fm_em"}[b.dataset.act];if(m){e.stopPropagation();show(m)}},true);
  /* task list on the iPad shows hold points */
@@ -3715,7 +3721,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
 
  /* =================== END OF SHIFT =================== */
  let EOSCHK={};
- function eosFlags(sh){const f=[];const to=(DB.timeouts||[]).filter(x=>!x.cleared),hp=DB.tasks.filter(t=>t.hold&&!t.hold.rel),dl=(DB.delays||[]).filter(d=>!d.end),pb=pending(sh),dm=[];ORD().forEach(o=>(o.rec||[]).forEach(r=>{if(r.dmg&&!r.dmgOk&&r.date===tdy())dm.push(o)}));
+ function eosFlags(sh){const f=[];const to=(DB.timeouts||[]).filter(x=>!x.cleared),hp=DB.tasks.filter(t=>t.hold&&!t.hold.rel),dl=(DB.delays||[]).filter(d=>!d.end),pb=(window.TPREMOVED||[]).includes("fm_brk")?[]:pending(sh),dm=[];ORD().forEach(o=>(o.rec||[]).forEach(r=>{if(r.dmg&&!r.dmgOk&&r.date===tdy())dm.push(o)}));
   to.forEach(x=>f.push(["Time out still open",(x.ttl||"General")+": "+x.why,"fm_tout"]));hp.forEach(t=>f.push(["Hold point open",t.title+" ("+t.hold.type+")","fm_hold"]));dl.forEach(d=>f.push(["Delay still running",(({weather:"Weather",customer:"Customer",crane:"Crane malfunction"})[d.cat]||"Delay")+(d.note?": "+d.note:""),"delay"]));
   pb.forEach(x=>f.push(["Break reason needed",x.n+": "+x.w.kind+" "+t12(x.w.t),"fm_brk"]));dm.forEach(o=>f.push(["Damaged delivery today",(o.vendor?o.vendor+": ":"")+o.desc,"fm_rcv"]));return f}
  function eosView(){const sh=curSh(),wd=workDate(sh),cr=crew(),fl=eosFlags(sh),runN=cr.filter(p=>RUN()[p.title]).length,can=ISFORE();
@@ -3885,40 +3891,6 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   sv()}}catch(e){console.warn("crew seed",e)}
 })();
 
-/* ===== App icon counter (free: no pop-up alerts, no server) ===== */
-(function(){
- const E=esc,MD=$("#mod");
- const curSh=()=>(window.CURSHIFT&&CURSHIFT())||"";
- const canNote=()=>"Notification" in window;
- const perm=()=>canNote()?Notification.permission:"unsupported";
- const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
- const canBadge=()=>!!navigator.setAppBadge;
- window.BADGECOUNT=()=>{if(!ME)return 0;let n=0;try{n+=window.MSGUNREAD?MSGUNREAD():0;const sh=curSh();
-  if(isSup()){n+=(DB.orders||[]).filter(o=>o.req&&o.st==="Requested"&&(!o.shift||!sh||o.shift===sh)).length;
-   (DB.orders||[]).forEach(o=>(o.rec||[]).forEach(r=>{if(r.dmg&&!r.dmgOk)n++}));(DB.rent||[]).forEach(o=>(o.rcv||[]).forEach(r=>{if(r.dmg&&!r.dmgOk)n++}));
-   n+=(DB.eos||[]).filter(x=>!x.ack&&(x.rows||[]).some(r=>!r.ok)).length;n+=(DB.cases||[]).filter(c=>c.st!=="Closed").length;n+=((DB.loto||{}).q||[]).filter(q=>!q.ans).length;n+=(DB.dmgTools||[]).filter(t=>t.st==="Reported").length;n+=(DB.timeouts||[]).filter(x=>!x.cleared).length}
-  else if(window.ISFORE&&ISFORE()){n+=window.BRKPENDING?BRKPENDING():0;n+=(DB.handoff||[]).filter(h=>!h.ack&&sh&&h.shift!==sh).length}}catch(e){}return n};
- let lastB=-1;
- async function updBadge(){const n=ME?BADGECOUNT():0;if(n===lastB)return;lastB=n;try{if(canBadge()){if(n)await navigator.setAppBadge(n);else await navigator.clearAppBadge()}}catch(e){}}
- setInterval(updBadge,4000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){lastB=-1;updBadge()}});
- window.SYNCAFTER=()=>setTimeout(()=>{lastB=-1;updBadge()},300);
- function ntfView(){const p=perm(),n=BADGECOUNT();
-  const st=p==="granted"?(canBadge()?"On. The app icon shows "+(n?n:"no")+" item"+(n===1?"":"s")+" for "+(ME?ME.title:"you")+" right now.":"Allowed, but this device does not support icon numbers. iPhone and iPad need iOS 16.4 or newer.")
-   :p==="denied"?"Blocked. Turn it on in the iPhone or iPad Settings app, under Notifications, TP Tracker, then Badges."
-   :p==="default"&&standalone()?"Not turned on yet on this device.":"Open TP Tracker from its Home Screen icon to turn this on. It does not work in a Safari tab.";
-  MD.innerHTML=`<div class="mh"><h2>App Icon Counter</h2></div><div class="rec"${p==="granted"&&canBadge()?' style="border-left:5px solid #2f7d4a"':""}><b>This device</b><small style="color:var(--ink)">${E(st)}</small>${p==="default"&&canNote()?`<div class="row"><button class="pri" data-nt="on" style="min-height:56px;font-size:18px">Turn On Icon Counter</button></div><small>The iPhone asks to allow notifications. Tap Allow. That is only so the red number can show; the app sends no pop-ups.</small>`:""}</div>
-  <div class="hint" style="padding:0 16px">The red number on the app icon counts unread messages${isSup()?", requests to approve, damaged deliveries, hours to fix, open safety cases and time outs":", break reasons needed and handoffs to read"}. It updates while the app is open or was used recently. If the phone sits closed for hours, it catches up the next time someone opens the app.</div>
-  <div class="hint" style="padding:6px 16px 40px">No pop-up alerts are sent. Everything stays on the free plan.</div>`}
- MD.addEventListener("click",async e=>{if(cur!=="fm_ntf")return;const b=e.target.closest("button[data-nt]");if(!b)return;
-  if(b.dataset.nt==="on"){try{await Notification.requestPermission()}catch(x){}lastB=-1;updBadge();ntfView()}});
- M.fm_ntf={t:"App Icon Counter",f:[],sum:()=>""};ICON.fm_ntf='<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>';if(!TL.some(t=>t[0]==="fm_ntf"))TL.push(["fm_ntf","App Icon Counter","Red number on the app icon"]);
- const _m=mod;mod=function(k){if(k==="fm_ntf")return ntfView();return _m.apply(this,arguments)};
- const _s=show;show=function(v){const r=_s.apply(this,arguments);try{if(cur==="fm_ntf")$("#fab").hidden=true;
-   if(cur==="home"&&window.PHONE&&PHONE()&&ME&&canNote()&&perm()==="default"&&standalone()&&!document.getElementById("ntBan")){const ph=document.getElementById("phoneHome");if(ph)ph.insertAdjacentHTML("afterbegin",`<div id="ntBan" class="rec" style="border-left:5px solid #1f6f6b;margin:0 0 10px"><b>Show a count on the app icon</b><small>Unread messages and things waiting on you.</small><div class="row"><button class="pri" type="button" onclick="show('fm_ntf')">Turn On Icon Counter</button></div></div>`)}}catch(e){}return r};
- try{if(!DB.homeV6){const h=HM(),id=Object.keys(h.folders||{}).find(i=>h.folders[i].name==="Daily Work");if(id&&!Object.values(h.folders).some(f=>(f.items||[]).includes("fm_ntf"))){h.folders[id].items.push("fm_ntf");h.order=(h.order||[]).filter(x=>x!=="fm_ntf")}DB.homeV6=1;sv()}}catch(e){}
- try{delete DB.pushCfg;delete DB.pushTok}catch(e){}
-})();
-
 /* ===== QR code maker (byte mode, built in, works offline) ===== */
 window.QRSVG=(function(){
  const ECC=[[-1,7,10,15,20,26,18,20,24,30,18,20,24,26,30,22,24,28,30,28,28,28,28,30,30,26,28,30,30,30,30,30,30,30,30,30,30,30,30,30,30],
@@ -4028,7 +4000,7 @@ window.QRSVG=(function(){
  const LAY=()=>{if(!ME)return {order:[],hidden:[],names:{}};const all=DB.phoneLay||(DB.phoneLay={});const o=all[ME.title]||(all[ME.title]={order:[],hidden:[],names:{}});o.order=o.order||[];o.hidden=o.hidden||[];o.names=o.names||{};return o};
  let PTS=[],EDIT=false,DRAG=null,HOLD=0;
  /* the tile list for this person: their order, minus hidden, with their names */
- window.PHONELIST=function(PT,withHidden){PTS=PT;const L=LAY(),keys=PT.map(x=>x[0]),def={};PT.forEach(([k,l])=>def[k]=l);
+ window.PHONELIST=function(PT,withHidden){PT=PT.filter(x=>!(window.TPREMOVED||[]).includes(x[0])).map(([k,l])=>[k,(window.TPRENAME||{})[k]||l]);PTS=PT;const L=LAY(),keys=PT.map(x=>x[0]),def={};PT.forEach(([k,l])=>def[k]=l);
   const ord=L.order.filter(k=>keys.includes(k)).concat(keys.filter(k=>!L.order.includes(k)));
   return ord.filter(k=>withHidden||!L.hidden.includes(k)).map(k=>[k,L.names[k]||def[k]])};
  const defName=k=>(PTS.find(x=>x[0]===k)||[])[1]||k;
@@ -4037,7 +4009,7 @@ window.QRSVG=(function(){
  function draw(){const p=ph();if(!p||!EDIT)return;const L=LAY(),vis=PHONELIST(PTS),hid=PHONELIST(PTS,true).filter(([k])=>L.hidden.includes(k));
   p.innerHTML=`<div style="display:flex;align-items:center;gap:10px"><h2 style="flex:1">Edit Tiles</h2><button class="pri" data-pe="done" style="min-height:46px;padding:0 22px">Done</button></div>
   <div class="hint" style="margin-bottom:10px">Drag a tile to move it. Tap &#9998; to rename it, &minus; to hide it. Only your phone changes.</div>
-  <div class="pg2" id="peGrid">${vis.map(([k,l])=>`<div class="pt pe${/case|tout|em/.test(k)?" sf":""}" data-k="${k}" style="position:relative;touch-action:none;cursor:grab;animation:peW .25s ease-in-out infinite alternate"><span class="i"><svg viewBox="0 0 24 24">${ICON[k]||""}</svg></span><b>${E(l)}</b>
+  <div class="pg2" id="peGrid">${vis.map(([k,l])=>`<div class="pt pe${/case|tout|em|safe/.test(k)?" sf":""}" data-k="${k}" style="position:relative;touch-action:none;cursor:grab;animation:peW .25s ease-in-out infinite alternate"><span class="i"><svg viewBox="0 0 24 24">${ICON[k]||""}</svg></span><b>${E(l)}</b>
    <button type="button" data-pe="hide" data-k="${k}" aria-label="Hide ${E(l)}" style="position:absolute;top:-8px;left:-8px;width:34px;height:34px;min-height:0;padding:0;border-radius:50%;background:#5d686b;color:#fff;font-size:22px;line-height:1">&minus;</button>
    <button type="button" data-pe="ren" data-k="${k}" aria-label="Rename ${E(l)}" style="position:absolute;top:-8px;right:-8px;width:34px;height:34px;min-height:0;padding:0;border-radius:50%;background:#1f6f6b;color:#fff;font-size:17px;line-height:1">&#9998;</button></div>`).join("")}</div>
   ${hid.length?`<h2 style="font-size:18px;margin-top:18px">Hidden (${hid.length})</h2>${hid.map(([k,l])=>`<div style="display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding:8px 0"><b style="flex:1;font-size:16px">${E(l)}</b><button data-pe="show" data-k="${k}">Show</button></div>`).join("")}`:""}
@@ -4079,7 +4051,7 @@ window.QRSVG=(function(){
 (function(){
  const E=esc,EK="tp-site-email",SK="tp-site-name";
  const FB={apiKey:"AIzaSyDZQw-J16UUrm7ggdCiP6-6CkbCJJAL_iE",authDomain:"turbinepros-tp-tracker.firebaseapp.com",projectId:"turbinepros-tp-tracker",storageBucket:"turbinepros-tp-tracker.firebasestorage.app",messagingSenderId:"181359924868",appId:"1:181359924868:web:86d9623d81ebf2efa614d1"};
- const DEFSITE="houston-shop";
+ const DEFSITE="houston-shop",DEFEMAIL="tptracker.share@gmail.com";
  const get=k=>{try{return localStorage.getItem(k)||""}catch(e){return ""}},put=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
  window.TPBUILTIN={fb:FB,site:DEFSITE};
  /* sign-in screen: email and password, setup code tucked away */
@@ -4087,7 +4059,7 @@ window.QRSVG=(function(){
   try{$("#lkT").textContent="Connect to Live Sync"}catch(x){}const hint=document.querySelector("#lkB .hint");if(hint&&!scanned)hint.textContent="Enter the site email and password your supervisor gave you.";
   const box=document.createElement("details");box.id="lkAdv";box.style.margin="8px 0";box.innerHTML=`<summary>${scanned?"Setup code (from the QR code)":"Use a setup code or a different site instead"}</summary><label>Site name<input id="lkS" value="${E(get(SK)||DEFSITE)}" autocapitalize="none" autocomplete="off"></label>`;
   lab.before(box);box.appendChild(lab);if(paste)box.appendChild(paste.closest(".row")||paste);if(scanned)box.open=true;
-  box.insertAdjacentHTML("beforebegin",scanned?"":`<label>Site email<input id="lkE" type="email" autocapitalize="none" autocomplete="username" value="${E(get(EK))}" placeholder="the site account email"></label>`);
+  box.insertAdjacentHTML("beforebegin",scanned?"":`<label>Site email<input id="lkE" type="email" autocapitalize="none" autocomplete="username" value="${E(DEFEMAIL)}" placeholder="the site account email"></label>`);
   const pw=document.getElementById("lkP2");if(pw)pw.setAttribute("autocomplete","current-password");
   const e=document.getElementById("lkE");if(e&&!e.value)setTimeout(()=>e.focus(),100)}
  document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#lock button[data-sy2]"))setTimeout(easy,30)},true);
@@ -4098,10 +4070,93 @@ window.QRSVG=(function(){
   put(EK,email);put(SK,site);t.value=JSON.stringify({fb:FB,site,email})},true);
  /* supervisor Live Sync screen: the Firebase settings are already filled in */
  function fill(){const f=document.getElementById("syF");if(f&&!f.value){f.value=JSON.stringify(FB,null,1);const l=f.closest("label");if(l&&!document.getElementById("syBuilt"))l.insertAdjacentHTML("beforebegin",`<div class="hint" id="syBuilt">TurbinePros Firebase settings are already filled in. Enter the site email and password and tap Turn On Live Sync.</div>`)}
-  const s=document.getElementById("syS");if(s&&get(SK)&&s.value!==get(SK))s.value=get(SK);const em=document.getElementById("syE");if(em&&!em.value&&get(EK))em.value=get(EK)}
+  const s=document.getElementById("syS");if(s&&get(SK)&&s.value!==get(SK))s.value=get(SK);const em=document.getElementById("syE");if(em&&!em.value)em.value=DEFEMAIL}
  const _m=mod;mod=function(k){const r=_m.apply(this,arguments);if(k==="sync")try{fill()}catch(e){}return r};
  const _d=window.SYNCDRAW;window.SYNCDRAW=function(){const r=_d&&_d.apply(this,arguments);try{if(cur==="sync")fill()}catch(e){}return r};
  document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('#mod [data-sy="first"]');if(!b)return;const em=document.getElementById("syE"),s=document.getElementById("syS");if(em&&em.value.trim())put(EK,em.value.trim());if(s&&s.value.trim())put(SK,s.value.trim().toLowerCase())},true);
+})();
+
+/* ===== Cleanup choices: removed tools and new names ===== */
+(function(){const RN=window.TPRENAME||{},RM=window.TPREMOVED||[];
+ RM.forEach(k=>{const i=TL.findIndex(x=>x[0]===k);if(i>=0)TL.splice(i,1)});
+ Object.entries(RN).forEach(([k,n])=>{const t=TL.find(x=>x[0]===k);if(t)t[1]=n;if(M[k])M[k].t=n});
+ try{if(typeof hmNames==="function")hmNames()}catch(e){}
+ setTimeout(()=>{try{favRender()}catch(e){}try{if(cur==="home")home()}catch(e){}},0)})();
+
+/* ===== v45 Simple layout: five folders, merged screens with tabs, PIN for Live Sync and App Data Reset ===== */
+(function(){
+ const E=esc,MD=$("#mod");
+ /* merged screens: one tile, tabs across the top */
+ const HUBS={
+  g_safe:["Safety","Safety tools, HSEQ cases and Stop Work",[["safety","Safety Tools"],["fm_case","HSEQ Link"],["fm_tout","Stop Work"]],"safety"],
+  g_stat:["Project Status","Daily status and to-date status",[["status","Daily Status"],["sstat","To-Date Status"]],"status"],
+  g_req:["Requests","Tooling and expendable requests",[["fm_req","Tooling Request"],["shop","Expendable Request"]],"fm_req"],
+  g_ord:["Orders & Deliveries","Vendor shipments, receiving and rentals",[["vend","Vendor Shipments"],["fm_rcv","Shipping & Receiving"],["rent","Rentals"]],"fm_rcv"]};
+ const MEM={};Object.entries(HUBS).forEach(([h,v])=>v[2].forEach(([k])=>MEM[k]=h));
+ window.TPHUBS=HUBS;window.TPHUBOF=k=>MEM[k]||"";
+ const GONE=new Set(["fm_brk","brk_rep","fm_ntf"]);
+ Object.entries(HUBS).forEach(([h,v])=>{M[h]={t:v[0],f:[],sum:()=>""};ICON[h]=ICON[v[3]]||ICON[v[2][0][0]]||"";if(!TL.some(t=>t[0]===h))TL.push([h,v[0],v[1]])});
+ const LAST={};
+ const okHere=k=>!(window.PHONE&&PHONE())||!window.PHONEALLOW||PHONEALLOW.has(k);
+ const members=h=>HUBS[h][2].filter(([k])=>okHere(k)&&(M[k]||k==="prog"));
+ const pick=h=>{const m=members(h);if(!m.length)return "home";return m.some(([k])=>k===LAST[h])?LAST[h]:m[0][0]};
+ /* tiles: hubs show, their parts and removed tools do not */
+ const HIDE=new Set(Object.keys(MEM).concat(["fm_hold",...GONE]));
+ const _is=hmIs;hmIs=function(k){if(HUBS[k])return true;if(HIDE.has(k))return false;return _is(k)};
+ const _vis=hmVis;hmVis=function(k){if((k==="sync"||k==="reset")&&!isSup())return false;return _vis(k)};
+ const num=x=>{const n=parseInt(x,10);return isNaN(n)?0:n};
+ const _hb=hmBadge;hmBadge=function(k){if(!HUBS[k])return _hb.apply(this,arguments);try{
+  if(k==="g_safe"){const n=(DB.cases||[]).filter(c=>c.st!=="Closed").length+(DB.timeouts||[]).filter(x=>!x.cleared).length;return n?n+" open":""}
+  if(k==="g_req"){const n=(DB.orders||[]).filter(o=>o.req&&o.st==="Requested").length;return n?n+" waiting":""}
+  if(k==="g_ord"){const n=num(_hb("vend"))+num(_hb("rent"));return n||""}
+  if(k==="g_stat")return _hb("status")||""}catch(e){}return ""};
+ const _pb=window.PBADGE;window.PBADGE=function(k){if(k==="g_req")return _pb?_pb("fm_req"):"";if(k==="g_ord")return _pb?_pb("fm_rcv"):"";
+  if(k==="g_safe"){const n=(DB.cases||[]).filter(c=>c.st!=="Closed").length+(DB.timeouts||[]).filter(x=>!x.cleared).length;return n?n+" open":""}return _pb?_pb.apply(this,arguments):""};
+ /* favorites side bar */
+ try{FAV_DEF=["prog","tasks","g_safe","fme"];Object.assign(FAV_SHORT,{g_safe:"Safety",g_req:"Requests",g_ord:"Orders",g_stat:"Status",tasks:"Tasks",qtools:"Camera",people:"Employees",dsr:"Daily Report",costs:"Time Tracker",reset:"Reset",crew:"Crew",fm_media:"Photos",tools:"Damaged Tools",mcal:"Calendar",delay:"Delays"})}catch(e){}
+ /* the five folders */
+ const DEF=[["Daily Work",["tasks","crew","jsa","dsr","delay","qtools","fm_media","data","fm_msg","fm_hand","fm_eos"]],["Safety",["g_safe","loto","fme","fm_em"]],["Units & Schedule",["prog","mcal","g_stat"]],["Shop & Supply",["g_req","g_ord","tools"]],["Supervisor Setup",["qs","people","costs","sync","reset"]]];
+ window.HMDEF=function(){const h={order:[],folders:{},names:{}};DEF.forEach(([n,items],i)=>{const id="d"+i;h.folders[id]={name:n,items:items.filter(k=>hmIs(k))};h.order.push("f:"+id)});return h};
+ const mig=()=>{try{if(!DB.homeV9){DB.home=HMDEF();DB.homeBy={};DB.phoneLay={};DB.homeV9=1;sv()}}catch(e){}};mig();
+ const _HM=HM;HM=function(){if(!DB.homeV9)mig();return _HM.apply(this,arguments)};
+ /* tabs across the top of a merged screen */
+ const st=document.createElement("style");st.textContent=`#gTabs{display:flex;gap:8px;overflow-x:auto;padding:10px 16px 4px;-webkit-overflow-scrolling:touch}#gTabs button{flex:0 0 auto;min-height:46px;padding:0 16px;border-radius:23px;font-size:16px;font-weight:700}#gTabs button.on{background:var(--acc,#1f6f6b);color:#fff;border-color:transparent}`;document.head.appendChild(st);
+ function bar(){const h=MEM[cur];if(!h||MD.hidden||document.getElementById("gTabs"))return;const m=members(h);if(m.length<2)return;
+  const d=document.createElement("div");d.id="gTabs";d.setAttribute("role","tablist");d.setAttribute("aria-label",HUBS[h][0]);
+  d.innerHTML=m.map(([k,l])=>`<button type="button" role="tab" data-gtab="${k}" class="${k===cur?"on":""}" aria-selected="${k===cur}">${E(l)}</button>`).join("");
+  const mh=MD.querySelector(".mh");if(mh)mh.after(d);else MD.prepend(d)}
+ /* screen titles that match the new names */
+ const TITLE={fm_media:"Photo Files",crew:"Millwright Task Tracker",fm_em:"Site Emergency Contact",fm_case:"HSEQ Link",fm_tout:"Stop Work",fm_rcv:"Shipping & Receiving",fm_req:"Tooling Request"};
+ function title(){const t=TITLE[cur];if(!t)return;const h=MD.querySelector(".mh h2");if(h&&!h.children.length&&h.textContent!==t)h.textContent=t}
+ new MutationObserver(()=>{try{bar();title()}catch(e){}}).observe(MD,{childList:true});
+ MD.addEventListener("click",e=>{const b=e.target.closest("button[data-gtab]");if(!b)return;e.preventDefault();e.stopPropagation();show(b.dataset.gtab)},true);
+ /* supervisor PIN before Live Sync or App Data Reset */
+ let PINOK={who:"",until:0};
+ function pinAsk(v){let d=document.getElementById("dPin");if(!d){d=document.createElement("dialog");d.id="dPin";document.body.appendChild(d)}
+  d.innerHTML=`<form method="dialog" style="min-width:280px"><h2>${v==="sync"?"Live Sync":"App Data Reset"}</h2><div class="hint">Supervisors only. Enter your PIN.</div><label>Your PIN<input id="pinIn" type="password" inputmode="numeric" autocomplete="off" style="font-size:22px"></label><small id="pinMsg" style="color:#e5675d"></small><div class="row"><button type="button" data-pin="x">Cancel</button><button type="submit" class="pri" data-pin="ok">Open</button></div></form>`;
+  const f=d.querySelector("form"),i=d.querySelector("#pinIn");let tries=0;
+  d.querySelector('[data-pin="x"]').onclick=()=>d.close();
+  f.onsubmit=e=>{e.preventDefault();if(ME&&String(ME.pin)===i.value.trim()){PINOK={who:ME.title,until:Date.now()+10*6e4};d.close();show(v)}else{i.value="";d.querySelector("#pinMsg").textContent=++tries>=5?"Too many tries. Ask another supervisor.":"Wrong PIN.";if(tries>=5)setTimeout(()=>d.close(),1200)}};
+  d.showModal();setTimeout(()=>i.focus(),50)}
+ const _s=show;show=function(v){
+  if(HUBS[v])v=pick(v);
+  if(GONE.has(v))v="home";
+  if(v==="sync"||v==="reset"){if(!isSup()){alert("Live Sync and App Data Reset are for supervisors only.");return}if(!ME||PINOK.who!==ME.title||Date.now()>PINOK.until){pinAsk(v);return}}
+  if(MEM[v])LAST[MEM[v]]=v;
+  const r=_s.call(this,v);try{bar();title();if(MEM[cur])document.querySelectorAll("#tab .fv").forEach(b=>{if(b.dataset.k===MEM[cur])b.classList.add("on")})}catch(e){}return r};
+ const _m=mod;mod=function(k){if(HUBS[k])k=pick(k);return _m.call(this,k)};
+ /* Task Creator: Hold Points live inside it */
+ const _tv=tasksView;tasksView=function(){const r=_tv.apply(this,arguments);try{if(!document.getElementById("hpLink")){const n=DB.tasks.filter(t=>t.hold&&!t.hold.rel).length;
+   const h=`<div class="row" id="hpLink" style="padding:0 16px;margin:6px 0"><button type="button" onclick="show('fm_hold')" style="min-height:48px">Hold Points${n?" ("+n+" on hold)":""}</button></div>`;const mh=MD.querySelector(".mh");if(mh)mh.insertAdjacentHTML("afterend",h)}}catch(e){}return r};
+ /* a supervisor who opened the full app on a phone can get back */
+ const _h=home;home=function(){const r=_h.apply(this,arguments);try{const narrow=Math.min(innerWidth,screen.width||innerWidth)<760;let full="";try{full=localStorage.getItem("tp-mode")}catch(x){}
+  const old=document.getElementById("toPhone");if(old)old.remove();
+  if(!(window.PHONE&&PHONE())&&ME&&full==="full"&&narrow){const b=document.createElement("div");b.id="toPhone";b.className="row";b.style.cssText="padding:8px 16px 0";b.innerHTML=`<button type="button" class="pri" style="min-height:52px;flex:1">Back to Phone Version</button>`;
+   b.querySelector("button").onclick=()=>{try{localStorage.setItem("tp-mode","auto")}catch(x){}show("home")};const hm=document.getElementById("home");if(hm)hm.prepend(b)}}catch(e){}return r};
+ /* the app icon number is gone: clear any number left on the icon */
+ try{if(navigator.clearAppBadge)navigator.clearAppBadge().catch(()=>{})}catch(e){}
+ try{delete DB.pushCfg;delete DB.pushTok}catch(e){}
+ setTimeout(()=>{try{favRender()}catch(e){}try{if(cur==="home")home()}catch(e){}},0);
 })();
 
 /* ===== Weather bar (always on top) + Daily Status Report weather ===== */
@@ -4166,7 +4221,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  var SUB='#mod [data-fm="back"],#mod [data-j="back"],#mod [data-tk="back"],#mod [data-act="dsrback"],#mod [data-act="saf"]';
  function lbl(){var l=document.getElementById("hBackL");if(l)l.textContent=(NAV.length&&NAV[NAV.length-1]!=="home")||document.querySelector(SUB)?"Back":"Home"}
  var _s=show;show=function(v){var prev=cur,r=_s.apply(this,arguments);
-  try{if(cur==="home")NAV=[];else if(!goingBack&&prev&&prev!==cur){NAV.push(prev);if(NAV.length>30)NAV.shift()}}catch(e){}
+  try{if(cur==="home")NAV=[];else if(!goingBack&&prev&&prev!==cur&&!(window.TPHUBOF&&TPHUBOF(prev)&&TPHUBOF(prev)===TPHUBOF(cur))){NAV.push(prev);if(NAV.length>30)NAV.shift()}}catch(e){}
   setTimeout(lbl,0);return r};
  function back(){try{var dl=document.querySelectorAll("dialog[open]");if(dl.length){dl[dl.length-1].close();return}
   var rp=document.getElementById("rptw");if(rp&&!rp.hidden){var x=document.getElementById("rpX");if(x){x.click();return}}
