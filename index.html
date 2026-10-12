@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 11, 2026 &middot; Live Sync and phone update (v30)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 11, 2026 &middot; App icon counter, site emergency number (v34)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Shop Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Shop Needs</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="cust">Argon Project Info</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -864,12 +864,12 @@ function ordView(kind){OK=kind;const L=OLBL[kind],all=ORD().filter(o=>o.kind===k
 function ordList(){const e=$("#oRes");if(!e)return;const q=OQ.toLowerCase();
  const L=ORD().filter(o=>o.kind===OK&&(OF==="all"||(OF==="open"&&isOpen(o))||(OF==="late"&&oflag(o).late)||(OF==="recv"&&o.st==="Received"))&&(!q||[o.vendor,o.po,o.desc,o.unit,o.ttl].join(" ").toLowerCase().includes(q))).sort((a,b)=>{const fa=oflag(a),fb=oflag(b);return(fb.late-fa.late)||((a.due||"9")<(b.due||"9")?-1:1)});
  e.innerHTML=L.map(o=>{const f=oflag(o),rc=(o.rec||[]).reduce((a,r)=>a+(+r.qty||0),0),sup=isSup();
-  return `<div class="rec${f.late?" hold":""}"><b>${esc(o.desc)}</b><small>${o.vendor?esc(o.vendor)+" &middot; ":""}${o.po?"PO "+esc(o.po)+" &middot; ":""}${o.qty?"Qty "+esc(o.qty)+" &middot; ":""}<strong style="color:var(--ink)">${esc(o.st)}</strong>${o.pri&&o.pri!=="Normal"?" &middot; "+esc(o.pri):""}</small>${o.unit?`<small>${esc(o.unit)}${o.ttl?" &middot; Task: "+esc(o.ttl):""}</small>`:""}${o.by?`<small>Requested by ${esc(o.by)}</small>`:""}
+  return `<div class="rec${f.late?" hold":""}"><b>${esc(o.desc)}</b><small>${o.vendor?esc(o.vendor)+" &middot; ":""}${o.po?"PO "+esc(o.po)+" &middot; ":""}${o.qty?"Qty "+esc(o.qty)+" &middot; ":""}<strong style="color:var(--ink)">${esc(o.st)}</strong>${o.pri&&o.pri!=="Normal"?" &middot; "+esc(o.pri):""}</small>${o.unit?`<small>${esc(o.unit)}${o.ttl?" &middot; Task: "+esc(o.ttl):""}</small>`:""}${o.by?`<small>Requested by ${esc(o.by)}</small>`:""}${o.req?`<small>From the field app${o.uom?" &middot; "+esc(o.uom):""}${o.pri&&o.pri!=="Normal"?"":""}${o.note?" &middot; "+esc(o.note):""}</small>`:""}${(o.photos||[]).map(p=>`<img class="th" data-p="${p}" alt="">`).join("")}
   <small>${OLBL[o.kind].od}: ${esc(o.ordered||"")} &middot; ${OLBL[o.kind].due}: ${esc(o.due||"not set")}${o.track?" &middot; Tracking: "+esc(o.track):""}</small>`+
   (f.op?`<small>Open ${f.age} day${f.age===1?"":"s"}${o.qty&&rc?" &middot; "+rc+" of "+esc(o.qty)+" received":""}</small>`:`<small>Received ${esc(o.recvd||"")}${o.ordered&&o.recvd?" &middot; lead time "+dd(o.ordered,o.recvd)+" days":""}${o.due&&o.recvd?(o.recvd<=o.due?" &middot; on time":" &middot; "+dd(o.due,o.recvd)+" days late"):""}</small>`)+
   (f.late?`<span class="tag">LATE ${f.days} day${f.days===1?"":"s"}${f.chase?" - chase now":""}</span>`:f.soon?`<span class="tag" style="background:#e0a04e">Due ${o.due===tdy()?"today":"soon ("+esc(o.due)+")"}</span>`:"")+
   (o.fu&&o.fu.length?`<small>Last follow-up ${esc(o.fu[o.fu.length-1].d)}: ${esc(o.fu[o.fu.length-1].note)}</small>`:"")+
-  (o.rec||[]).map(r=>`<small>Received ${esc(r.date)}: ${esc(r.qty||"")} &middot; ${esc(r.cond||"")}${r.bolNo?" &middot; BOL "+esc(r.bolNo):""}${r.by?" &middot; "+esc(r.by):""}${r.bol?` <button data-od="viewbol" data-id="${r.bol}" style="min-height:28px;padding:0 10px">View BOL</button>`:""}</small>${thumbs(r)}`).join("")+
+  (o.rec||[]).map(r=>`<small>Received ${esc(r.date)}: ${esc(r.qty||"")} &middot; ${esc(r.cond||"")}${r.dmgNote?" ("+esc(r.dmgNote)+")":""}${r.driver?" &middot; Driver "+esc(r.driver):""}${r.bolNo?" &middot; BOL "+esc(r.bolNo):""}${r.by?" &middot; "+esc(r.by):""}${r.bol?` <button data-od="viewbol" data-id="${r.bol}" style="min-height:28px;padding:0 10px">View BOL</button>`:""}</small>${thumbs(r)}`).join("")+
   `<div class="row">${f.op?`<button class="pri" data-od="recv" data-id="${o.id}">Receive / Scan BOL</button>`:""}${f.op&&(sup||OK==="shop")?`<button data-od="stat" data-id="${o.id}">Update Status</button>`:""}${f.op?`<button data-od="fu" data-id="${o.id}">Log Follow-up</button>`:""}${sup||o.by===(ME&&ME.title)?`<button data-od="edit" data-id="${o.id}">Edit</button>`:""}${sup?`<button class="danger" data-od="del" data-id="${o.id}">Delete</button>`:""}</div></div>`}).join("")||`<div class="empty">Nothing here.</div>`}
 function vndList(){const L=VND().slice().sort((a,b)=>a.name.localeCompare(b.name));return `<div class="row" style="padding:0 16px"><button class="pri" data-od="vnew">Add Vendor</button></div>`+(L.map(v=>{const os=ORD().filter(o=>o.kind==="vend"&&o.vendor===v.name),done=os.filter(o=>o.st==="Received"&&o.recvd),ot=done.filter(o=>o.due&&o.recvd<=o.due).length,dn=done.filter(o=>o.due).length,lt=done.filter(o=>o.ordered).map(o=>dd(o.ordered,o.recvd));
   return `<div class="rec"><b>${esc(v.name)}</b>${v.contact?`<small>${esc(v.contact)}</small>`:""}${v.phone?`<small><a class="lnk" href="tel:${esc(v.phone)}">${esc(v.phone)}</a></small>`:""}${v.email?`<small>${esc(v.email)}</small>`:""}${v.acct?`<small>Account # ${esc(v.acct)}</small>`:""}${v.note?`<small>${esc(v.note)}</small>`:""}<small>${os.length} order${os.length===1?"":"s"}, ${os.filter(isOpen).length} open${dn?" &middot; on time "+Math.round(100*ot/dn)+"%":""}${lt.length?" &middot; average lead time "+f2(lt.reduce((a,b)=>a+b,0)/lt.length)+" days":""}</small><div class="row"><button data-od="vedit" data-id="${v.id}">Edit</button>${isSup()?`<button class="danger" data-od="vdel" data-id="${v.id}">Delete</button>`:""}</div></div>`}).join("")||`<div class="empty">No vendors yet.</div>`)}
@@ -2006,7 +2006,7 @@ function HM(){return DB.home||(DB.home={order:[],folders:{},names:{}})}
 var HMED=HMED||false,HMSEL=HMSEL||new Set(),HMSKIP=false,HMOPEN=null;
 function HMORIG(k){const x=TL.find(t=>t[0]===k);return x?x[1]:k}
 function tName(k){return (DB.home&&DB.home.names&&DB.home.names[k])||HMORIG(k)}
-function hmIs(k){return (TL.some(t=>t[0]===k)||["qs","delay","tools","loto","mcal","fm_media","fm_hold","fm_hand","fm_case","fm_tout","fm_em","sync"].includes(k))&&k!=="cust"}
+function hmIs(k){return (TL.some(t=>t[0]===k)||["qs","delay","tools","loto","mcal","fm_media","fm_hold","fm_hand","fm_case","fm_tout","fm_em","sync","fm_msg","crew","fm_req","fm_rcv","fm_brk","brk_rep","fm_eos","fm_ntf"].includes(k))&&k!=="cust"}
 function hmVis(k){return hmIs(k)&&((k!=="costs"&&k!=="dsr"&&k!=="reset")||isSup())}
 function hmLayout(){const h=HM();h.folders=h.folders||{};h.names=h.names||{};
  const used=new Set();Object.values(h.folders).forEach(f=>{f.items=(f.items||[]).filter(k=>hmIs(k)&&!used.has(k)&&used.add(k))});
@@ -2354,13 +2354,24 @@ document.getElementById("mod").addEventListener("click",e=>{const b=e.target.clo
 window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
 /* ===== Quick Start Setup: enter job info once, used everywhere ===== */
 (function(){
- const QD={site:"Houston Shop",co:"TurbinePros",em:"911",unitCust:"Argon"};
+ const QD={site:"Houston Shop",co:"TurbinePros",em:"",unitCust:"Argon"};
  window.QSD=()=>{if(!DB.qs||typeof DB.qs!=="object")DB.qs=Object.assign({},QD);return DB.qs};
  const nv=v=>{v=String(v==null?"":v).trim();return /^n\/?a$/i.test(v)?"":v};
  window.SITE=()=>nv(QSD().site)||"Houston Shop";
  window.JOBNO=()=>nv((ds().setup||{}).jobNo);
  window.SUPNOW=()=>{const d=ds(),c=d.contacts,n=d.setup.shift==="Nights";return nv(n?c.nSup:c.dSup)||nv(c.dSup)};
- window.EMLINE=()=>{const q=QSD(),p=[];p.push("Emergency: "+(nv(q.em)||"911"));if(nv(q.siteEm))p.push("Site: "+nv(q.siteEm));if(nv(q.muster))p.push("Muster: "+nv(q.muster));if(nv(q.hosp))p.push("Hospital: "+nv(q.hosp)+(nv(q.hospPh)?" "+nv(q.hospPh):""));return p.join("  |  ")};
+ window.EMPRIMARY=()=>{const q=QSD(),dg=v=>String(v||"").replace(/[^\d+]/g,""),ok=v=>dg(nv(v)).replace(/\+/g,"").length>=7,ch=String(q.emFirst||"");
+  if(/^Control room/.test(ch)&&ok(q.ctrl))return {label:"Control Room",num:nv(q.ctrl),tel:dg(nv(q.ctrl)),set:true};
+  if(/^Site emergency or/.test(ch)&&ok(q.siteEm))return {label:"Site Emergency",num:nv(q.siteEm),tel:dg(nv(q.siteEm)),set:true};
+  const okE=v=>dg(nv(v)).replace(/\+/g,"").length>=3,EM=()=>({label:nv(q.em),num:nv(q.em),tel:dg(nv(q.em)),set:true});
+  if((/^911$|^Site emergency number/.test(ch))&&okE(q.em))return EM();
+  if(ok(q.ctrl))return {label:"Control Room",num:nv(q.ctrl),tel:dg(nv(q.ctrl)),set:true};
+  if(okE(q.em))return EM();
+  if(ok(q.siteEm))return {label:"Site Emergency",num:nv(q.siteEm),tel:dg(nv(q.siteEm)),set:true};
+  return {label:"",num:"",tel:"",set:false}};
+ window.EMCALL=()=>{const p=EMPRIMARY();return !p.set?"":p.label===p.num?p.num:p.label+" "+p.num};
+ try{if(!DB.emV2){const q=QSD();if((ds().setup||{}).jobNo!=="ARG-OM-2601"&&String(q.em||"").trim()==="911")q.em="";if(q.emFirst==="911")q.emFirst="Site emergency number";if(/otherwise 911/.test(q.emFirst||""))q.emFirst="";DB.emV2=1;sv()}}catch(e){}
+window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.set?(pr.label===pr.num?pr.num:pr.label+" "+pr.num):"number not set, ask your supervisor"));if(nv(q.siteEm))p.push("Site: "+nv(q.siteEm));if(nv(q.muster))p.push("Muster: "+nv(q.muster));if(nv(q.hosp))p.push("Hospital: "+nv(q.hosp)+(nv(q.hospPh)?" "+nv(q.hospPh):""));return p.join("  |  ")};
  /* demo example values: only when the demo job is loaded and Quick Start was never filled */
  try{const q0=DB.qs||{};if((ds().setup||{}).jobNo==="ARG-OM-2601"&&!q0.hosp&&!q0.po){DB.qs={site:"Houston Shop",co:"TurbinePros",unitCust:"Argon",po:"APG-PO-44871",start:"2026-11-02",end:"2027-06-30",gate:"Check in at the front office. Visitors sign the log and get the site safety video before going on the floor.",hours:"Mon to Sat, 6:00 AM to 4:30 PM",custPh:"346-305-0750 / carlos.mendes@example.com",bill:"Argon Power Group, LLC, 233 Wilshire Blvd, Suite 650, Santa Monica, CA 90401",ap:"Brian Spitz, Accounts Payable",apPh:"440-933-8936 / spitz@argonpowergroup.com",plantPh:"713-555-0100",ctrl:"N/A (shop job)",coAddr:"12450 Industrial Pkwy, Houston, TX 77041",pm:"Austin Shepherd",em:"911",siteEm:"713-555-0111 (shop office)",muster:"Front parking lot by the flagpole",hosp:"Houston Methodist West Hospital",hospAddr:"18500 Katy Fwy, Houston, TX 77094",hospPh:"832-522-1000",clinic:"Concentra Urgent Care, Northwest Houston",aed:"AED and first aid kit at the tool crib. Eye wash at Bay 2 and the parts wash station.",hseq:"Priya Anand, Safety Lead (report in HSEQ Reports within 1 hour)",notes:"Overhead crane Bay 1 is 30 ton, Bay 2 is 15 ton. Forklift keys at the tool crib."};sv()}}catch(e){}
  QSD();
@@ -2393,8 +2404,7 @@ window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
    ["q","apPh","Accounts payable phone / email","text","Customer info"],
    ["c","dPlant","Plant contact (day)","text","Daily Status Report"],
    ["q","plantPh","Plant contact phone","text","Site info sheet"],
-   ["c","nPlant","Plant contact (night)","text","Daily Status Report"],
-   ["q","ctrl","Control room phone","text","Site info sheet"]]],
+   ["c","nPlant","Plant contact (night)","text","Daily Status Report"]]],
   ["TurbinePros Team","",[
    ["q","co","Company name","text","Receiving paperwork, site info sheet"],
    ["q","coAddr","Shop / office address","area","Site info sheet"],
@@ -2412,7 +2422,9 @@ window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
    ["c","dLen","Day shift length","text","Daily Status Report"],
    ["c","nLen","Night shift length","text","Daily Status Report"]]],
   ["Safety and Emergency","Prints on every walking card and the site info sheet.",[
-   ["q","em","Emergency number","text","Walking cards, site info sheet"],
+   ["q","emFirst","First call in an emergency","sel",["Automatic: control room if listed, otherwise the site emergency number","Control room","Site emergency number","Site emergency or security"],"Foreman phone Emergency button, Safety Case, walking cards, site info sheet"],
+   ["q","ctrl","Control room phone (plant emergencies)","text","Foreman phone Emergency button, Safety Case, walking cards, site info sheet"],
+   ["q","em","Site emergency number (ambulance, fire, police; not always 911)","text","Emergency Card, walking cards, site info sheet"],
    ["q","siteEm","Site emergency or security phone","text","Walking cards, site info sheet"],
    ["q","muster","Muster point","text","Walking cards, site info sheet"],
    ["q","hosp","Nearest hospital","text","Walking cards, site info sheet"],
@@ -2460,14 +2472,14 @@ window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
  M0.addEventListener("click",e=>{const b=e.target.closest("button[data-qs]");if(!b||cur!=="qs")return;const k=b.dataset.qs;
   if(k==="crew")return show("people");
   if(k==="print")return fprev(qsHTML());
-  if(k==="clear"&&DAYSUP()&&confirm("Clear the job, site, contact and emergency information for a new job? Company name, crew and all unit and task records stay.")){const keep={co:QSD().co||"TurbinePros",em:"911",unitCust:QSD().unitCust||"Argon",coAddr:QSD().coAddr||"",pm:QSD().pm||""};
+  if(k==="clear"&&DAYSUP()&&confirm("Clear the job, site, contact and emergency information for a new job? Company name, crew and all unit and task records stay.")){const keep={co:QSD().co||"TurbinePros",em:"",unitCust:QSD().unitCust||"Argon",coAddr:QSD().coAddr||"",pm:QSD().pm||""};
    ALL.forEach(f=>{if(f.st!=="q"&&f.k!=="shift")obj(f.st)[f.k]=""});DB.qs=Object.assign({},QD,keep,{site:""});sv();applyDefaults();qsView()}});
  /* printable one-page site information sheet */
  window.qsHTML=function(){const E=esc,q=QSD(),now=new Date().toLocaleString(),row=(l,v)=>`<tr><td style="border:1px solid #000;padding:3px 6px;width:2.1in;background:#ede9dc;font-weight:700">${E(l)}</td><td style="border:1px solid #000;padding:3px 6px;white-space:pre-wrap">${E(v||"")}</td></tr>`;
   const dt=v=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(v))return v;const x=new Date(v+"T12:00:00");return x.toLocaleDateString(undefined,{month:"long",day:"numeric",year:"numeric"})};const sec=(t,fs)=>`<div style="font:700 13px Arial,sans-serif;margin:10px 0 3px">${t}</div><table style="width:100%;border-collapse:collapse;font-size:11px">${fs.map(f=>row(f.l,f.t==="date"?dt(nv(get(f))):nv(get(f)))).join("")}</table>`;
   const pick=ks=>ks.map(k=>ALL.find(f=>f.k===k)).filter(Boolean);
   return `<div class="pg" style="padding:.4in .5in"><div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:6px"><img src="${LOGO}" alt="" style="height:.5in"><div style="text-align:right"><div style="font:700 18px Arial,sans-serif">Site Information Sheet</div><div>${E(SITE())}${JOBNO()?" &middot; Job "+E(JOBNO()):""} &middot; Printed ${E(now)}</div></div></div>
-  <div style="border:3px solid #b00;margin-top:10px;padding:6px 10px;font:700 13px Arial,sans-serif">IN AN EMERGENCY CALL ${E(nv(q.em)||"911")}${nv(q.siteEm)?" &middot; THEN SITE "+E(nv(q.siteEm)):""}<div style="font:12px Arial,sans-serif;margin-top:3px">Muster point: ${E(nv(q.muster)||"________________")} &middot; Hospital: ${E(nv(q.hosp)||"________________")}${nv(q.hospAddr)?", "+E(nv(q.hospAddr)):""}${nv(q.hospPh)?", "+E(nv(q.hospPh)):""}</div></div>`+
+  <div style="border:3px solid #b00;margin-top:10px;padding:6px 10px;font:700 13px Arial,sans-serif">IN AN EMERGENCY CALL ${E(EMPRIMARY().set?(EMPRIMARY().label===EMPRIMARY().num?EMPRIMARY().num:EMPRIMARY().label.toUpperCase()+" "+EMPRIMARY().num):"________________ (number not set)")}${nv(q.siteEm)?" &middot; THEN SITE "+E(nv(q.siteEm)):""}<div style="font:12px Arial,sans-serif;margin-top:3px">Muster point: ${E(nv(q.muster)||"________________")} &middot; Hospital: ${E(nv(q.hosp)||"________________")}${nv(q.hospAddr)?", "+E(nv(q.hospAddr)):""}${nv(q.hospPh)?", "+E(nv(q.hospPh)):""}</div></div>`+
   sec("Job and Site",pick(["site","jobNo","po","customer","unit","sow","start","end","plant","truck","gate","hours","shift"]))+
   sec("Contacts",pick(["dCust","custPh","dPlant","plantPh","ctrl","pm","oName","oPh","dSup","nSup","dFore","dTd"]))+
   sec("Safety",pick(["clinic","aed","sName","sPh","hseq","holder","craneOp"]))+(nv(q.notes)?sec("Notes",pick(["notes"])):"")+`</div>`};
@@ -3027,7 +3039,7 @@ window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
  const E=esc,LS=localStorage,origSet=Storage.prototype.setItem;
  const CFGK="tp-sync-cfg",QK="tp-sync-bq",DEVK="tp-sync-dev";
  const EXC=new Set(["wx","pplOther","pplShift","demo"]);
- const REC=new Set(["tasks","people","data","dsr_comp","dsr_tech","dsr_track","dsr_push","dsr_data","dsr_ewa","dsr_hseq","dsr_vend","steps","orders","rent","mcal","delays","dmgTools","hours","jsas","tphotos","docs","qnotes","parts","fmea","closeouts","vendors","issues","qcap","overrides","cases","media","handoff","timeouts","__U"]);
+ const REC=new Set(["tasks","people","data","dsr_comp","dsr_tech","dsr_track","dsr_push","dsr_data","dsr_ewa","dsr_hseq","dsr_vend","steps","orders","rent","mcal","delays","dmgTools","hours","jsas","tphotos","docs","qnotes","parts","fmea","closeouts","vendors","issues","qcap","overrides","cases","media","handoff","timeouts","msgs","msgReads","breaks","eos","expList","pushTok","__U"]);
  const NB=k=>(k==="hours"||k==="jsas"||k==="closeouts"||k==="tasks")?16:8;
  const J=JSON.stringify,isO=v=>v&&typeof v==="object"&&!Array.isArray(v);
  let cfg=null,T=null,ready=false,base={},prev={},pat={},timer=0,applying=false,status="off",statusMsg="",pendingRender=false,remote={};
@@ -3077,7 +3089,7 @@ window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
    else if(l===bv)out=pv!==undefined?m3(P(pv),P(bv),P(rv),true,(d.at||0)>(pat[u]||0)):P(rv);
    else out=m3(P(bv),P(l),P(rv),bv!==undefined,false);
    applyUnit(u,out);base[u]=rv;delete prev[u];any=true});
-  if(any){persist();saveBase();schedule(400);softRender();try{if(!ME)lockUI()}catch(e){}}setStatus(navigator.onLine===false?"offline":"on")}
+  if(any){try{window.SYNCAFTER&&SYNCAFTER()}catch(e){}persist();saveBase();schedule(400);softRender();try{if(!ME)lockUI()}catch(e){}}setStatus(navigator.onLine===false?"offline":"on")}
  /* ---------- sending this device's changes ---------- */
  function schedule(ms){clearTimeout(timer);timer=setTimeout(push,ms==null?1500:ms)}
  Storage.prototype.setItem=function(k,v){origSet.call(this,k,v);if(this===LS&&!applying&&ready&&(k==="tp-db-v1"||k==="turbine-tracker-v1"))schedule()};
@@ -3216,7 +3228,7 @@ window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
  function caseForm(c){CASE=c;const F=$("#dDatF"),sup=isSup(),t=CT[c.type];
   F.innerHTML=`<h2 style="color:${t[1]}">${t[0]}</h2><div class="hint">Started ${E(c.at)} &middot; ${E(c.shift)} Shift &middot; ${E(c.by)}${c.wx?"<br>Weather: "+E(c.wx):""}</div>
   <div class="hint" style="margin-top:10px;font-weight:700;color:var(--ink)">Was anyone hurt?</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button type="button" data-cf2="hurt" data-v="1"${c.hurt===true?' class="pri"':""} style="min-height:56px;font-size:18px">Yes</button><button type="button" data-cf2="hurt" data-v="0"${c.hurt===false?' class="pri"':""} style="min-height:56px;font-size:18px">No</button></div>
-  ${c.hurt?`<div class="rec hold" style="margin:8px 0"><b>Get care first</b><small>Call 911 for anything serious. Tell your supervisor right away.</small><div class="row"><a class="lnk" href="tel:911">Call 911</a></div></div>`:""}
+  ${c.hurt?`<div class="rec hold" style="margin:8px 0"><b>Get care first</b><small>${(()=>{const p=EMPRIMARY(),cr=p.label!==p.num;if(!p.set)return `Get your supervisor now. This site\'s emergency number is not set in Quick Start.</small></div>`;return `Call ${E(cr?"the "+p.label.toLowerCase()+" ("+p.num+")":p.num)} for anything serious. Tell your supervisor right away.</small><div class="row"><a class="lnk" href="tel:${E(p.tel)}" style="background:#b3342b;color:#fff">Call ${E(cr?p.label:p.num)}</a></div></div>`})()}`:""}
   ${photoIn("csP",true)}<div>${thumbsOf(c.photos)}</div>
   <label>What happened<textarea data-cf="desc" rows="4" placeholder="Tap the microphone on the keyboard to talk instead of type">${E(c.desc||"")}</textarea></label>
   <label>Immediate action taken<textarea data-cf="act" rows="2">${E(c.act||"")}</textarea></label>
@@ -3258,7 +3270,9 @@ window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
  function emView(){const q=window.QSD?QSD():{},c=ds().contacts,nv=v=>{v=String(v||"").trim();return /^n\/?a$/i.test(v)?"":v},tel=p=>{const d=String(p||"").replace(/[^\d+]/g,"");return d.length>=3?`<a class="lnk" href="tel:${d}">Call ${E(p)}</a>`:""};
   const box=(t,b,x)=>b?`<div class="rec"><b>${t}</b><small style="color:var(--ink);font-size:16px">${E(b)}</small>${x||""}</div>`:"";
   const map=a=>a?`<a class="lnk" href="https://maps.apple.com/?q=${encodeURIComponent(a)}" target="_blank" rel="noopener">Directions</a>`:"";
-  $("#mod").innerHTML=`<div class="mh"><h2>Emergency Card</h2></div><div class="rec" style="border:3px solid #b3342b"><b style="font-size:24px;color:#b3342b">Emergency: ${E(nv(q.em)||"911")}</b><div class="row"><a class="lnk" href="tel:${E((nv(q.em)||"911").replace(/[^\d]/g,""))}" style="background:#b3342b;color:#fff;font-size:20px;min-height:60px">Call ${E(nv(q.em)||"911")}</a></div></div>`+
+  const pr=EMPRIMARY(),isCR=pr.set&&pr.label!==pr.num,out=nv(q.em);
+  $("#mod").innerHTML=`<div class="mh"><h2>Emergency Card</h2></div>`+(!pr.set?`<div class="rec" style="border:3px solid #b3342b"><b style="font-size:22px;color:#b3342b">Emergency number not set</b><small style="color:var(--ink)">A Day Shift supervisor enters this site's control room or emergency number in Quick Start Setup (Safety and Emergency). Until then, get your supervisor.</small></div>`:`<div class="rec" style="border:3px solid #b3342b"><b style="font-size:24px;color:#b3342b">Emergency: call ${E(isCR?pr.label:pr.num)}</b>${isCR?`<small style="color:var(--ink);font-size:18px">${E(pr.num)}</small><small>This site wants every emergency called to the ${E(pr.label.toLowerCase())} first. They send help and call outside services.</small>`:""}<div class="row"><a class="lnk" href="tel:${E(pr.tel)}" style="background:#b3342b;color:#fff;font-size:20px;min-height:64px">Call ${E(isCR?pr.label:pr.num)}</a></div></div>`)+
+  (isCR&&out?box("Outside emergency ("+out+")","Only if the "+pr.label.toLowerCase()+" tells you to, or cannot be reached.",`<div class="row">${tel(out)}</div>`):"")+
   box("Site emergency or security",nv(q.siteEm),`<div class="row">${tel(nv(q.siteEm))}</div>`)+box("Muster point",nv(q.muster))+
   box("Nearest hospital",[nv(q.hosp),nv(q.hospAddr)].filter(Boolean).join(", "),`<div class="row">${tel(nv(q.hospPh))}${map(nv(q.hospAddr)||nv(q.hosp))}</div>`)+box("Occupational clinic / urgent care",nv(q.clinic))+
   box("First aid, AED and eye wash",nv(q.aed))+box("Supervisor on shift",(window.SUPNOW&&SUPNOW())||"")+box("Safety contact",[nv(c.sName),nv(c.sPh)].filter(Boolean).join(" · "),`<div class="row">${tel(nv(c.sPh).split("/")[0])}</div>`)+
@@ -3269,7 +3283,7 @@ window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
   <h2 class="sec">Recent handoffs</h2>`+(L.map(h=>`<div class="rec${!h.ack&&h.shift!==me?" hold":""}"><b>${E(h.shift)} Shift &middot; ${E(h.by)}</b><small>${E(h.at)}${h.unit?" &middot; "+E(h.unit):""}</small><small style="color:var(--ink);white-space:pre-wrap">${E(h.text)}</small>${thumbsOf(h.photos)}${h.ack?`<small>Read by ${E(h.ack.by)} ${E(h.ack.at)}</small>`:h.shift!==me?`<div class="row"><button class="pri" data-fo="ack" data-id="${h.id}">Mark Read</button></div>`:`<small>Not read yet</small>`}</div>`).join("")||`<div class="empty" style="padding:6px 16px">No handoffs yet.</div>`)+`<div style="height:40px"></div>`;loadTh()}
  let HOPH=[];
  /* ---------------- register views ---------------- */
- const VIEWS={fm_tasks:["My Tasks","Pause, resume, complete, photos and notes",tasksPhone],fm_media:["Photo & Video Log","Field photos and videos by unit and task",mediaView],fm_hold:["Hold Points","Tasks waiting on QC, customer or parts",holdView],fm_case:["Safety Cases","Incidents, near misses, observations, stop work",caseView],fm_tout:["Time Out","Stop work checklist and log",toutView],fm_em:["Emergency Card","911, muster point, hospital, contacts",emView],fm_hand:["Shift Handoff","Notes for the next shift",handView]};
+ const VIEWS={fm_tasks:["My Tasks","Pause, resume, complete, photos and notes",tasksPhone],fm_media:["Photo & Video Log","Field photos and videos by unit and task",mediaView],fm_hold:["Hold Points","Tasks waiting on QC, customer or parts",holdView],fm_case:["Safety Cases","Incidents, near misses, observations, stop work",caseView],fm_tout:["Time Out","Stop work checklist and log",toutView],fm_em:["Emergency Card","Site emergency number, muster point, hospital, contacts",emView],fm_hand:["Shift Handoff","Notes for the next shift",handView]};
  Object.entries(VIEWS).forEach(([k,v])=>{M[k]={t:v[0],f:[],sum:()=>""};ICON[k]=ICO[k];if(k!=="fm_tasks"&&!TL.some(t=>t[0]===k))TL.push([k,v[0],v[1]])});
  const _m=mod;mod=function(k){if(VIEWS[k])return VIEWS[k][2]();return _m.apply(this,arguments)};
  function refreshCur(){try{if(VIEWS[cur])VIEWS[cur][2]();else if(cur==="home")home();else if(M[cur])mod(cur)}catch(e){}}
@@ -3295,14 +3309,14 @@ window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
   if(cur==="fm_media"){if(t.id==="mdU"){MU=t.value;$("#mdT").innerHTML=taskOpts("",x=>!MU||x.unit===MU)}if(t.id==="mdT"){MT=t.value;const tk=DB.tasks.find(x=>x.id===MT);if(tk){MU=tk.unit;$("#mdU").value=tk.unit}}if(t.id==="mdP")return addMedia(t.files,"photo");if(t.id==="mdV")return addMedia(t.files,"video")}
   if(cur==="fm_hand"&&t.id==="hoP"){HOPH=HOPH.concat(await savePhotos(t.files));$("#hoTh").innerHTML=thumbsOf(HOPH);loadTh()}});
  /* ---------------- phone home screen ---------------- */
- const PT=[["fm_tasks","My Tasks"],["delay","Delays"],["fm_media","Photos & Video"],["fm_hold","Hold Point"],["fm_case","Safety Case"],["fm_tout","Time Out"],["fm_em","Emergency"],["loto","LOTO"],["tools","Damaged Tool"],["fme","FME Log"],["fm_hand","Shift Handoff"]];
- const ALLOW=new Set(["home","fm_tasks","delay","fm_media","fm_hold","fm_case","fm_tout","fm_em","loto","fme","tools","fm_hand"]);
+ const PT=[["fm_msg","Messages"],["fm_tasks","My Tasks"],["crew","Crew Board"],["delay","Delays"],["fm_brk","Breaks"],["fm_media","Photos & Video"],["fm_hold","Hold Point"],["fm_req","Parts & Expendables"],["fm_rcv","Receive Delivery"],["fm_case","Safety Case"],["fm_tout","Time Out"],["fm_em","Emergency"],["loto","LOTO"],["tools","Damaged Tool"],["fme","FME Log"],["fm_hand","Shift Handoff"],["fm_eos","End of Shift"],["fm_ntf","Icon Counter"]];
+ const ALLOW=new Set(["home","fm_ntf","fm_msg","crew","fm_req","fm_rcv","fm_brk","brk_rep","fm_eos","fm_tasks","delay","fm_media","fm_hold","fm_case","fm_tout","fm_em","loto","fme","tools","fm_hand"]);
  const ph=document.createElement("div");ph.id="phoneHome";ph.hidden=true;const hm=document.getElementById("home");if(hm)hm.appendChild(ph);
  const st=document.createElement("style");st.textContent=`body.phone #home>*:not(#phoneHome):not(#shHome){display:none!important}body.phone #tab,body.phone #fab{display:none!important}body.phone{padding-bottom:20px!important}
  #phoneHome{padding:8px 16px 30px}#phoneHome .pg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}#phoneHome .pt{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-height:118px;padding:14px;text-align:left;border-radius:16px;background:var(--card);border:1px solid var(--line)}
  #phoneHome .pt span.i{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#4cc7be,#1f6f6b)}#phoneHome .pt svg{width:30px;height:30px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}#phoneHome .pt b{font-size:18px;line-height:1.15}#phoneHome .pt em{font-style:normal;font-size:13px;color:var(--hold);font-weight:700}
  #phoneHome .pt.sf span.i{background:linear-gradient(135deg,#e5675d,#b3342b)}#phoneHome h2{font-size:24px;margin:6px 0 10px}`;document.head.appendChild(st);
- function badge(k){if(k==="fm_tasks"){const n=DB.tasks.filter(t=>runners(t).length).length;return n?n+" running":""}if(k==="delay")return (DB.delays||[]).some(d=>!d.end)?"Delay running":"";if(k==="fm_hold"){const n=DB.tasks.filter(t=>t.hold&&!t.hold.rel).length;return n?n+" on hold":""}if(k==="fm_case"){const n=CASES().filter(c=>c.st!=="Closed").length;return n?n+" open":""}if(k==="fm_tout"){const n=TOUTS().filter(x=>!x.cleared).length;return n?n+" open":""}if(k==="loto"){const n=((DB.loto||{}).locks||[]).filter(l=>!l.off).length;return n?n+" locks on":""}if(k==="fm_hand"){const n=HAND().filter(h=>!h.ack&&h.shift!==curSh()).length;return n?n+" to read":""}return ""}
+ function badge(k){if(window.PBADGE){const x=PBADGE(k);if(x)return x}if(k==="fm_tasks"){const n=DB.tasks.filter(t=>runners(t).length).length;return n?n+" running":""}if(k==="delay")return (DB.delays||[]).some(d=>!d.end)?"Delay running":"";if(k==="fm_hold"){const n=DB.tasks.filter(t=>t.hold&&!t.hold.rel).length;return n?n+" on hold":""}if(k==="fm_case"){const n=CASES().filter(c=>c.st!=="Closed").length;return n?n+" open":""}if(k==="fm_tout"){const n=TOUTS().filter(x=>!x.cleared).length;return n?n+" open":""}if(k==="loto"){const n=((DB.loto||{}).locks||[]).filter(l=>!l.off).length;return n?n+" locks on":""}if(k==="fm_hand"){const n=HAND().filter(h=>!h.ack&&h.shift!==curSh()).length;return n?n+" to read":""}return ""}
  window.PHONEVIEW=function(){if(!PHONE()||cur!=="home")return false;phoneHome();return true};
  function phoneHome(){document.body.classList.add("phone");ph.hidden=false;
   if(!ISFORE()){ph.innerHTML=`<h2>Field App</h2><div class="rec"><b>The phone app is for foremen and supervisors</b><small>Ask a supervisor to set your role to Foreman, or use the iPad.</small></div><div class="row"><button data-ph="out">Sign Out</button></div>`;return}
@@ -3372,6 +3386,382 @@ window.DAYSUP=()=>isSup()&&(!window.CURSHIFT||window.CURSHIFT()!=="Night");
  const _ds=show;show=function(v){const r=_ds.apply(this,arguments);try{if(cur==="sync")$("#fab").hidden=true;if(VIEWS[cur])$("#fab").hidden=true}catch(e){}return r};
  try{if(cur==="home")home()}catch(e){}
  try{if(!ME)lockUI()}catch(e){}
+})();
+
+/* ===== Messages, Crew Board, Parts & Expendables, Receiving, Breaks, End of Shift (v32) ===== */
+(function(){
+ const E=esc,MD=$("#mod");
+ const MSG=()=>DB.msgs||(DB.msgs=[]),RD=()=>DB.msgReads||(DB.msgReads=[]),BRK=()=>DB.breaks||(DB.breaks=[]),EOS=()=>DB.eos||(DB.eos=[]);
+ const nowTxt=()=>new Date().toLocaleString([],{month:"numeric",day:"numeric",year:"2-digit",hour:"numeric",minute:"2-digit"});
+ const tm=ms=>new Date(ms).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
+ const curSh=()=>(window.CURSHIFT&&CURSHIFT())||"Day";
+ const me=()=>ME?ME.title:"";
+ const uidm=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+ const ALLP=()=>{const s=new Set(),o=[];(DB.people||[]).concat(DB.pplOther||[]).forEach(p=>{if(p&&p.title&&!s.has(p.title)){s.add(p.title);o.push(p)}});return o};
+ const isLead=p=>p&&(p.role==="Foreman"||SUPR.includes(p.role));
+ const onSh=n=>!window.ONSHIFT||ONSHIFT(n);
+ const crew=()=>(DB.people||[]).filter(p=>!SUPR.includes(p.role));
+ const unitOpts=v=>`<option value="">No unit</option>`+U.map(u=>`<option${u.name===v?" selected":""}>${E(u.name)}</option>`).join("");
+ const taskOpts=(v,filt)=>`<option value="">No task</option>`+DB.tasks.filter(t=>t.st!=="Done"&&(!filt||filt(t))).map(t=>`<option value="${t.id}"${t.id===v?" selected":""}>${E((t.unit||"")+": "+t.title)}</option>`).join("");
+ async function savePh(files){const ids=[];for(const f of [...files]){const d=await shrink(f);if(!d)continue;const id=uidm("p");await pPut(id,d);ids.push(id)}return ids}
+ const thumbs=ids=>(ids||[]).map(id=>`<img class="th" data-p="${id}" alt="Photo">`).join("");
+ const phIn=(id,lab,multi)=>`<label class="lnk" style="cursor:pointer;margin:6px 0;min-height:52px;font-size:16px">${lab}<input type="file" id="${id}" accept="image/*" capture="environment"${multi===false?"":" multiple"} hidden></label>`;
+ const csvDL=(rows,name)=>{const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"',bl=new Blob([rows.map(r=>r.map(q).join(",")).join("\r\n")],{type:"text/csv"}),l=document.createElement("a");l.href=URL.createObjectURL(bl);l.download=name;document.body.appendChild(l);l.click();l.remove()};
+ const dlg=()=>{if(!$("#dDat").open)$("#dDat").showModal()};
+ /* shift work date: night shift belongs to the evening it started */
+ const workDate=sh=>{const d=new Date();if((sh||curSh())==="Night"&&d.getHours()<14)d.setDate(d.getDate()-1);return ymd(d)};
+ const addDay=(s,n)=>{const d=new Date(s+"T12:00:00");d.setDate(d.getDate()+n);return ymd(d)};
+ const shDates=sh=>{const w=workDate(sh);return sh==="Night"?[w,addDay(w,1)]:[w]};
+ const hrsNow=(n,sh)=>{const ds2=shDates(sh);let h=H().filter(x=>x.who===n&&ds2.includes(x.date)).reduce((a,x)=>a+(+x.hrs||0),0);const r=RUN()[n];if(r)h+=(Date.now()-r.since)/36e5;return Math.round(h*100)/100};
+ const onClockToday=(n,sh)=>!!RUN()[n]||H().some(x=>x.who===n&&shDates(sh).includes(x.date));
+ const fmtD=s=>{const d=new Date(s+"T12:00:00");return d.toLocaleDateString([],{weekday:"short",month:"numeric",day:"numeric"})};
+ const t12=t=>{const[h,m]=String(t||"0:0").split(":").map(Number);const d=new Date();d.setHours(h,m,0,0);return tm(+d)};
+
+ /* =================== MESSAGES =================== */
+ const chOf=(a,b)=>"dm:"+[a,b].sort().join("|");
+ const chName=ch=>ch==="all"?"Crew Leads Group":ch.slice(3).split("|").filter(n=>n!==me()).join("")||"Me";
+ const myCh=ch=>ch==="all"?ISFORE():ch.slice(3).split("|").includes(me());
+ const readTs=(who,ch)=>{const r=RD().find(x=>x.id===who+"|"+ch);return r?r.ts:0};
+ const unread=ch=>{const t=readTs(me(),ch);return MSG().filter(m=>m.ch===ch&&m.from!==me()&&m.ts>t).length};
+ const unreadAll=()=>{if(!ME||!ISFORE())return 0;const chs=new Set(MSG().map(m=>m.ch).filter(myCh));let n=0;chs.forEach(c=>n+=unread(c));return n};
+ function markRead(ch){const L=MSG().filter(m=>m.ch===ch);if(!L.length||!ME)return;const last=L[L.length-1].ts,id=me()+"|"+ch;let r=RD().find(x=>x.id===id);if(r&&r.ts>=last)return;if(!r){r={id,who:me(),ch,ts:0};RD().push(r)}r.ts=last;r.at=Date.now();sv()}
+ let CH="",MLINK=null,MPH=[],MSIG="";
+ function msgList(){CH="";const leads=ALLP().filter(p=>isLead(p)&&p.title!==me());
+  const last=ch=>{const L=MSG().filter(m=>m.ch===ch);return L[L.length-1]};
+  const row=(ch,title,sub)=>{const l=last(ch),u=unread(ch);return `<button class="rec" data-mg="open" data-ch="${E(ch)}" style="display:block;width:100%;text-align:left;cursor:pointer${u?";border-left:5px solid var(--acc,#1f6f6b)":""}"><b>${E(title)}${u?` <span class="tag">${u} new</span>`:""}</b><small>${E(sub)}</small>${l?`<small style="color:var(--ink)">${E(l.from===me()?"You":l.from)}: ${E((l.text||(l.photos&&l.photos.length?"Photo":"")||(l.link?"Link":"")).slice(0,70))} &middot; ${E(tm(l.ts))}</small>`:`<small>No messages yet</small>`}</button>`};
+  const sorted=leads.slice().sort((a,b)=>((last(chOf(me(),b.title))||{}).ts||0)-((last(chOf(me(),a.title))||{}).ts||0)||a.title.localeCompare(b.title));
+  MD.innerHTML=`<div class="mh"><h2>Messages</h2></div>`+(!ISFORE()?`<div class="hint" style="padding:0 16px">Messages are for foremen and supervisors.</div>`:
+   row("all","Crew Leads Group","All supervisors and foremen, both shifts")+`<h2 class="sec">One on one</h2>`+(sorted.map(p=>row(chOf(me(),p.title),p.title,(p.role||"")+(p.shift?" · "+p.shift+" Shift":""))).join("")||`<div class="empty" style="padding:6px 16px">No other foremen or supervisors yet. Set a person's role to Foreman in People.</div>`))+`<div style="height:40px"></div>`}
+ function bubbles(){const L=MSG().filter(m=>m.ch===CH).slice(-150),mine=L.filter(m=>m.from===me()),lastMine=mine[mine.length-1];
+  const seen=m=>{if(!m)return "";const others=CH==="all"?ALLP().filter(p=>isLead(p)&&p.title!==me()).map(p=>p.title):[chName(CH)];const s=others.filter(n=>readTs(n,CH)>=m.ts);return s.length?(CH==="all"?"Seen by "+s.join(", "):"Seen"):"Sent"};
+  let lastDay="";
+  return L.map(m=>{const mi=m.from===me(),day=new Date(m.ts).toDateString(),hd=day!==lastDay?`<div style="text-align:center;font-size:12px;color:var(--mute);margin:10px 0 4px">${E(new Date(m.ts).toLocaleDateString([],{weekday:"long",month:"short",day:"numeric"}))}</div>`:"";lastDay=day;
+   return hd+`<div style="display:flex;justify-content:${mi?"flex-end":"flex-start"};margin:4px 0"><div style="max-width:82%;padding:8px 12px;border-radius:16px;${mi?"background:#1f6f6b;color:#fff;border-bottom-right-radius:4px":"background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px"}">${mi?"":`<div style="font-size:12px;font-weight:700;opacity:.8">${E(m.from)}</div>`}${m.text?`<div style="white-space:pre-wrap;font-size:16px">${E(m.text)}</div>`:""}${(m.photos||[]).length?`<div>${thumbs(m.photos)}</div>`:""}${m.link?`<button data-mg="go" data-k="${E(m.link.k)}" data-id="${E(m.link.id)}" style="margin-top:6px;min-height:34px;font-size:14px;${mi?"background:#fff;color:#1f6f6b":""}">${E({task:"Task",unit:"Unit",hold:"Hold point"}[m.link.k]||"Link")}: ${E(m.link.label)}</button>`:""}<div style="font-size:11px;opacity:.7;text-align:right;margin-top:2px">${E(tm(m.ts))}${m===lastMine?" &middot; "+E(seen(m)):""}</div></div></div>`}).join("")||`<div class="empty">No messages yet. Say hello.</div>`}
+ function chatView(){markRead(CH);MSIG=sig();
+  MD.innerHTML=`<div class="mh"><button data-mg="list">All Chats</button><h2>${E(chName(CH))}</h2></div>${CH==="all"?`<div class="hint" style="padding:0 16px">Everyone with the Foreman or a supervisor role, both shifts.</div>`:""}
+  <div id="msgL" style="padding:4px 12px;max-height:calc(100vh - 330px);min-height:220px;overflow:auto">${bubbles()}</div>
+  <div style="position:sticky;bottom:0;background:var(--bg,#fff);padding:8px 12px 18px;border-top:1px solid var(--line)"><div id="mgAt" style="font-size:13px">${attHTML()}</div>
+  <textarea id="mgT" rows="2" placeholder="Message" style="width:100%;font-size:16px"></textarea>
+  <div class="row" style="margin-top:6px"><label class="lnk" style="flex:1;cursor:pointer;margin:0">Photo<input type="file" id="mgP" accept="image/*" capture="environment" multiple hidden></label><button data-mg="link" style="flex:1">Link</button><button class="pri" data-mg="send" style="flex:1.4">Send</button></div></div>`;
+  const l=$("#msgL");if(l){l.scrollTop=l.scrollHeight;l.querySelectorAll("img").forEach(i=>i.addEventListener("load",()=>{l.scrollTop=l.scrollHeight},{once:true}))}loadTh()}
+ const attHTML=()=>(MLINK?`<span class="tag" style="background:#3b82c4">${E({task:"Task",unit:"Unit",hold:"Hold point"}[MLINK.k])}: ${E(MLINK.label)}</span> <button data-mg="unlink" style="min-height:26px;padding:0 8px">x</button> `:"")+(MPH.length?`<div>${thumbs(MPH)} <button data-mg="unph" style="min-height:26px;padding:0 8px">Remove photos</button></div>`:"");
+ const sig=()=>{const L=MSG().filter(m=>m.ch===CH);return L.length+"|"+(L.length?L[L.length-1].ts:0)+"|"+RD().filter(r=>r.ch===CH).map(r=>r.ts).join(",")};
+ function linkForm(){const F=$("#dDatF"),holds=DB.tasks.filter(t=>t.hold&&!t.hold.rel);
+  F.innerHTML=`<h2>Link to</h2><label>Task<select id="lkTk">${taskOpts("")}</select></label><label>Hold point<select id="lkHp"><option value="">None</option>${holds.map(t=>`<option value="${t.id}">${E(t.title+" ("+t.hold.type+")")}</option>`).join("")}</select></label><label>Unit<select id="lkUn">${unitOpts("")}</select></label><div class="hint">Pick one. The message shows a button that opens it.</div><div class="row"><button type="button" id="lkX">Cancel</button><button type="button" class="pri" id="lkOk">Attach</button></div>`;
+  F.onchange=e=>{["lkTk","lkHp","lkUn"].forEach(i=>{if(i!==e.target.id)$("#"+i).value=""})};
+  F.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="lkX")return $("#dDat").close();if(b.id!=="lkOk")return;const tk=$("#lkTk").value,hp=$("#lkHp").value,un=$("#lkUn").value;
+   if(tk){const t=DB.tasks.find(x=>x.id===tk);MLINK={k:"task",id:tk,label:(t.unit?t.unit+": ":"")+t.title}}else if(hp){const t=DB.tasks.find(x=>x.id===hp);MLINK={k:"hold",id:hp,label:t.title+" ("+t.hold.type+")"}}else if(un){const u=U.find(x=>x.name===un);MLINK={k:"unit",id:u?u.id:un,label:un}}else MLINK=null;
+   $("#dDat").close();const a=$("#mgAt");if(a)a.innerHTML=attHTML();loadTh()};dlg()}
+ function goLink(k,id){if(k==="hold")return show("fm_hold");if(k==="task"){if(PHONE())return show("fm_tasks");if(DB.tasks.some(t=>t.id===id))return taskDetail(id);return alert("That task was deleted.")}
+  if(k==="unit"){if(PHONE())return show("fm_tasks");if(U.some(u=>u.id===id))return openUnit(id);return alert("That unit is no longer on the list.")}}
+ setInterval(()=>{try{if(cur==="fm_msg"&&CH){const s=sig();if(s!==MSIG){MSIG=s;const l=$("#msgL");if(l){const atEnd=l.scrollHeight-l.scrollTop-l.clientHeight<60;l.innerHTML=bubbles();if(atEnd)l.scrollTop=l.scrollHeight;loadTh()}if(document.visibilityState==="visible")markRead(CH);MSIG=sig()}}}catch(e){}},1500);
+
+ /* =================== CREW BOARD =================== */
+ let CSEL="";
+ function crewView(){const sh=curSh(),ppl=crew().concat((DB.people||[]).filter(p=>SUPR.includes(p.role)&&RUN()[p.title])),run=DB.tasks.filter(t=>t.st!=="Done"&&runners(t).some(onSh)),can=ISFORE();
+  const idle=ppl.filter(p=>!RUN()[p.title]);
+  const chip=(n,extra)=>`<button class="chip${CSEL===n?" on":""}" data-cb="p" data-nm="${E(n)}" style="margin:3px;min-height:44px;font-size:15px${CSEL===n?";outline:3px solid #e0a04e":""}">${E(n)}${extra||""}</button>`;
+  const tgt=CSEL?";border:2px dashed #e0a04e;cursor:pointer":"";
+  MD.innerHTML=`<div class="mh"><h2>Crew Board</h2></div><div class="hint" style="padding:0 16px">${E(sh)} Shift &middot; ${run.length} task${run.length===1?"":"s"} running &middot; ${ppl.length-idle.length} on the clock &middot; ${idle.length} idle</div>`+
+  (CSEL?`<div class="rec" style="border-left:5px solid #e0a04e;position:sticky;top:0;z-index:2"><b>Move ${E(CSEL)}</b><small>Tap the task to move to, or Idle to stop the clock.</small><div class="row"><button data-cb="other">Other Open Task</button><button data-cb="cancel">Cancel</button></div></div>`:can?`<div class="hint" style="padding:4px 16px">Tap a name, then tap the task to move them to. The clock moves with them.</div>`:"")+
+  run.map(t=>{const rn=runners(t).filter(onSh);return `<div class="rec" data-cb="t" data-id="${t.id}" style="${tgt.slice(1)}"><b>${E(t.title)}</b><small>${E(t.unit||"No unit")} &middot; ${f2(+sumH(t.id))} h logged${t.exp?" of "+E(t.exp):""}</small><div>${rn.map(n=>chip(n,` <small style="opacity:.7">${E(elap(Date.now()-RUN()[n].since))}</small>`)).join("")}</div></div>`}).join("")+
+  `<div class="rec" data-cb="idle" style="background:var(--bg2,transparent)${tgt}"><b>Idle (${idle.length})</b><small>On this shift and not on a task clock</small><div>${idle.map(p=>chip(p.title)).join("")||"<small>Everyone is working.</small>"}</div></div>`+
+  (run.length?"":`<div class="empty" style="padding:6px 16px">No tasks running. Start one from My Tasks or Tasks.</div>`)+`<div style="height:40px"></div>`}
+ function moveTo(n,tid){const t=DB.tasks.find(x=>x.id===tid);if(!t)return;if(RUN()[n]&&RUN()[n].tid===tid)return;if(RUN()[n])bank(n);RUN()[n]={tid,since:Date.now()};
+  const w=(t.who||"").split(/,\s*/).filter(Boolean);if(!w.includes(n)){w.push(n);t.who=w.join(", ")}t.st="In progress";DB.tasks.forEach(x=>{if(x!==t)fixSt(x)});sv()}
+ function otherTask(n){const F=$("#dDatF");F.innerHTML=`<h2>Move ${E(n)}</h2><label>Task<select id="cbT">${taskOpts("")}</select></label><div class="hint">The clock starts on this task right away.</div><div class="row"><button type="button" id="cbX">Cancel</button><button type="button" class="pri" id="cbOk">Move</button></div>`;
+  F.onchange=null;F.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="cbX")return $("#dDat").close();if(b.id!=="cbOk")return;const v=$("#cbT").value;if(!v)return alert("Pick the task.");moveTo(n,v);CSEL="";$("#dDat").close();crewView()};dlg()}
+
+ /* =================== PARTS & EXPENDABLES =================== */
+ const EXDEF=[["Nitrile gloves (L)","box"],["Nitrile gloves (XL)","box"],["Shop rags","bag"],["Lint-free wipes","box"],["Brake cleaner","can"],["Penetrating oil","can"],["Anti-seize","tube"],["Marking paint","can"],["Paint markers","each"],["Duct tape","roll"],["Blue painter's tape","roll"],["Zip ties","bag"],["Grinding discs 4-1/2 in","box"],["Cut-off wheels 4-1/2 in","box"],["Flap discs 4-1/2 in","box"],["Earplugs","box"],["Safety glasses","box"],["Oil absorbent pads","bundle"],["Trash bags","box"],["AA batteries","pack"]];
+ const EXL=()=>{if(!Array.isArray(DB.expList)){DB.expList=EXDEF.map(([n,u],i)=>({id:"ex"+i,name:n,uom:u}))}return DB.expList};
+ let RQ="exp",RQF="mine",EXQ={},PPH=[];
+ const REQST=["Requested","Approved","Ordered","Shipped","Partially Received","Received","Cancelled"];
+ const stCol=s=>({Requested:"#5d686b",Approved:"#3b82c4",Ordered:"#c47a00",Shipped:"#7a5ac4","Partially Received":"#e0a04e",Received:"#2f7d4a",Cancelled:"#999"})[s]||"#5d686b";
+ function reqView(){const chip=(v,l)=>`<button class="chip${RQ===v?" on":""}" data-rq="tab" data-v="${v}">${l}</button>`;
+  const mine=ORD().filter(o=>o.kind==="shop"&&o.req&&(RQF==="all"||o.by===me())).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  let h=`<div class="mh"><h2>Parts &amp; Expendables</h2></div><div class="chips">${chip("exp","Expendables")}${chip("part","Parts")}${chip("mine","Requests ("+mine.filter(isOpen).length+" open)")}</div>`;
+  if(RQ==="exp"){const L=EXL();h+=`<div style="padding:0 16px"><div class="hint">Tap + for what the crew needs. Requests go to Shop Needs.</div>`+L.map(x=>{const q=EXQ[x.id]||0;return `<div style="display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:6px 0"><div style="flex:1"><b style="font-size:16px">${E(x.name)}</b><small style="display:block;color:var(--mute)">${E(x.uom||"")}</small></div><button data-rq="m" data-id="${x.id}" style="min-width:48px;min-height:44px">-</button><b style="min-width:30px;text-align:center;font-size:18px">${q}</b><button data-rq="p" data-id="${x.id}" class="${q?"pri":""}" style="min-width:48px;min-height:44px">+</button></div>`}).join("")+
+   `<label>Unit (optional)<select id="rqU">${unitOpts(LAST.unit||"")}</select></label><label>Needed by<input type="date" id="rqD" value="${tdy()}"></label><label>Note<input id="rqN" placeholder="Where to drop it, size, brand"></label><div class="row"><button class="pri" data-rq="sendx">Send Request (${Object.values(EXQ).filter(Boolean).length} item${Object.values(EXQ).filter(Boolean).length===1?"":"s"})</button></div>${isSup()?`<div class="row"><button data-rq="editx">Edit Pick List</button></div>`:""}</div>`}
+  else if(RQ==="part"){h+=`<div style="padding:0 16px"><label>Part number<input id="ppN" autocapitalize="characters" placeholder="e.g. 351A4720P001"></label><label>Description<input id="ppD" placeholder="What it is"></label><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><label>Quantity<input id="ppQ" type="number" min="1" step="any" value="1"></label><label>Needed by<input id="ppB" type="date" value="${tdy()}"></label></div>
+   <label>Unit<select id="ppU">${unitOpts(LAST.unit||"")}</select></label><label>Task<select id="ppT">${taskOpts("",t=>!LAST.unit||t.unit===LAST.unit)}</select></label><label>Priority<select id="ppR"><option>Normal</option><option>Urgent</option><option>Low</option></select></label><label>Note<textarea id="ppO" rows="2"></textarea></label>
+   ${phIn("ppP","Photo of the part or tag")}<div id="ppTh">${thumbs(PPH)}</div><div class="row"><button class="pri" data-rq="sendp">Send Part Request</button></div></div>`}
+  else{h+=`<div class="chips"><button class="chip${RQF==="mine"?" on":""}" data-rq="f" data-v="mine">Mine</button><button class="chip${RQF==="all"?" on":""}" data-rq="f" data-v="all">Everyone</button></div>`+(mine.map(o=>{const rc=(o.rec||[]).reduce((a,r)=>a+(+r.qty||0),0);return `<div class="rec"><b>${E(o.desc)}</b><span class="tag" style="background:${stCol(o.st)}">${E(o.st)}</span><small>Qty ${E(o.qty||"")}${o.uom?" "+E(o.uom):""}${rc&&o.st!=="Received"?" &middot; "+rc+" received":""}${o.unit?" &middot; "+E(o.unit):""}${o.ttl?" &middot; "+E(o.ttl):""}</small><small>${E(o.req==="part"?"Part":"Expendable")} &middot; asked ${E(o.ordered||"")} by ${E(o.by||"")}${o.due?" &middot; needed by "+E(o.due):""}${o.recvd?" &middot; received "+E(o.recvd):""}</small>${o.vendor?`<small>Source: ${E(o.vendor)}</small>`:""}${thumbs(o.photos)}${o.st==="Requested"&&(o.by===me()||isSup())?`<div class="row"><button data-rq="cx" data-id="${o.id}">Cancel Request</button>${isSup()?`<button class="pri" data-rq="ap" data-id="${o.id}">Approve</button>`:""}</div>`:""}</div>`}).join("")||`<div class="empty" style="padding:6px 16px">No requests yet.</div>`)}
+  MD.innerHTML=h+`<div style="height:40px"></div>`;loadTh()}
+ function newReq(o){const n=Object.assign({id:"o"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),kind:"shop",vendor:"",ordered:tdy(),st:"Requested",rec:[],fu:[],log:[],by:me(),ts:Date.now(),shift:curSh(),pri:"Normal"},o);olog(n,"Requested from the field app");ORD().push(n);return n}
+ function editExp(){const F=$("#dDatF");F.innerHTML=`<h2>Expendables Pick List</h2><div class="hint">One item per line. Put the unit after a comma, like: Shop rags, bag</div><textarea id="exT" rows="14" style="font-size:15px">${E(EXL().map(x=>x.name+(x.uom?", "+x.uom:"")).join("\n"))}</textarea><div class="row"><button type="button" id="exX">Cancel</button><button type="button" class="pri" id="exOk">Save List</button></div>`;
+  F.onchange=null;F.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="exX")return $("#dDat").close();if(b.id!=="exOk")return;const old=EXL();
+   DB.expList=$("#exT").value.split("\n").map(s=>s.trim()).filter(Boolean).map((s,i)=>{const k=s.lastIndexOf(","),nm=(k>0?s.slice(0,k):s).trim(),u=k>0?s.slice(k+1).trim():"",o=old.find(x=>x.name===nm);return {id:o?o.id:"ex"+Date.now().toString(36)+i,name:nm,uom:u}});EXQ={};sv();$("#dDat").close();reqView()};dlg()}
+
+ /* =================== DELIVERY RECEIVING =================== */
+ let RV=null;
+ function rcvView(){const since=addDay(tdy(),-14),L=[];
+  ORD().forEach(o=>(o.rec||[]).forEach(r=>{if((r.date||"")>=since)L.push({o,r,kind:o.kind==="shop"?"Shop need":"Order",what:(o.vendor?o.vendor+": ":"")+o.desc})}));
+  RENT().forEach(x=>(x.rcv||[]).forEach(r=>{if((r.date||"")>=since)L.push({x,r,kind:"Rental",what:(x.vend?x.vend+": ":"")+x.desc})}));
+  L.sort((a,b)=>(b.r.ts||0)-(a.r.ts||0)||String(b.r.date).localeCompare(String(a.r.date)));
+  const dm=L.filter(a=>a.r.dmg&&!a.r.dmgOk);
+  MD.innerHTML=`<div class="mh"><h2>Receive Delivery</h2></div><div class="rec" style="border-left:5px solid #1f6f6b"><b>A truck just showed up</b><small>Match it to an order or rental, scan the BOL, take photos and note any damage. Vendors &amp; Orders updates right away.</small><div class="row"><button class="pri" data-rv="new" style="min-height:56px;font-size:18px">Receive a Delivery</button></div></div>`+
+  (dm.length?`<h2 class="sec">Damage to review (${dm.length})</h2>`+dm.map(rRow).join(""):"")+`<h2 class="sec">Last 14 days</h2>`+(L.filter(a=>!(a.r.dmg&&!a.r.dmgOk)).map(rRow).join("")||`<div class="empty" style="padding:6px 16px">No deliveries yet.</div>`)+`<div style="height:40px"></div>`;loadTh()}
+ const rRow=a=>{const r=a.r;return `<div class="rec${r.dmg&&!r.dmgOk?" hold":""}"><b>${E(a.what)}</b>${r.dmg?`<span class="tag"${r.dmgOk?' style="background:#5d686b"':""}>Damaged${r.dmgOk?" (reviewed)":""}</span>`:""}${r.partial?`<span class="tag" style="background:#e0a04e">Partial</span>`:""}<small>${E(a.kind)} &middot; ${E(r.date||"")} &middot; Qty ${E(r.qty)} &middot; ${E(r.by||"")}${r.bolNo?" &middot; BOL "+E(r.bolNo):""}${r.driver?" &middot; Driver "+E(r.driver):""}</small>${r.dmg&&r.dmgNote?`<small style="color:var(--ink)">Damage: ${E(r.dmgNote)}</small>`:""}${r.note?`<small>${E(r.note)}</small>`:""}${thumbs((r.photos||[]).slice(0,4))}<div class="row">${r.bol?`<button data-rv="bol" data-id="${r.bol}">View BOL</button>`:""}${r.drvSig?`<button data-rv="sig" data-id="${r.drvSig}">Driver Signature</button>`:""}${r.dmg&&!r.dmgOk&&isSup()?`<button class="pri" data-rv="ok" data-id="${r.id}">Damage Reviewed</button>`:""}</div></div>`};
+ function rcvForm2(){RV={src:"",full:true,dmg:null,pages:[],photos:[],dph:[],sig:"",driver:""};drawRcv();dlg()}
+ function drawRcv(){const F=$("#dDatF"),o=ORD().filter(isOpen),ve=o.filter(x=>x.kind==="vend"),sh=o.filter(x=>x.kind==="shop"),rn=RENT().filter(x=>!x.dOut),R=RV;
+  const sel=v=>R.src===v?" selected":"";const left=src=>{if(!src.startsWith("o:"))return "";const x=ORD().find(y=>y.id===src.slice(2));if(!x||!x.qty)return "";return Math.max(0,(+x.qty)-(x.rec||[]).reduce((a,r)=>a+(+r.qty||0),0))};
+  const nw=R.src==="new"||R.src==="rnew",yn=(k,v,l)=>`<button type="button" data-rf="${k}" data-v="${v}"${R[k]===v?' class="pri"':""} style="min-height:52px;font-size:17px">${l}</button>`;
+  F.innerHTML=`<h2>Receive a Delivery</h2><label>What arrived<select id="rvS"><option value="">Pick one</option>${ve.length?`<optgroup label="Vendor orders">${ve.map(x=>`<option value="o:${x.id}"${sel("o:"+x.id)}>${E((x.vendor?x.vendor+": ":"")+x.desc+(x.po?" (PO "+x.po+")":""))}</option>`).join("")}</optgroup>`:""}${sh.length?`<optgroup label="Shop needs and part requests">${sh.map(x=>`<option value="o:${x.id}"${sel("o:"+x.id)}>${E((x.vendor?x.vendor+": ":"")+x.desc)}</option>`).join("")}</optgroup>`:""}${rn.length?`<optgroup label="Rentals on site (swap or more pieces)">${rn.map(x=>`<option value="r:${x.id}"${sel("r:"+x.id)}>${E((x.vend?x.vend+": ":"")+x.desc)}</option>`).join("")}</optgroup>`:""}<optgroup label="Not on a list"><option value="rnew"${sel("rnew")}>New rental arriving</option><option value="new"${sel("new")}>Unlisted delivery</option></optgroup></select></label>
+  ${nw?`<label>Vendor or rental company<input id="rvV" value="${E(R.v||"")}"></label><label>What was delivered<input id="rvW" value="${E(R.w||"")}"></label>`:""}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><label>BOL / packing slip #<input id="rvB" value="${E(R.bn||"")}"></label><label>Carrier<input id="rvC" value="${E(R.cr||"")}"></label></div>
+  <div class="hint" style="font-weight:700;color:var(--ink);margin-top:8px">Did everything arrive?</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${yn("full",true,"Full delivery")}${yn("full",false,"Partial")}</div>
+  <label>Quantity received<input id="rvQ" type="number" min="0" step="any" value="${E(R.q!==undefined?R.q:left(R.src))}"></label>${R.src.startsWith("o:")&&left(R.src)!==""?`<small class="hint">${left(R.src)} still due on this order.</small>`:""}
+  <div class="hint" style="font-weight:700;color:var(--ink);margin-top:10px">BOL pages</div><div class="hint">Take a photo of each page. They save as one PDF.</div><div class="chips" style="flex-wrap:wrap">${R.pages.map((p,i)=>`<span style="position:relative"><img class="th" src="${p.d}" alt=""><button type="button" data-rf="rmpg" data-v="${i}" style="position:absolute;top:2px;right:8px;min-height:26px;padding:0 8px">x</button></span>`).join("")||"<small>No pages yet.</small>"}</div>${phIn("rvPg","+ Scan BOL Page")}
+  <div class="hint" style="font-weight:700;color:var(--ink);margin-top:10px">Photos of the load</div>${phIn("rvPh","Take Load Photos")}<div>${thumbs(R.photos)}</div>
+  <div class="hint" style="font-weight:700;color:var(--ink);margin-top:10px">Any damage?</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${yn("dmg",false,"No damage")}${yn("dmg",true,"Damaged")}</div>
+  ${R.dmg?`<label>Describe the damage<textarea id="rvDN" rows="2" placeholder="Required">${E(R.dn||"")}</textarea></label>${phIn("rvDP","Take Damage Photos")}<div>${thumbs(R.dph)}</div>`:""}
+  <label>Driver name (optional)<input id="rvDr" value="${E(R.driver||"")}"></label><div class="row"><button type="button" data-rf="sign">${R.sig?"Driver Signed (redo)":"Driver Signature (optional)"}</button></div>${R.sig?`<img src="${R.sig}" alt="Driver signature" style="max-width:240px;border:1px solid var(--line);border-radius:8px;background:#fff">`:""}
+  <label>Notes<textarea id="rvN" rows="2">${E(R.note||"")}</textarea></label>
+  <div class="row" style="position:sticky;bottom:0;background:var(--card);padding:10px 0"><button type="button" data-rf="x">Cancel</button><button type="button" class="pri" data-rf="save">Save Receipt</button></div>`;
+  const keep=()=>{const g=i=>{const e=$("#"+i);return e?e.value:undefined};R.v=g("rvV")??R.v;R.w=g("rvW")??R.w;R.bn=g("rvB");R.cr=g("rvC");R.q=g("rvQ");R.dn=g("rvDN")??R.dn;R.driver=g("rvDr");R.note=g("rvN")};
+  F.oninput=keep;
+  F.onchange=async e=>{const t=e.target;keep();if(t.id==="rvS"){R.src=t.value;R.q=undefined;return drawRcv()}
+   if(t.id==="rvPg"){for(const f of [...t.files]){const p=await prepPage(f,true);if(p)R.pages.push(p)}return drawRcv()}
+   if(t.id==="rvPh"){R.photos=R.photos.concat(await savePh(t.files));return drawRcv()}
+   if(t.id==="rvDP"){R.dph=R.dph.concat(await savePh(t.files));return drawRcv()}};
+  F.onclick=async e=>{const b=e.target.closest("button[data-rf]");if(!b)return;keep();const k=b.dataset.rf;
+   if(k==="x"){RV=null;return $("#dDat").close()}
+   if(k==="full"||k==="dmg"){R[k]=b.dataset.v==="true";return drawRcv()}
+   if(k==="rmpg"){R.pages.splice(+b.dataset.v,1);return drawRcv()}
+   if(k==="sign")return sigPad("Driver signature",d=>{R.sig=d;drawRcv()});
+   if(k==="save"){b.disabled=true;try{await saveRcv()}catch(x){alert("Could not save: "+(x&&x.message||x))}b.disabled=false}};
+  loadTh()}
+ async function saveRcv(){const R=RV;if(!R.src)return alert("Pick what arrived, or choose Unlisted delivery.");const q=parseFloat(R.q);if(!(q>0))return alert("Enter the quantity received.");
+  if(R.dmg===null)return alert("Answer: any damage?");if(R.dmg&&!String(R.dn||"").trim())return alert("Describe the damage.");
+  if((R.src==="new"||R.src==="rnew")&&!(String(R.v||"").trim()&&String(R.w||"").trim()))return alert("Enter who it is from and what was delivered.");
+  const d=tdy(),by=me(),cond=R.dmg?"Damaged":R.full?"Complete and undamaged":"Short or incomplete";
+  const r={id:uidm("r"),date:d,ts:Date.now(),qty:q,cond,by,note:String(R.note||"").trim(),bolNo:String(R.bn||"").trim(),carrier:String(R.cr||"").trim(),dmg:!!R.dmg,dmgNote:R.dmg?String(R.dn).trim():"",dmgPh:R.dph.slice(),photos:R.photos.concat(R.dph),partial:!R.full,driver:String(R.driver||"").trim(),shift:curSh(),src:"field"};
+  if(R.sig){const sid=uidm("sg");await pPut(sid,R.sig);r.drvSig=sid}
+  let ord=null,rent=null;
+  if(R.src.startsWith("o:"))ord=ORD().find(x=>x.id===R.src.slice(2));
+  else if(R.src==="new"){ord={id:"o"+Date.now().toString(36),kind:"vend",vendor:String(R.v).trim(),desc:String(R.w).trim(),qty:q,ordered:d,due:"",st:"Ordered",rec:[],fu:[],log:[],unlisted:true};olog(ord,"Unlisted delivery logged from the field app");ORD().push(ord)}
+  else if(R.src.startsWith("r:"))rent=RENT().find(x=>x.id===R.src.slice(2));
+  else if(R.src==="rnew"){rent={id:"r"+Date.now().toString(36),desc:String(R.w).trim(),qty:q,vend:String(R.v).trim(),ref:r.bolNo,unit:LAST.unit||"",dIn:d,by,note:"Logged at delivery from the field app"+(r.note?": "+r.note:""),dOut:"",qOut:"",rby:"",inPh:[],outPh:[],inv:null,log:[]};RENT().push(rent)}
+  if(!ord&&!rent)return alert("That order or rental is no longer open.");
+  const who=ord||rent,vend=ord?ord.vendor:rent.vend,desc=ord?ord.desc:rent.desc;
+  if(R.pages.length){const blob=mkPDF(R.pages),did="d"+Date.now().toString(36)+"b";await pPut(did,blob);const nm=("BOL_"+(r.bolNo||d)+"_"+(vend||"")).replace(/[^\w\-]+/g,"_")+".pdf";
+   DOCS().push(Object.assign({id:did,title:"BOL "+(r.bolNo||"")+" - "+(vend||desc),cat:"BOL / Bill of Lading",unit:who.unit||"",tid:who.tid||"",ttl:who.ttl||"",date:d,who:by,pages:R.pages.length,name:nm,type:"application/pdf",size:blob.size,note:r.note},ord?{ord:ord.id}:{rent:rent.id}));r.bol=did}
+  if(ord){ord.rec.push(r);const tot=ord.rec.reduce((a,x)=>a+(+x.qty||0),0),fin=R.full||(ord.qty&&tot>=+ord.qty);if(fin){ord.st="Received";ord.recvd=d}else ord.st="Partially Received";
+   olog(ord,"Received "+q+" ("+cond+")"+(r.bolNo?" BOL "+r.bolNo:"")+(fin?" - complete":" - partial")+(r.dmg?" - DAMAGE: "+r.dmgNote:""))}
+  else{(rent.rcv=rent.rcv||[]).push(r);rent.inPh=(rent.inPh||[]).concat(r.photos);(rent.log=rent.log||[]).push({t:new Date().toLocaleString(),by,m:"Delivery received: "+q+" ("+cond+")"+(r.bolNo?" BOL "+r.bolNo:"")+(r.dmg?" - DAMAGE: "+r.dmgNote:"")})}
+  RV=null;sv();$("#dDat").close();alert(r.dmg?"Saved. The damage shows in Needs attention for the supervisor.":"Delivery saved.");rcvView()}
+ function rcvFind(id){for(const o of ORD())for(const r of (o.rec||[]))if(r.id===id)return r;for(const x of RENT())for(const r of (x.rcv||[]))if(r.id===id)return r}
+
+ /* =================== BREAKS =================== */
+ const BDEF={Day:[{id:"bd1",t:"09:00",len:15,kind:"Break"},{id:"bd2",t:"12:00",len:30,kind:"Lunch"},{id:"bd3",t:"15:00",len:15,kind:"Break"}],Night:[{id:"bn1",t:"21:00",len:15,kind:"Break"},{id:"bn2",t:"00:00",len:30,kind:"Lunch"},{id:"bn3",t:"03:00",len:15,kind:"Break"}]};
+ const BS=()=>{const s=DB.breakSched||(DB.breakSched=JSON.parse(JSON.stringify(BDEF)));if(!s.Day)s.Day=[];if(!s.Night)s.Night=[];return s};
+ const GRACE=w=>w.kind==="Lunch"?15:10;
+ function winTimes(w,sh,wd){const[h,m]=String(w.t).split(":").map(Number);const d=new Date(wd+"T00:00:00");if(sh==="Night"&&h<12)d.setDate(d.getDate()+1);d.setHours(h,m,0,0);const s=+d,e=s+(+w.len||0)*6e4;return {s,e,dl:e+GRACE(w)*6e4}}
+ const bid=(wd,sh,w,n)=>"bk|"+wd+"|"+sh+"|"+w.id+"|"+n;
+ const recOf=(wd,sh,w,n)=>BRK().find(x=>x.id===bid(wd,sh,w,n));
+ const sortW=L=>L.slice().sort((a,b)=>{const k=x=>{const[h,m]=x.t.split(":").map(Number);return h*60+m};return k(a)-k(b)});
+ const sortWS=(L,sh)=>sh==="Night"?L.slice().sort((a,b)=>{const k=x=>{const[h,m]=x.t.split(":").map(Number);return (h<12?24+h:h)*60+m};return k(a)-k(b)}):sortW(L);
+ /* who still needs a reason (after the grace period) */
+ function pending(sh){sh=sh||curSh();const wd=workDate(sh),now=Date.now(),out=[];
+  sortWS(BS()[sh],sh).forEach(w=>{const T=winTimes(w,sh,wd);if(now<T.dl)return;crew().filter(p=>(p.shift||sh)===sh&&onClockToday(p.title,sh)).forEach(p=>{if(!recOf(wd,sh,w,p.title))out.push({w,n:p.title,wd})})});return out}
+ function addRec(wd,sh,w,n,st,reason){const id=bid(wd,sh,w,n);let r=BRK().find(x=>x.id===id);if(!r){r={id};BRK().push(r)}Object.assign(r,{date:wd,shift:sh,win:w.id,kind:w.kind,t:w.t,len:w.len,who:n,st,reason:reason||"",fore:me(),at:nowTxt(),ts:Date.now()});return r}
+ const WHY=["Critical lift or rigging in progress","Customer witness or hold point","Finishing a step that could not stop","Crew short-handed","Emergency or breakdown work","Other (explain)"];
+ let BSH="";
+ function brkView(){const sh=curSh(),wd=workDate(sh),now=Date.now(),W=sortWS(BS()[sh],sh),cr=crew(),pend=pending(sh),can=ISFORE();
+  let h=`<div class="mh"><h2>Breaks</h2></div><div class="hint" style="padding:0 16px">${E(sh)} Shift &middot; ${E(fmtD(wd))}. Task clocks keep running on breaks. If a break is not logged within 10 minutes after the break ends (15 after lunch), it counts as worked through and needs a reason.</div>`;
+  if(pend.length)h+=`<div class="rec hold"><b>Worked through: reason needed (${pend.length})</b>${pend.map(x=>`<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="flex:1">${E(x.n)} &middot; ${E(x.w.kind)} ${E(t12(x.w.t))}</span>${can?`<button class="pri" data-bk="why" data-w="${x.w.id}" data-nm="${E(x.n)}">Enter Reason</button>`:""}</div>`).join("")}</div>`;
+  h+=W.map(w=>{const T=winTimes(w,sh,wd),st=now<T.s?"Upcoming":now<T.e?"On now":now<T.dl?"Log by "+tm(T.dl):"Closed",recs=cr.map(p=>recOf(wd,sh,w,p.title)).filter(Boolean),took=recs.filter(r=>r.st==="Took"),wt=recs.filter(r=>r.st==="Worked through"),nw=recs.filter(r=>r.st==="Not working");
+   return `<div class="rec"${now>=T.s&&now<T.dl?' style="border-left:5px solid #1f6f6b"':""}><b>${E(w.kind)} &middot; ${E(t12(w.t))} to ${E(tm(T.e))}</b><span class="tag" style="background:${st==="Closed"?"#5d686b":st==="Upcoming"?"#3b82c4":"#2f7d4a"}">${E(st)}</span>
+   ${took.length?`<small>Took it: ${E(took.map(r=>r.who).join(", "))}</small>`:""}${wt.length?`<small style="color:var(--bad,#b3342b)">Worked through: ${wt.map(r=>E(r.who)+(r.reason?" ("+E(r.reason)+")":"")).join(", ")}</small>`:""}${nw.length?`<small>Not on the clock: ${E(nw.map(r=>r.who).join(", "))}</small>`:""}
+   ${can&&now<T.dl?`<div class="row"><button class="pri" data-bk="log" data-w="${w.id}">Log Break</button></div>`:""}</div>`}).join("")||`<div class="empty" style="padding:6px 16px">No break times set for this shift.</div>`;
+  if(isSup()){const shs=sh==="Day"?["Day","Night"]:["Night"];BSH=shs.includes(BSH)?BSH:sh;
+   h+=`<h2 class="sec">Break times (supervisor)</h2>${shs.length>1?`<div class="chips">${shs.map(s=>`<button class="chip${BSH===s?" on":""}" data-bk="sh" data-v="${s}">${s} Shift</button>`).join("")}</div>`:""}<div style="padding:0 16px">`+sortWS(BS()[BSH],BSH).map(w=>`<div style="display:grid;grid-template-columns:1.1fr 1fr .9fr auto;gap:6px;align-items:end;margin:4px 0"><label style="margin:0">Type<select data-bw="kind" data-id="${w.id}"><option${w.kind==="Break"?" selected":""}>Break</option><option${w.kind==="Lunch"?" selected":""}>Lunch</option></select></label><label style="margin:0">Starts<input type="time" data-bw="t" data-id="${w.id}" value="${E(w.t)}"></label><label style="margin:0">Minutes<input type="number" min="5" step="5" data-bw="len" data-id="${w.id}" value="${E(w.len)}"></label><button class="danger" data-bk="delw" data-id="${w.id}">Remove</button></div>`).join("")+`<div class="row"><button data-bk="addw">Add Break Time</button></div><div class="hint">${BSH} Shift break times. Changes save right away.</div></div>`}
+  h+=`<div class="row" style="padding:0 16px">${isSup()?`<button data-bk="rep">Worked-Through Weekly Report</button>`:""}</div><div style="height:40px"></div>`;MD.innerHTML=h}
+ function logForm(wid){const sh=curSh(),wd=workDate(sh),w=BS()[sh].find(x=>x.id===wid);if(!w)return;const cr=crew(),F=$("#dDatF");const S={};cr.forEach(p=>{const r=recOf(wd,sh,w,p.title);S[p.title]=r?r.st:""});
+  const draw=()=>{F.innerHTML=`<h2>${E(w.kind)} ${E(t12(w.t))}</h2><div class="hint">Pick who is going on ${w.kind.toLowerCase()}. Anyone not picked by ${E(tm(winTimes(w,sh,wd).dl))} counts as worked through.</div><div class="row" style="margin:6px 0"><button type="button" data-lf="all">Everyone On Break</button></div>`+
+   cr.map(p=>{const v=S[p.title];return `<div style="display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line);padding:6px 0"><b style="flex:1;font-size:15px">${E(p.title)}${onClockToday(p.title,sh)?"":` <small style="color:var(--mute)">(no time today)</small>`}</b><button type="button" data-lf="s" data-nm="${E(p.title)}" data-v="Took"${v==="Took"?' class="pri"':""} style="min-height:42px">On break</button><button type="button" data-lf="s" data-nm="${E(p.title)}" data-v="Worked through"${v==="Worked through"?' class="pri" style="min-height:42px;background:#b3342b;border-color:#b3342b"':' style="min-height:42px"'}>Working</button></div>`}).join("")+
+   (Object.values(S).includes("Worked through")?`<label>Reason for working through<select id="lfW">${WHY.map(x=>`<option>${x}</option>`).join("")}</select></label><label>Details<input id="lfD" placeholder="Required for Other"></label>`:"")+
+   `<div class="row"><button type="button" data-lf="x">Cancel</button><button type="button" class="pri" data-lf="ok">Save</button></div>`};draw();
+  F.onchange=null;F.onclick=e=>{const b=e.target.closest("button[data-lf]");if(!b)return;const k=b.dataset.lf;
+   if(k==="x")return $("#dDat").close();if(k==="all"){cr.forEach(p=>{if(S[p.title]!=="Worked through")S[p.title]="Took"});return draw()}
+   if(k==="s"){S[b.dataset.nm]=S[b.dataset.nm]===b.dataset.v?"":b.dataset.v;return draw()}
+   if(k==="ok"){let why="";if(Object.values(S).includes("Worked through")){const a=$("#lfW").value,d=$("#lfD").value.trim();if(/^Other/.test(a)&&!d)return alert("Explain the reason.");why=/^Other/.test(a)?d:a+(d?": "+d:"")}
+    Object.entries(S).forEach(([n,v])=>{const old=recOf(wd,sh,w,n);if(v)addRec(wd,sh,w,n,v,v==="Worked through"?why:"");else if(old)DB.breaks=BRK().filter(x=>x!==old)});sv();$("#dDat").close();brkView()}}
+  ;dlg()}
+ function whyForm(wid,n){const sh=curSh(),wd=workDate(sh),w=BS()[sh].find(x=>x.id===wid);if(!w)return;const F=$("#dDatF");
+  F.innerHTML=`<h2>${E(n)}</h2><div class="hint">${E(w.kind)} at ${E(t12(w.t))} was not logged in time, so it counts as worked through.</div><label>Reason<select id="whW">${WHY.map(x=>`<option>${x}</option>`).join("")}<option>Was not on the clock then</option></select></label><label>Details<input id="whD" placeholder="Required for Other"></label><div class="row"><button type="button" id="whX">Cancel</button><button type="button" class="pri" id="whOk">Save</button></div>`;
+  F.onchange=null;F.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="whX")return $("#dDat").close();if(b.id!=="whOk")return;const a=$("#whW").value,d=$("#whD").value.trim();if(/^Other/.test(a)&&!d)return alert("Explain the reason.");
+   if(/^Was not/.test(a))addRec(wd,sh,w,n,"Not working",d);else addRec(wd,sh,w,n,"Worked through",/^Other/.test(a)?d:a+(d?": "+d:""));sv();$("#dDat").close();brkView()};dlg()}
+
+ /* =================== WORKED-THROUGH WEEKLY REPORT =================== */
+ let WK=0;
+ const wkStart=off=>{const d=new Date();const k=(d.getDay()+6)%7;d.setDate(d.getDate()-k+off*7);return ymd(d)};
+ function wkRows(){const a=wkStart(WK),b=addDay(a,6);return BRK().filter(r=>r.st==="Worked through"&&r.date>=a&&r.date<=b).sort((x,y)=>(x.date+x.t).localeCompare(y.date+y.t)||x.who.localeCompare(y.who))}
+ function repView(){const a=wkStart(WK),b=addDay(a,6),L=wkRows(),sec=sh=>L.filter(r=>r.shift===sh);
+  const tbl=R=>R.length?`<div style="overflow:auto;padding:0 12px"><table style="width:100%;border-collapse:collapse;font-size:14px"><tr>${["Person","Date","Shift","Missed","Foreman","Reason"].map(x=>`<th style="text-align:left;border-bottom:2px solid var(--line);padding:6px">${x}</th>`).join("")}</tr>${R.map(r=>`<tr>${[r.who,fmtD(r.date),r.shift,r.kind+" "+t12(r.t),r.fore,r.reason].map(x=>`<td style="border-bottom:1px solid var(--line);padding:6px">${E(x)}</td>`).join("")}</tr>`).join("")}</table></div>`:`<div class="empty" style="padding:6px 16px">None.</div>`;
+  const per=byPerson(L);
+  MD.innerHTML=`<div class="mh"><button data-wr="back">Breaks</button><h2>Worked-Through Breaks</h2></div><div class="row" style="padding:0 16px"><button data-wr="prev">&larr; Week</button><b style="flex:2;text-align:center;align-self:center">${E(fmtD(a))} to ${E(fmtD(b))}</b><button data-wr="next"${WK>=0?" disabled":""}>Week &rarr;</button></div>
+  <div class="stats"><span><b>${sec("Day").length}</b>Day Shift</span><span><b>${sec("Night").length}</b>Night Shift</span><span><b>${L.length}</b>Combined</span></div>
+  <div class="row" style="padding:0 16px"><button class="pri" data-wr="print">Print</button><button data-wr="csv">Export CSV</button></div>
+  <h2 class="sec">Day Shift (${sec("Day").length})</h2>${tbl(sec("Day"))}<h2 class="sec">Night Shift (${sec("Night").length})</h2>${tbl(sec("Night"))}
+  <h2 class="sec">Combined by person</h2>${per.length?`<div style="overflow:auto;padding:0 12px"><table style="width:100%;border-collapse:collapse;font-size:14px"><tr>${["Person","Day","Night","Total"].map(x=>`<th style="text-align:left;border-bottom:2px solid var(--line);padding:6px">${x}</th>`).join("")}</tr>${per.map(p=>`<tr>${[p.n,p.d,p.ni,p.d+p.ni].map(x=>`<td style="border-bottom:1px solid var(--line);padding:6px">${E(x)}</td>`).join("")}</tr>`).join("")}<tr><td style="padding:6px"><b>Total</b></td><td style="padding:6px"><b>${sec("Day").length}</b></td><td style="padding:6px"><b>${sec("Night").length}</b></td><td style="padding:6px"><b>${L.length}</b></td></tr></table></div>`:`<div class="empty" style="padding:6px 16px">None this week.</div>`}<div style="height:40px"></div>`}
+ const byPerson=L=>{const m={};L.forEach(r=>{const o=m[r.who]||(m[r.who]={n:r.who,d:0,ni:0});if(r.shift==="Night")o.ni++;else o.d++});return Object.values(m).sort((a,b)=>(b.d+b.ni)-(a.d+a.ni)||a.n.localeCompare(b.n))};
+ function repHTML(){const a=wkStart(WK),b=addDay(a,6),L=wkRows(),sec=sh=>L.filter(r=>r.shift===sh),th="border:1px solid #000;padding:4px 6px;background:#ede9dc;font-weight:700;text-align:left",td="border:1px solid #000;padding:4px 6px";
+  const tbl=R=>R.length?`<table style="width:100%;border-collapse:collapse;margin:4px 0 12px"><tr>${["Person","Date","Shift","Missed Break","Foreman","Reason"].map(x=>`<th style="${th}">${x}</th>`).join("")}</tr>${R.map(r=>`<tr>${[r.who,fmtD(r.date),r.shift,r.kind+" "+t12(r.t)+" ("+r.len+" min)",r.fore,r.reason].map(x=>`<td style="${td}">${E(x)}</td>`).join("")}</tr>`).join("")}</table>`:`<div style="margin:4px 0 12px">None.</div>`;
+  return `<div class="pg" style="padding:.4in .5in;font:12px/1.35 Arial,Helvetica,sans-serif"><div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:6px"><img src="${LOGO}" alt="" style="height:.5in"><div style="text-align:right"><div style="font:700 18px Arial,sans-serif">Worked-Through Breaks: Weekly Report</div><div>${E(fmtD(a))} to ${E(fmtD(b))}</div><div>${E(typeof SITE==="function"?SITE():"")}${typeof JOBNO==="function"&&JOBNO()?" &middot; Job "+E(JOBNO()):""}</div></div></div>
+  <div style="display:flex;gap:16px;margin:10px 0;font-weight:700"><span>Day Shift: ${sec("Day").length}</span><span>Night Shift: ${sec("Night").length}</span><span>Combined: ${L.length}</span></div>
+  <div style="font:700 14px Arial;margin-top:8px">Day Shift</div>${tbl(sec("Day"))}<div style="font:700 14px Arial">Night Shift</div>${tbl(sec("Night"))}
+  <div style="font:700 14px Arial">Combined by Person</div><table style="width:60%;border-collapse:collapse;margin-top:4px"><tr>${["Person","Day","Night","Total"].map(x=>`<th style="${th}">${x}</th>`).join("")}</tr>${byPerson(L).map(p=>`<tr>${[p.n,p.d,p.ni,p.d+p.ni].map(x=>`<td style="${td}">${E(x)}</td>`).join("")}</tr>`).join("")}<tr><td style="${td}"><b>Total</b></td><td style="${td}"><b>${sec("Day").length}</b></td><td style="${td}"><b>${sec("Night").length}</b></td><td style="${td}"><b>${L.length}</b></td></tr></table>
+  <div style="margin-top:10px;color:#444">A break counts as worked through when it is not logged within 10 minutes after the break ends (15 minutes after lunch). Task clocks are not stopped for breaks. Printed ${E(new Date().toLocaleString())}.</div>
+  <div style="display:flex;gap:.4in;margin-top:24px">${["Day Shift Supervisor","Night Shift Supervisor"].map(l=>`<div style="flex:1"><div style="border-bottom:1px solid #000;height:.4in"></div>${l} &middot; Signature / Date</div>`).join("")}</div></div>`}
+ function repCSV(){const a=wkStart(WK),L=wkRows(),rows=[["Person","Date","Shift","Missed Break","Break Start","Minutes","Foreman","Reason","Logged"]];
+  ["Day","Night"].forEach(sh=>L.filter(r=>r.shift===sh).forEach(r=>rows.push([r.who,r.date,r.shift,r.kind,r.t,r.len,r.fore,r.reason,r.at])));
+  rows.push([]);rows.push(["Totals","","Day Shift",L.filter(r=>r.shift==="Day").length]);rows.push(["","","Night Shift",L.filter(r=>r.shift==="Night").length]);rows.push(["","","Combined",L.length]);
+  rows.push([]);rows.push(["Person","Day","Night","Total"]);byPerson(L).forEach(p=>rows.push([p.n,p.d,p.ni,p.d+p.ni]));csvDL(rows,"worked-through-breaks-"+a+".csv")}
+
+ /* =================== END OF SHIFT =================== */
+ let EOSCHK={};
+ function eosFlags(sh){const f=[];const to=(DB.timeouts||[]).filter(x=>!x.cleared),hp=DB.tasks.filter(t=>t.hold&&!t.hold.rel),dl=(DB.delays||[]).filter(d=>!d.end),pb=pending(sh),dm=[];ORD().forEach(o=>(o.rec||[]).forEach(r=>{if(r.dmg&&!r.dmgOk&&r.date===tdy())dm.push(o)}));
+  to.forEach(x=>f.push(["Time out still open",(x.ttl||"General")+": "+x.why,"fm_tout"]));hp.forEach(t=>f.push(["Hold point open",t.title+" ("+t.hold.type+")","fm_hold"]));dl.forEach(d=>f.push(["Delay still running",(({weather:"Weather",customer:"Customer",crane:"Crane malfunction"})[d.cat]||"Delay")+(d.note?": "+d.note:""),"delay"]));
+  pb.forEach(x=>f.push(["Break reason needed",x.n+": "+x.w.kind+" "+t12(x.w.t),"fm_brk"]));dm.forEach(o=>f.push(["Damaged delivery today",(o.vendor?o.vendor+": ":"")+o.desc,"fm_rcv"]));return f}
+ function eosView(){const sh=curSh(),wd=workDate(sh),cr=crew(),fl=eosFlags(sh),runN=cr.filter(p=>RUN()[p.title]).length,can=ISFORE();
+  const hist=EOS().slice().sort((a,b)=>b.ts-a.ts).filter(x=>isSup()||x.shift===sh).slice(0,10);
+  MD.innerHTML=`<div class="mh"><h2>End of Shift</h2></div><div class="hint" style="padding:0 16px">${E(sh)} Shift &middot; ${E(fmtD(wd))} &middot; ${runN} on the clock now</div>`+
+  `<h2 class="sec">Open items (${fl.length})</h2>`+(fl.map(x=>`<div class="rec hold"><b>${E(x[0])}</b><small style="color:var(--ink)">${E(x[1])}</small><div class="row"><button data-eo="go" data-v="${x[2]}">Open</button></div></div>`).join("")||`<div class="empty" style="padding:6px 16px">Nothing open. Good.</div>`)+
+  `<h2 class="sec">Crew hours this shift</h2><div class="hint" style="padding:0 16px">Check each person's hours. Uncheck anyone that looks wrong and write what to fix.</div>`+
+  cr.map(p=>{const n=p.title,h=hrsNow(n,sh),r=RUN()[n],t=r&&DB.tasks.find(x=>x.id===r.tid),c=EOSCHK[n]||(EOSCHK[n]={ok:true,note:""});if(!h&&!r)return "";
+   return `<div class="rec"><div style="display:flex;align-items:center;gap:10px"><label class="chk" style="margin:0;flex:1;color:inherit"><input type="checkbox" data-eo="ok" data-nm="${E(n)}"${c.ok?" checked":""}><span><b>${E(n)}</b></span></label><b style="font-size:20px">${f2(h)} h</b></div>${t?`<small>Running: ${E(t.title)} (${E(elap(Date.now()-r.since))})</small>`:""}${c.ok?"":`<input data-eo="note" data-nm="${E(n)}" value="${E(c.note)}" placeholder="What is wrong with these hours">`}</div>`}).join("")+
+  (cr.some(p=>hrsNow(p.title,sh)||RUN()[p.title])?"":`<div class="empty" style="padding:6px 16px">No hours logged on this shift yet.</div>`)+
+  (cr.length?`<div class="hint" style="padding:0 16px">No time today: ${E(cr.filter(p=>!hrsNow(p.title,sh)&&!RUN()[p.title]).map(p=>p.title).join(", ")||"none")}</div>`:"")+
+  (can?`<div class="row" style="padding:0 16px"><button class="pri" data-eo="end" style="min-height:58px;font-size:18px">Stop All Timers and End Shift</button></div><div class="hint" style="padding:0 16px">Stops every task clock on ${E(sh)} Shift, saves the hours check, then opens the Shift Handoff note.</div>`:"")+
+  (hist.length?`<h2 class="sec">Past end-of-shift checks</h2>`+hist.map(x=>{const bad=x.rows.filter(r=>!r.ok);return `<div class="rec${bad.length&&!x.ack?" hold":""}"><b>${E(x.shift)} Shift &middot; ${E(fmtD(x.date))}</b><small>${E(x.at)} by ${E(x.by)} &middot; ${x.rows.length} people &middot; ${f2(x.rows.reduce((a,r)=>a+r.hrs,0))} h total &middot; ${x.flags.length} open item${x.flags.length===1?"":"s"}</small>${bad.map(r=>`<small style="color:var(--bad,#b3342b)">Fix hours: ${E(r.who)} (${f2(r.hrs)} h) ${E(r.note||"")}</small>`).join("")}${x.ack?`<small>Hours fixed by ${E(x.ack.by)} ${E(x.ack.at)}</small>`:bad.length&&isSup()?`<div class="row"><button data-eo="ack" data-id="${x.id}">Hours Fixed</button></div>`:""}</div>`}).join(""):"")+`<div style="height:40px"></div>`}
+ function endShift(){const sh=curSh(),wd=workDate(sh),cr=crew();if(!confirm("End "+sh+" Shift? Every task clock on this shift stops now."))return;
+  const running=Object.keys(RUN()).filter(onSh);running.forEach(bank);DB.tasks.forEach(fixSt);
+  const rows=cr.map(p=>({who:p.title,hrs:hrsNow(p.title,sh),ok:(EOSCHK[p.title]||{ok:true}).ok,note:(EOSCHK[p.title]||{}).note||""})).filter(r=>r.hrs>0||!r.ok);
+  const fl=eosFlags(sh);EOS().push({id:"eos|"+wd+"|"+sh,date:wd,shift:sh,by:me(),at:nowTxt(),ts:Date.now(),rows,flags:fl.map(x=>x[0]+": "+x[1]),stopped:running.length,ack:null});EOSCHK={};sv();
+  show("fm_hand");setTimeout(()=>{const t=$("#hoN");if(t&&!t.value){t.value=(fl.length?"Still open:\n"+fl.map(x=>"- "+x[0]+": "+x[1]).join("\n")+"\n\n":"")+"Crew hours: "+rows.map(r=>r.who+" "+f2(r.hrs)+"h").join(", ")+"\n\n";t.focus()}},80)}
+
+ /* =================== register views =================== */
+ const ICO={fm_msg:'<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',crew:'<circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5M14 20c0-2.5 1.5-4 3-4s4 1.5 4 4"/>',fm_req:'<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2M12 11v6M9 14h6"/>',fm_rcv:'<path d="M2 7h12v9H2zM14 10h4l3 3v3h-7"/><circle cx="6" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/><path d="M6 11l2 2 3-3"/>',fm_brk:'<path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 10h2a2.5 2.5 0 0 1 0 5h-2M8 3v3M11 3v3"/>',brk_rep:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',fm_eos:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/><path d="M4 4l3 3"/>'};
+ const VIEWS={fm_msg:["Messages","Chat with foremen and supervisors",()=>CH?chatView():msgList()],crew:["Crew Board","Who is on which task, move people",crewView],fm_req:["Parts & Expendables","Request expendables and parts",reqView],fm_rcv:["Receive Delivery","BOL scan, photos and damage at the gate",rcvView],fm_brk:["Breaks","Break and lunch log, worked-through reasons",brkView],brk_rep:["Worked-Through Breaks","Weekly report, both shifts",repView],fm_eos:["End of Shift","Stop clocks, check hours, hand off",eosView]};
+ Object.entries(VIEWS).forEach(([k,v])=>{M[k]={t:v[0],f:[],sum:()=>""};ICON[k]=ICO[k];if(!TL.some(t=>t[0]===k))TL.push([k,v[0],v[1]])});
+ const _m=mod;mod=function(k){if(VIEWS[k])return VIEWS[k][2]();return _m.apply(this,arguments)};
+ const _s=show;show=function(v){if(v==="brk_rep"&&!isSup()){alert("The weekly report is for supervisors.");return}if(v!=="fm_msg")CH="";if(v!=="crew")CSEL="";const r=_s.apply(this,arguments);try{if(VIEWS[cur])$("#fab").hidden=true}catch(e){}return r};
+ try{if(!DB.homeV5){const h=HM(),put=(k,name)=>{const id=Object.keys(h.folders||{}).find(i=>h.folders[i].name===name);const inAny=Object.values(h.folders||{}).some(f=>(f.items||[]).includes(k));if(!inAny&&id){h.folders[id].items.push(k);h.order=(h.order||[]).filter(x=>x!==k)}};
+  [["fm_msg","Daily Work"],["crew","Daily Work"],["fm_brk","Daily Work"],["brk_rep","Daily Work"],["fm_eos","Daily Work"],["fm_req","Shop Needs"],["fm_rcv","Shop Needs"]].forEach(([k,n])=>put(k,n));DB.homeV5=1;sv()}}catch(e){}
+ window.MSGUNREAD=unreadAll;window.BRKPENDING=()=>{try{return pending().length}catch(e){return 0}};
+ /* phone tiles and badges */
+ window.PBADGE=k=>{if(k==="fm_msg"){const n=unreadAll();return n?n+" new":""}if(k==="crew"){const n=crew().filter(p=>!RUN()[p.title]).length;return n?n+" idle":""}if(k==="fm_brk"){const n=pending().length;return n?n+" need reason":""}
+  if(k==="fm_req"){const n=ORD().filter(o=>o.req&&o.by===me()&&isOpen(o)).length;return n?n+" open":""}if(k==="fm_rcv"){const n=ORD().filter(o=>o.kind==="vend"&&isOpen(o)&&o.due&&o.due<=tdy()).length;return n?n+" due":""}return ""};
+ /* iPad: Needs attention */
+ const _h=home;home=function(){const r=_h.apply(this,arguments);if(window.PHONE&&PHONE())return r;try{const add=(a,b,go)=>ATT.unshift([a,b,go]);
+  ORD().forEach(o=>(o.rec||[]).forEach(x=>{if(x.dmg&&!x.dmgOk)add("Delivery damage",(o.vendor?o.vendor+": ":"")+o.desc+(x.dmgNote?" - "+x.dmgNote:""),()=>show("fm_rcv"))}));
+  RENT().forEach(o=>(o.rcv||[]).forEach(x=>{if(x.dmg&&!x.dmgOk)add("Rental delivered damaged",(o.vend?o.vend+": ":"")+o.desc+(x.dmgNote?" - "+x.dmgNote:""),()=>show("fm_rcv"))}));
+  if(isSup()){const rq=ORD().filter(o=>o.req&&o.st==="Requested").length;if(rq)add("Field requests waiting",rq+" part or expendable request"+(rq===1?"":"s")+" to approve",()=>{RQ="mine";RQF="all";show("fm_req")});
+   EOS().filter(x=>!x.ack&&x.rows.some(r=>!r.ok)).forEach(x=>add("Hours to fix",x.shift+" Shift "+x.date+": "+x.rows.filter(r=>!r.ok).map(r=>r.who).join(", "),()=>show("fm_eos")))}
+  const n=unreadAll();if(n)add("Messages",n+" unread",()=>show("fm_msg"));
+  if(ATT.length&&$("#attn"))$("#attn").innerHTML=`<h2>Needs attention</h2>`+ATT.slice(0,10).map((a,i)=>`<button class="att" data-i="${i}"><b>${E(a[0])}</b>${E(a[1])}</button>`).join("")}catch(e){}return r};
+
+ /* =================== events =================== */
+ MD.addEventListener("click",async e=>{const b=e.target.closest("button,[data-cb]");if(!b)return;const d=b.dataset;
+  if(cur==="fm_msg"&&d.mg){const k=d.mg;
+   if(k==="open"){CH=d.ch;MLINK=null;MPH=[];return chatView()}if(k==="list"){CH="";return msgList()}if(k==="link")return linkForm();if(k==="go")return goLink(d.k,d.id);
+   if(k==="unlink"){MLINK=null;$("#mgAt").innerHTML=attHTML();return loadTh()}if(k==="unph"){MPH.forEach(pDel);MPH=[];$("#mgAt").innerHTML=attHTML();return}
+   if(k==="send"){const t=$("#mgT").value.trim();if(!t&&!MPH.length&&!MLINK)return;MSG().push({id:uidm("m"),ch:CH,from:me(),text:t,ts:Date.now(),photos:MPH,link:MLINK,shift:curSh()});MPH=[];MLINK=null;sv();markRead(CH);$("#mgT").value="";$("#mgAt").innerHTML="";MSIG=sig();const l=$("#msgL");l.innerHTML=bubbles();l.scrollTop=l.scrollHeight;loadTh();return}}
+  if(cur==="crew"&&d.cb){if(!ISFORE())return;const k=d.cb;
+   if(k==="p"){e.stopPropagation();CSEL=CSEL===d.nm?"":d.nm;return crewView()}if(k==="cancel"){CSEL="";return crewView()}if(k==="other")return otherTask(CSEL);
+   if(!CSEL)return;if(k==="t"){moveTo(CSEL,d.id);CSEL="";return crewView()}if(k==="idle"){if(RUN()[CSEL]){bank(CSEL);sv()}CSEL="";return crewView()}}
+  if(cur==="fm_req"&&d.rq){const k=d.rq;
+   if(k==="tab"){RQ=d.v;return reqView()}if(k==="f"){RQF=d.v;return reqView()}if(k==="p"||k==="m"){EXQ[d.id]=Math.max(0,(EXQ[d.id]||0)+(k==="p"?1:-1));return reqView()}if(k==="editx")return editExp();
+   if(k==="sendx"){const it=EXL().filter(x=>EXQ[x.id]>0);if(!it.length)return alert("Tap + on what you need first.");const u=$("#rqU").value,du=$("#rqD").value,no=$("#rqN").value.trim(),g=uidm("g");
+    it.forEach(x=>newReq({req:"exp",grp:g,desc:"Expendable: "+x.name,qty:EXQ[x.id],uom:x.uom,unit:u,due:du,note:no}));EXQ={};sv();alert("Sent to Shop Needs.");RQ="mine";RQF="mine";return reqView()}
+   if(k==="sendp"){const pn=$("#ppN").value.trim(),de=$("#ppD").value.trim(),q=parseFloat($("#ppQ").value);if(!pn&&!de)return alert("Enter the part number or a description.");if(!(q>0))return alert("Enter the quantity.");const tid=$("#ppT").value,tk=DB.tasks.find(x=>x.id===tid);
+    newReq({req:"part",pn,desc:"Part"+(pn?" "+pn:"")+(de?": "+de:""),qty:q,unit:$("#ppU").value||(tk?tk.unit:""),tid,ttl:tk?tk.title:"",due:$("#ppB").value,pri:$("#ppR").value,note:$("#ppO").value.trim(),photos:PPH});PPH=[];sv();alert("Part request sent to Shop Needs.");RQ="mine";RQF="mine";return reqView()}
+   const o=ORD().find(x=>x.id===d.id);if(!o)return;if(k==="cx"&&confirm("Cancel this request?")){o.st="Cancelled";olog(o,"Cancelled by "+me());sv();return reqView()}if(k==="ap"&&isSup()){o.st="Approved";olog(o,"Approved by "+me());sv();return reqView()}}
+  if(cur==="fm_rcv"&&d.rv){const k=d.rv;if(k==="new")return rcvForm2();if(k==="bol")return docOpen(d.id);
+   if(k==="sig"){const u=await pGet(d.id);if(!u)return alert("The signature is not on this device yet.");$("#vBody").innerHTML=`<h2>Driver Signature</h2><img src="${u}" alt="" style="width:100%;background:#fff;border-radius:8px"><div class="row"><button type="button" id="vvX">Close</button></div>`;$("#vBody").onclick=ev=>{if(ev.target.id==="vvX")$("#dView").close()};return $("#dView").showModal()}
+   if(k==="ok"&&isSup()){const r=rcvFind(d.id);if(r){r.dmgOk={by:me(),at:nowTxt()};sv();rcvView()}return}}
+  if(cur==="fm_brk"&&d.bk){const k=d.bk;if(k==="log")return logForm(d.w);if(k==="why")return whyForm(d.w,d.nm);if(k==="rep")return show("brk_rep");if(k==="sh"){BSH=d.v;return brkView()}
+   if(!isSup())return;if(k==="addw"){BS()[BSH].push({id:uidm("bw"),t:BSH==="Night"?"22:00":"10:00",len:15,kind:"Break"});sv();return brkView()}
+   if(k==="delw"&&confirm("Remove this break time?")){BS()[BSH]=BS()[BSH].filter(w=>w.id!==d.id);sv();return brkView()}}
+  if(cur==="brk_rep"&&d.wr){const k=d.wr;if(k==="back")return show("fm_brk");if(k==="prev"){WK--;return repView()}if(k==="next"){WK=Math.min(0,WK+1);return repView()}if(k==="csv")return repCSV();if(k==="print"){fprev(repHTML());try{await fillImgs()}catch(x){}return}}
+  if(cur==="fm_eos"&&d.eo){const k=d.eo;if(k==="go")return show(d.v);if(k==="end")return endShift();if(k==="ack"&&isSup()){const x=EOS().find(y=>y.id===d.id);if(x){x.ack={by:me(),at:nowTxt()};sv();eosView()}}}});
+ MD.addEventListener("change",async e=>{const t=e.target,d=t.dataset;
+  if(cur==="fm_msg"&&t.id==="mgP"){MPH=MPH.concat(await savePh(t.files));t.value="";$("#mgAt").innerHTML=attHTML();loadTh()}
+  if(cur==="fm_req"){if(t.id==="ppP"){PPH=PPH.concat(await savePh(t.files));$("#ppTh").innerHTML=thumbs(PPH);loadTh()}if(t.id==="ppU"){LAST.unit=t.value;$("#ppT").innerHTML=taskOpts("",x=>!t.value||x.unit===t.value)}if(t.id==="ppT"){const tk=DB.tasks.find(x=>x.id===t.value);if(tk&&tk.unit)$("#ppU").value=tk.unit}}
+  if(cur==="fm_brk"&&d.bw&&isSup()){const w=BS()[BSH].find(x=>x.id===d.id);if(!w)return;if(d.bw==="len"){const v=parseInt(t.value,10);if(!(v>0))return;w.len=v}else w[d.bw]=t.value;sv()}
+  if(cur==="fm_eos"&&d.eo==="ok"){const c=EOSCHK[d.nm]||(EOSCHK[d.nm]={ok:true,note:""});c.ok=t.checked;eosView()}});
+ MD.addEventListener("input",e=>{const t=e.target;if(cur==="fm_eos"&&t.dataset.eo==="note"){(EOSCHK[t.dataset.nm]||(EOSCHK[t.dataset.nm]={ok:false})).note=t.value}});
+ MD.addEventListener("keydown",e=>{if(cur==="fm_msg"&&e.target.id==="mgT"&&e.key==="Enter"&&!e.shiftKey&&!PHONE()){e.preventDefault();const b=document.querySelector('#mod [data-mg="send"]');if(b)b.click()}});
+
+ /* =================== demo examples =================== */
+ const _ld=loadDemoData;loadDemoData=function(){DB.crewSeed=0;DB.msgs=[];DB.msgReads=[];DB.breaks=[];DB.eos=[];delete DB.breakSched;delete DB.expList;return _ld.apply(this,arguments)};
+ try{if((ds().setup||{}).jobNo==="ARG-OM-2601"&&!DB.crewSeed){DB.crewSeed=1;
+  const at=(n,h,m)=>{const x=new Date();x.setDate(x.getDate()-n);x.setHours(h,m,0,0);return +x},JM="Jason McKendree",MDL="Marcus Delgado",TR="Tony Reyes",DH="Derek Hall";
+  const T1=DB.tasks.find(t=>t.st==="In progress")||DB.tasks[0],HP=DB.tasks.find(t=>t.hold&&!t.hold.rel);
+  const m=(ch,from,text,ts,x)=>MSG().push(Object.assign({id:"dm"+ts+from.length,ch,from,text,ts,photos:[],link:null,shift:window.SHOF?SHOF(from)||"Day":"Day"},x||{}));
+  m("all",DH,"Night shift turned over. Unit 1 lower half bolting is 70% torqued, pattern sheet is on the clipboard.",at(0,5,45));
+  m("all",JM,"Got it, thanks Derek. Marcus, start the crew on the rest of the Unit 1 bolting after the tailgate.",at(0,6,40));
+  m("all",MDL,"Will do. Bearing cap on Unit 4 is ready for QC.",at(0,7,5),HP?{link:{k:"hold",id:HP.id,label:HP.title+" ("+HP.hold.type+")"}}:{});
+  m(chOf(JM,MDL),JM,"Need two guys on the Unit 1 lift at 10. Can you spare Tyler and Danny?",at(0,8,10));
+  m(chOf(JM,MDL),MDL,"Yes. Moving them after break.",at(0,8,12),T1?{link:{k:"task",id:T1.id,label:(T1.unit?T1.unit+": ":"")+T1.title}}:{});
+  m(chOf(DH,TR),DH,"Watch the oil on the Unit 4 walkway tonight.",at(1,18,20));
+  RD().push({id:JM+"|all",who:JM,ch:"all",ts:at(0,6,40)},{id:MDL+"|all",who:MDL,ch:"all",ts:at(0,7,5)},{id:MDL+"|"+chOf(JM,MDL),who:MDL,ch:chOf(JM,MDL),ts:at(0,8,12)},{id:JM+"|"+chOf(JM,MDL),who:JM,ch:chOf(JM,MDL),ts:at(0,8,10)});
+  /* breaks: a week of logs, a few worked through on both shifts */
+  BS();const cOf=sh=>ALLP().filter(p=>!SUPR.includes(p.role)&&(p.shift||"Day")===sh).map(p=>p.title),dayC=cOf("Day"),nightC=cOf("Night");
+  const wt=[[1,"Day","bd2","Danny Whitfield","Critical lift or rigging in progress"],[1,"Day","bd2","Tyler Brooks","Critical lift or rigging in progress"],[2,"Day","bd3","Luis Herrera","Customer witness or hold point"],[3,"Night","bn2","Kyle Brandt","Finishing a step that could not stop: torque pass on Unit 1 lower half"],[2,"Night","bn1","Hector Ruiz","Crew short-handed"],[4,"Day","bd1","Ray Castillo","Emergency or breakdown work: Bay 2 crane pendant"]];
+  for(let n=1;n<=5;n++){["Day","Night"].forEach(sh=>{const wd=ymd(new Date(at(n,12,0)));BS()[sh].forEach(w=>{(sh==="Day"?dayC:nightC).forEach(p=>{const x=wt.find(a=>a[0]===n&&a[1]===sh&&a[2]===w.id&&a[3]===p);const fore=sh==="Day"?MDL:TR;
+   BRK().push({id:bid(wd,sh,w,p),date:wd,shift:sh,win:w.id,kind:w.kind,t:w.t,len:w.len,who:p,st:x?"Worked through":"Took",reason:x?x[4]:"",fore,at:"",ts:at(n,12,0)})})})})}
+  {const wd=workDate("Day"),now=Date.now();BS().Day.forEach(w=>{if(now<winTimes(w,"Day",wd).dl)return;dayC.forEach(p=>{if(p==="Brandon Lee"&&w.id==="bd1")return;if(!onClockToday(p,"Day"))return;BRK().push({id:bid(wd,"Day",w,p),date:wd,shift:"Day",win:w.id,kind:w.kind,t:w.t,len:w.len,who:p,st:"Took",reason:"",fore:MDL,at:"",ts:now})})})}
+  /* parts and expendables requests */
+  const T4=DB.tasks.find(t=>/Unit 4/.test(t.unit||"")&&t.st!=="Done")||T1;
+  ORD().push({id:"oq1",kind:"shop",req:"exp",desc:"Expendable: Nitrile gloves (L)",qty:4,uom:"box",vendor:"",unit:"",ordered:ymd(new Date(at(1,9,0))),due:tdy(),st:"Ordered",rec:[],fu:[],log:[],by:MDL,ts:at(1,9,0),shift:"Day",pri:"Normal"},
+   {id:"oq2",kind:"shop",req:"exp",desc:"Expendable: Grinding discs 4-1/2 in",qty:2,uom:"box",vendor:"",unit:"",ordered:tdy(),due:tdy(),st:"Requested",rec:[],fu:[],log:[],by:MDL,ts:at(0,7,30),shift:"Day",pri:"Normal"},
+   {id:"oq3",kind:"shop",req:"part",pn:"351A4720P001",desc:"Part 351A4720P001: No. 2 bearing thermocouple",qty:2,vendor:"",unit:T4?T4.unit:"",tid:T4?T4.id:"",ttl:T4?T4.title:"",ordered:tdy(),due:addDay(tdy(),3),st:"Requested",rec:[],fu:[],log:[],by:MDL,ts:at(0,9,15),shift:"Day",pri:"Urgent",note:"Old one has a cracked sheath. Photo of the tag attached.",photos:["pf3"]},
+   {id:"oq4",kind:"shop",req:"exp",desc:"Expendable: Oil absorbent pads",qty:3,uom:"bundle",vendor:"Grainger",unit:"",ordered:ymd(new Date(at(3,20,0))),due:ymd(new Date(at(2,12,0))),st:"Received",recvd:ymd(new Date(at(2,12,0))),rec:[{id:"rq4",date:ymd(new Date(at(2,12,0))),qty:3,cond:"Complete and undamaged",by:TR}],fu:[],log:[],by:TR,ts:at(3,20,0),shift:"Night",pri:"Normal"});
+  /* a damaged delivery received at the gate this morning */
+  const ov=ORD().find(o=>o.kind==="vend"&&isOpen(o));
+  if(ov){const cv=document.createElement("canvas");cv.width=900;cv.height=600;const g=cv.getContext("2d");g.fillStyle="#6b4d2a";g.fillRect(0,0,900,600);g.fillStyle="#3a2a18";g.fillRect(250,180,420,260);g.strokeStyle="#c33";g.lineWidth=8;g.beginPath();g.moveTo(560,190);g.lineTo(640,300);g.lineTo(600,420);g.stroke();g.fillStyle="#fff";g.font="bold 36px Arial";g.fillText("Crate corner crushed",40,560);pPut("pdm1",cv.toDataURL("image/jpeg",.7));
+   const q=+ov.qty||1,r={id:"rdm1",date:tdy(),ts:at(0,7,50),qty:q,cond:"Damaged",by:MDL,note:"Signed BOL as received damaged.",bolNo:"PRO 448812",carrier:"Estes",dmg:true,dmgNote:"Crate corner crushed, one flange cover bent. Contents look OK, need inspection.",dmgPh:["pdm1"],photos:["pdm1"],partial:false,driver:"R. Gomez",shift:"Day",src:"field"};
+   ov.rec=(ov.rec||[]).concat(r);ov.st="Received";ov.recvd=tdy();olog(ov,"Received "+q+" (Damaged) BOL PRO 448812 - DAMAGE: "+r.dmgNote)}
+  /* yesterday's end of shift check */
+  EOS().push({id:"eos|"+ymd(new Date(at(1,12,0)))+"|Day",date:ymd(new Date(at(1,12,0))),shift:"Day",by:MDL,at:new Date(at(1,17,25)).toLocaleString([],{month:"numeric",day:"numeric",year:"2-digit",hour:"numeric",minute:"2-digit"}),ts:at(1,17,25),rows:dayC.map((n,i)=>({who:n,hrs:[10,10,9.5,10,10,8.5][i%6],ok:n!=="Brandon Lee",note:n==="Brandon Lee"?"Left at 3:30, timer ran on the Unit 4 task until 5":""})),flags:["Hold point open: Unit 4 bearing cap (QC inspection)"],stopped:4,ack:null});
+  sv()}}catch(e){console.warn("crew seed",e)}
+})();
+
+/* ===== App icon counter (free: no pop-up alerts, no server) ===== */
+(function(){
+ const E=esc,MD=$("#mod");
+ const curSh=()=>(window.CURSHIFT&&CURSHIFT())||"";
+ const canNote=()=>"Notification" in window;
+ const perm=()=>canNote()?Notification.permission:"unsupported";
+ const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+ const canBadge=()=>!!navigator.setAppBadge;
+ window.BADGECOUNT=()=>{if(!ME)return 0;let n=0;try{n+=window.MSGUNREAD?MSGUNREAD():0;const sh=curSh();
+  if(isSup()){n+=(DB.orders||[]).filter(o=>o.req&&o.st==="Requested"&&(!o.shift||!sh||o.shift===sh)).length;
+   (DB.orders||[]).forEach(o=>(o.rec||[]).forEach(r=>{if(r.dmg&&!r.dmgOk)n++}));(DB.rent||[]).forEach(o=>(o.rcv||[]).forEach(r=>{if(r.dmg&&!r.dmgOk)n++}));
+   n+=(DB.eos||[]).filter(x=>!x.ack&&(x.rows||[]).some(r=>!r.ok)).length;n+=(DB.cases||[]).filter(c=>c.st!=="Closed").length;n+=(DB.timeouts||[]).filter(x=>!x.cleared).length}
+  else if(window.ISFORE&&ISFORE()){n+=window.BRKPENDING?BRKPENDING():0;n+=(DB.handoff||[]).filter(h=>!h.ack&&sh&&h.shift!==sh).length}}catch(e){}return n};
+ let lastB=-1;
+ async function updBadge(){const n=ME?BADGECOUNT():0;if(n===lastB)return;lastB=n;try{if(canBadge()){if(n)await navigator.setAppBadge(n);else await navigator.clearAppBadge()}}catch(e){}}
+ setInterval(updBadge,4000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){lastB=-1;updBadge()}});
+ window.SYNCAFTER=()=>setTimeout(()=>{lastB=-1;updBadge()},300);
+ function ntfView(){const p=perm(),n=BADGECOUNT();
+  const st=p==="granted"?(canBadge()?"On. The app icon shows "+(n?n:"no")+" item"+(n===1?"":"s")+" for "+(ME?ME.title:"you")+" right now.":"Allowed, but this device does not support icon numbers. iPhone and iPad need iOS 16.4 or newer.")
+   :p==="denied"?"Blocked. Turn it on in the iPhone or iPad Settings app, under Notifications, TP Tracker, then Badges."
+   :p==="default"&&standalone()?"Not turned on yet on this device.":"Open TP Tracker from its Home Screen icon to turn this on. It does not work in a Safari tab.";
+  MD.innerHTML=`<div class="mh"><h2>App Icon Counter</h2></div><div class="rec"${p==="granted"&&canBadge()?' style="border-left:5px solid #2f7d4a"':""}><b>This device</b><small style="color:var(--ink)">${E(st)}</small>${p==="default"&&canNote()?`<div class="row"><button class="pri" data-nt="on" style="min-height:56px;font-size:18px">Turn On Icon Counter</button></div><small>The iPhone asks to allow notifications. Tap Allow. That is only so the red number can show; the app sends no pop-ups.</small>`:""}</div>
+  <div class="hint" style="padding:0 16px">The red number on the app icon counts unread messages${isSup()?", requests to approve, damaged deliveries, hours to fix, open safety cases and time outs":", break reasons needed and handoffs to read"}. It updates while the app is open or was used recently. If the phone sits closed for hours, it catches up the next time someone opens the app.</div>
+  <div class="hint" style="padding:6px 16px 40px">No pop-up alerts are sent. Everything stays on the free plan.</div>`}
+ MD.addEventListener("click",async e=>{if(cur!=="fm_ntf")return;const b=e.target.closest("button[data-nt]");if(!b)return;
+  if(b.dataset.nt==="on"){try{await Notification.requestPermission()}catch(x){}lastB=-1;updBadge();ntfView()}});
+ M.fm_ntf={t:"App Icon Counter",f:[],sum:()=>""};ICON.fm_ntf='<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>';if(!TL.some(t=>t[0]==="fm_ntf"))TL.push(["fm_ntf","App Icon Counter","Red number on the app icon"]);
+ const _m=mod;mod=function(k){if(k==="fm_ntf")return ntfView();return _m.apply(this,arguments)};
+ const _s=show;show=function(v){const r=_s.apply(this,arguments);try{if(cur==="fm_ntf")$("#fab").hidden=true;
+   if(cur==="home"&&window.PHONE&&PHONE()&&ME&&canNote()&&perm()==="default"&&standalone()&&!document.getElementById("ntBan")){const ph=document.getElementById("phoneHome");if(ph)ph.insertAdjacentHTML("afterbegin",`<div id="ntBan" class="rec" style="border-left:5px solid #1f6f6b;margin:0 0 10px"><b>Show a count on the app icon</b><small>Unread messages and things waiting on you.</small><div class="row"><button class="pri" type="button" onclick="show('fm_ntf')">Turn On Icon Counter</button></div></div>`)}}catch(e){}return r};
+ try{if(!DB.homeV6){const h=HM(),id=Object.keys(h.folders||{}).find(i=>h.folders[i].name==="Daily Work");if(id&&!Object.values(h.folders).some(f=>(f.items||[]).includes("fm_ntf"))){h.folders[id].items.push("fm_ntf");h.order=(h.order||[]).filter(x=>x!=="fm_ntf")}DB.homeV6=1;sv()}}catch(e){}
+ try{delete DB.pushCfg;delete DB.pushTok}catch(e){}
 })();
 
 /* ===== Weather bar (always on top) + Daily Status Report weather ===== */
