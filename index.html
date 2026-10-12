@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Field Service: parts bank, steam outage demo (v46)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Field Service: outage task library and parts bank (v47)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="cust">Project Info</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -1421,6 +1421,291 @@ $("#dStep").addEventListener("click",e=>{const b=e.target.closest("button");if(!
  else if(b.id==="spX")$("#dStep").close();
  else if(b.id==="spA"){const v=$("#spC").value.trim();if(!v)return alert("Describe the task first.");if(DB.steps.some(x=>x.t===v))return alert("That task is already in the list.");DB.steps.push({t:v,tools:$("#spCT").value.trim(),haz:$("#spCH").value.trim(),ctl:$("#spCC").value.trim()});sv();SEL.add(sk("Custom",v));SPH="Custom";spChips();spList();["spC","spCT","spCH","spCC"].forEach(i=>$("#"+i).value="")}
  else if(b.id==="spS"&&SEL.size){const who=[...SPW].join(", ");allSteps().forEach(([ph,l])=>l.forEach(t=>{if(SEL.has(sk(ph,t)))DB.tasks.push(Object.assign({id:uid(),title:t,unit:SPU,who,due:SPD,st:"Open",note:ph,exp:EXP[sk(ph,t)]||0},cmeta(t)))}));if(SPU){LAST.unit=SPU;try{localStorage.setItem("tp-last",JSON.stringify(LAST))}catch(x){}}sv();$("#dStep").close();afterTasks()}});
+/* ===== Outage task library: section, stage, task, components. Hazards, data sheet, hold point and FME fill in, and the JSA picks them up ===== */
+window.OB=(function(){
+const STAGES=["Mobilization","Cooldown & LOTO","Deck Prep","As-Found Readings","Disassembly","Rotor Removal","Clean & Inspect","Repairs","Reassembly","Closeout","Startup & Testing","Demobilization"];
+const HZ={susp:"Suspended loads",pinch:"Pinch points",hot:"Hot surfaces / burns",hotwork:"Hot work / fire",elec:"Electrical",stored:"Stored energy",rot:"Rotating equipment",fall:"Falls from height",conf:"Confined space",dust:"Silica / blast dust",asb:"Asbestos possible",noise:"Noise",sharp:"Sharp edges",lift:"Manual lifting / strain",chem:"Chemicals / solvents",h2:"Hydrogen",fuel:"Flammable fuel",co2:"CO2 asphyxiation",slip:"Slips / oil on deck"};
+
+// ---------- units & component banks ----------
+const diaph=(a,b)=>{const o=[];for(let i=a;i<=b;i++){o.push(`Stage ${i} diaphragm, upper`,`Stage ${i} diaphragm, lower`)}return o};
+const lpDiaph=()=>{const o=[];for(let i=4;i>=0;i--)for(const f of["TE","GE"])o.push(`L-${i} diaphragm ${f} flow, upper`,`L-${i} diaphragm ${f} flow, lower`);return o};
+const cans=(p)=>Array.from({length:10},(_,i)=>`${p} can ${i+1}`);
+const GEN={name:"Generator",c:{casing:["End shield TE","End shield CE","Outer bearing brackets"],bearing:["Gen bearing TE","Gen bearing CE"],coupling:["Turbine–generator coupling"],rotor:["Generator field"],seals:["H2 seal casing TE","H2 seal casing CE","Seal rings"],collector:["Collector rings","Brush rigging"],stator:["Stator wedges","End windings","Stator core"],probe:["Vib probes TE/CE","Bearing metal RTDs"]}};
+const UNITS={
+ steam:{
+  DECK:{name:"Site / Turbine deck",c:{}},
+  HP:{name:"HP Turbine",c:{casing:["Outer casing upper","Outer casing lower","Inner casing upper","Inner casing lower","Nozzle box"],diaphragm:diaph(2,9),packing:["N1 end packing (gov end)","N2 midspan packing","Interstage packing","Tip spill strips"],bearing:["Bearing #1","Bearing #2","Thrust bearing"],coupling:["HP–IP coupling"],rotor:["HP rotor"],bolting:["Outer casing joint bolts","Inner casing bolts"],piping:["Main steam leads","Cold reheat lines"],probe:["Vib probes brg 1–2","Thrust position probe","Eccentricity probe","Shell metal TCs"],valve:["Main stop valves","Control valves"],blades:["HP buckets stages 1–9"]}},
+  IP:{name:"IP Turbine",c:{casing:["Outer casing upper","Outer casing lower","Inner casing upper","Inner casing lower"],diaphragm:diaph(10,16),packing:["N3 packing","IP end packing","Interstage packing","Tip spill strips"],bearing:["Bearing #3"],coupling:["IP–LPA coupling"],rotor:["IP rotor"],bolting:["Outer casing joint bolts","Inner casing bolts"],piping:["Hot reheat leads","Crossover pipe"],probe:["Vib probe brg 3","Shell metal TCs"],valve:["Reheat stop valves","Intercept valves"],blades:["IP buckets stages 10–16"]}},
+  LPA:{name:"LP Turbine A",c:{casing:["Outer hood upper","Exhaust hood lower","Inner casing upper","Inner casing lower","Atmospheric relief diaphragms"],diaphragm:lpDiaph(),packing:["TE end packing","GE end packing","Interstage packing","Tip spill strips"],bearing:["Bearing #4","Bearing #5"],coupling:["LPA–LPB coupling"],rotor:["LP-A rotor"],bolting:["Hood joint bolts","Inner casing bolts"],piping:["Crossover inlet"],probe:["Vib probes brg 4–5","Exhaust hood TCs"],blades:["L-0 buckets","L-1 buckets","L-2 to L-4 buckets"]}},
+  LPB:{name:"LP Turbine B",c:{casing:["Outer hood upper","Exhaust hood lower","Inner casing upper","Inner casing lower","Atmospheric relief diaphragms"],diaphragm:lpDiaph(),packing:["TE end packing","GE end packing","Interstage packing","Tip spill strips"],bearing:["Bearing #6","Bearing #7"],coupling:["LPB–generator coupling"],rotor:["LP-B rotor"],bolting:["Hood joint bolts","Inner casing bolts"],piping:["Crossover inlet"],probe:["Vib probes brg 6–7","Exhaust hood TCs"],blades:["L-0 buckets","L-1 buckets","L-2 to L-4 buckets"]}},
+  GEN
+ },
+ gas:{
+  DECK:{name:"Site / Turbine deck",c:{}},
+  COMP:{name:"Inlet & Compressor",c:{casing:["Inlet casing","Compressor casing fwd, upper","Compressor casing fwd, lower","Compressor casing aft","Compressor discharge casing"],blades:["Inlet guide vanes","Rotor blades R0–R5","Rotor blades R6–R11","Rotor blades R12–R17","Stator vanes S0–S17","Exit guide vanes"],bearing:["Bearing #1","Thrust bearing"],rotor:["Compressor–turbine rotor"],bolting:["Casing horizontal joint bolts","Vertical flange bolts"],probe:["Vib probes brg 1","Thrust position probe"]}},
+  COMB:{name:"Combustion",c:{combustion:[...cans("Liner"),...cans("Transition piece"),...cans("Fuel nozzle"),"Flow sleeves (all)","Crossfire tubes (all)","End covers (all)","Igniters","Flame detectors"],piping:["Fuel gas manifold","Liquid fuel / atomizing air","Purge air"],probe:["Flame detectors"]}},
+  TURB:{name:"Turbine (hot gas path)",c:{nozzle:["Stage 1 nozzle","Stage 2 nozzle","Stage 3 nozzle"],shroud:["Stage 1 shrouds","Stage 2 shrouds","Stage 3 shrouds"],blades:["Stage 1 buckets","Stage 2 buckets","Stage 3 buckets"],casing:["Turbine shell upper","Turbine shell lower"],bolting:["Turbine shell joint bolts"],bearing:["Bearing #2"],rotor:["Compressor–turbine rotor"],piping:["Cooling & sealing air"],probe:["Wheelspace TCs","Vib probe brg 2"]}},
+  EXH:{name:"Exhaust",c:{casing:["Exhaust frame","Exhaust diffuser","Exhaust plenum"],bearing:["Bearing #3"],probe:["Exhaust TCs","Vib probe brg 3"],bolting:["Exhaust frame bolts"]}},
+  LOAD:{name:"Load & Accessory gear",c:{coupling:["Load coupling","Accessory coupling"],gear:["Load gear","Accessory gear","Starting means / torque converter"],bearing:["Load gear bearings"],probe:["Gear vib probes"]}},
+  GEN
+ }
+};
+
+// ---------- task libraries ----------
+// u: units, c: component bank, h: hazards, hr: crew-hours estimate, r: data sheet, hold: hold point, f: FME required
+const T_ST=["HP","IP","LPA","LPB"], T_STG=[...T_ST,"GEN"];
+const MOB=[
+ {n:"Site safety orientation & badging",u:["DECK"],h:[],hr:4},
+ {n:"Crane inspection & load test",u:["DECK"],h:["susp","fall"],hr:6,r:"Crane inspection checklist",hold:"Crane load test witnessed by plant"},
+ {n:"Rigging inventory, inspection & tagging",u:["DECK"],h:["pinch","sharp","lift"],hr:4,r:"Rigging inspection log"},
+ {n:"Toolroom & conex setup",u:["DECK"],h:["lift","pinch"],hr:8},
+ {n:"Calibrated tools check-in (torque, tensioners, indicators, mics)",u:["DECK"],h:[],hr:3,r:"Tool calibration log"},
+ {n:"Bolt heater & temporary power setup",u:["DECK"],h:["elec","hot"],hr:4},
+ {n:"Laydown areas, cribbing & rotor stands",u:["DECK"],h:["susp","pinch","lift"],hr:8,r:"Deck load plan"},
+ {n:"Set FME station & entry log",u:["DECK"],h:[],hr:2,f:1},
+ {n:"Kickoff meeting with plant & OEM rep",u:["DECK"],h:[],hr:2}
+];
+const DEMOB=[
+ {n:"Pack & ship tooling and conexes",u:["DECK"],h:["lift","susp","pinch"],hr:10},
+ {n:"Return crane & rigging",u:["DECK"],h:["susp"],hr:4},
+ {n:"Damaged tooling report",u:["DECK"],h:[],hr:1},
+ {n:"Close punch list with plant",u:["DECK"],h:[],hr:3,hold:"Plant sign-off on punch list"},
+ {n:"Compile final report (as-found vs as-left)",u:["DECK"],h:[],hr:6,r:"Final outage report"}
+];
+const LIB={
+ steam:{
+  "Mobilization":MOB,
+  "Cooldown & LOTO":[
+   {n:"Monitor cooldown on turning gear",u:T_ST,c:"probe",h:["hot","rot"],hr:1,r:"Cooldown log: shell metal temps",hold:"Metal temp below OEM limit before turning gear stops"},
+   {n:"Record final eccentricity on turning gear",u:T_ST,c:"probe",h:["rot"],hr:0.5,r:"Eccentricity reading"},
+   {n:"LOTO steam valves, extractions & drains",u:["DECK"],h:["stored","hot"],hr:4,hold:"LOTO verified by plant"},
+   {n:"Lock out turning gear motor & lube oil pumps",u:["DECK"],h:["elec","rot"],hr:1},
+   {n:"Lock out EHC / hydraulic system",u:["DECK"],h:["stored","chem"],hr:1},
+   {n:"Try/verify & zero-energy walkdown",u:["DECK"],h:["stored","elec"],hr:2,hold:"Zero-energy verified, permits signed"},
+   {n:"Hydrogen purge verified (CO2 then air)",u:["GEN"],h:["h2","co2"],hr:1,hold:"Plant confirms H2 purge complete"}
+  ],
+  "Deck Prep":[
+   {n:"Remove lagging & insulation blankets",u:T_ST,c:"casing",h:["dust","asb","hot","sharp"],hr:12},
+   {n:"Remove probes, RTDs & TCs — tag and log",u:T_STG,c:"probe",h:["elec"],hr:3,r:"Instrument removal log"},
+   {n:"Remove bearing pedestal covers",u:T_STG,c:"bearing",h:["pinch","lift"],hr:3},
+   {n:"Cover / blank open lines and drains",u:T_ST,c:"piping",h:["sharp"],hr:2,f:1},
+   {n:"Barricades, fall protection & FME zone",u:["DECK"],h:["fall"],hr:4,f:1}
+  ],
+  "As-Found Readings":[
+   {n:"Coupling rim & face (reverse dial)",u:T_STG,c:"coupling",h:["pinch","rot"],hr:4,r:"Coupling alignment — as-found"},
+   {n:"Rotor axial position & thrust float",u:["HP","IP"],c:"bearing",h:["pinch"],hr:2,r:"Thrust float / rotor position"},
+   {n:"Bearing tops & sides clearances",u:T_STG,c:"bearing",h:["pinch"],hr:2,r:"Bearing clearances — as-found"},
+   {n:"Bearing cap crush",u:T_STG,c:"bearing",h:["pinch"],hr:1.5,r:"Cap crush sheet"},
+   {n:"Oil deflector clearances",u:T_STG,c:"bearing",h:["pinch"],hr:1,r:"Oil deflector sheet"},
+   {n:"Journal & coupling runout (TIR)",u:T_STG,c:"rotor",h:["rot"],hr:2,r:"Runout sheet"},
+   {n:"Casing support key & palm clearances",u:T_ST,c:"casing",h:["pinch"],hr:3,r:"Casing key sheet"},
+   {n:"Horizontal joint gap check (bolts out)",u:T_ST,c:"casing",h:["pinch"],hr:2,r:"Joint gap map"},
+   {n:"Generator air gap readings",u:["GEN"],c:"rotor",h:["elec","pinch"],hr:2,r:"Air gap sheet"},
+   {n:"As-found photo record",u:T_STG,h:[],hr:1}
+  ],
+  "Disassembly":[
+   {n:"Remove crossover / crossaround piping",u:["IP","LPA","LPB"],c:"piping",h:["susp","pinch","fall"],hr:16,f:1},
+   {n:"Disconnect main steam / reheat leads",u:["HP","IP"],c:"piping",h:["susp","pinch","hotwork"],hr:12,f:1},
+   {n:"Remove upper bearing caps & upper halves",u:T_STG,c:"bearing",h:["pinch","susp"],hr:3},
+   {n:"Match-mark & unbolt coupling",u:T_STG,c:"coupling",h:["pinch","lift"],hr:4,r:"Coupling bolt log"},
+   {n:"Heat & break outer casing / hood bolts",u:T_ST,c:"bolting",h:["hotwork","hot","elec"],hr:16,r:"Bolt removal map"},
+   {n:"Install guide pins & jack casing",u:T_ST,c:"casing",h:["pinch","susp"],hr:4},
+   {n:"Lift outer casing / hood to laydown",u:T_ST,c:"casing",h:["susp","pinch"],hr:6,f:1,hold:"Lift plan signed"},
+   {n:"Heat & remove inner casing bolts",u:T_ST,c:"bolting",h:["hotwork","hot"],hr:10,r:"Bolt removal map"},
+   {n:"Lift inner casing / nozzle box",u:T_ST,c:"casing",h:["susp","pinch"],hr:5,f:1},
+   {n:"Remove upper diaphragms — tag by stage",u:T_ST,c:"diaphragm",h:["susp","pinch","sharp"],hr:8,f:1},
+   {n:"Remove upper packing heads & rings",u:T_ST,c:"packing",h:["pinch","sharp"],hr:4,f:1},
+   {n:"Packing & spill strip clearances",u:T_ST,c:"packing",h:["pinch"],hr:4,r:"Packing clearances — as-found"},
+   {n:"Rotor bump checks, radial & axial",u:T_ST,c:"rotor",h:["pinch","susp"],hr:4,r:"Bump check sheet"},
+   {n:"Remove end shields & bearing brackets",u:["GEN"],c:"casing",h:["susp","pinch"],hr:8},
+   {n:"Remove H2 seal casings",u:["GEN"],c:"seals",h:["pinch","h2"],hr:4},
+   {n:"Remove collector rings & brush rigging",u:["GEN"],c:"collector",h:["elec","dust"],hr:3}
+  ],
+  "Rotor Removal":[
+   {n:"Record rotor position before lift",u:T_STG,c:"rotor",h:[],hr:1,r:"Rotor position sheet"},
+   {n:"Rig & lift rotor to stands",u:T_ST,c:"rotor",h:["susp","pinch"],hr:6,hold:"Rotor lift plan signed / witnessed",f:1},
+   {n:"Remove generator field",u:["GEN"],c:"rotor",h:["susp","pinch"],hr:16,hold:"Field removal plan signed"},
+   {n:"Roll out lower diaphragms",u:T_ST,c:"diaphragm",h:["pinch","susp"],hr:8,f:1},
+   {n:"Remove lower packing",u:T_ST,c:"packing",h:["pinch","sharp"],hr:4},
+   {n:"Roll out lower bearing halves",u:T_STG,c:"bearing",h:["pinch"],hr:3},
+   {n:"Protect journals & cover open casings",u:T_STG,h:[],hr:2,f:1}
+  ],
+  "Clean & Inspect":[
+   {n:"Grit / dry-ice blast rotor",u:T_ST,c:"rotor",h:["dust","noise"],hr:10},
+   {n:"Grit blast diaphragms & casing",u:T_ST,c:"diaphragm",h:["dust","noise"],hr:12},
+   {n:"NDE rotor: MT/PT wheels & attachments",u:T_ST,c:"rotor",h:["chem"],hr:8,r:"NDE report",hold:"NDE results reviewed by customer / OEM"},
+   {n:"Bore UT / boresonic (if in scope)",u:T_STG,c:"rotor",h:[],hr:8,r:"Boresonic report"},
+   {n:"Journal mic: diameter, out-of-round, taper",u:T_STG,c:"rotor",h:[],hr:2,r:"Journal mic sheet"},
+   {n:"Blade / bucket inspection (erosion, FOD, cracks)",u:T_ST,c:"blades",h:["sharp"],hr:4,r:"Blade inspection map"},
+   {n:"Diaphragm inspection: erosion, dishing, cracks",u:T_ST,c:"diaphragm",h:["sharp"],hr:4,r:"Diaphragm deflection sheet"},
+   {n:"Casing joint steam cuts & cracks",u:T_ST,c:"casing",h:[],hr:3,r:"Casing inspection map"},
+   {n:"Bolting UT & thread inspection",u:T_ST,c:"bolting",h:[],hr:4,r:"Bolt inspection log"},
+   {n:"Bearing babbitt bond UT & wipe check",u:T_STG,c:"bearing",h:[],hr:2,r:"Bearing inspection sheet"},
+   {n:"Stator wedge tightness & end-winding inspection",u:["GEN"],c:"stator",h:["elec","conf"],hr:12,r:"Wedge map"},
+   {n:"Findings meeting & repair approval",u:["DECK"],h:[],hr:2,hold:"Customer approves repair scope"}
+  ],
+  "Repairs":[
+   {n:"Ship diaphragms for weld repair",u:T_ST,c:"diaphragm",h:["susp","lift"],hr:4},
+   {n:"Casing joint skim / weld repair",u:T_ST,c:"casing",h:["hotwork","noise","dust"],hr:24},
+   {n:"Replace packing rings & fit to clearance",u:T_ST,c:"packing",h:["pinch","sharp"],hr:8,r:"Packing clearances — new"},
+   {n:"Replace spill strips",u:T_ST,c:"packing",h:["sharp"],hr:8},
+   {n:"Bearing re-babbitt / replacement",u:T_STG,c:"bearing",h:["lift"],hr:4},
+   {n:"Blade / bucket replacement",u:T_ST,c:"blades",h:["sharp","pinch"],hr:24},
+   {n:"Rotor shop balance (ship & track)",u:T_ST,c:"rotor",h:["susp"],hr:4},
+   {n:"Generator rewedge",u:["GEN"],c:"stator",h:["conf","elec"],hr:40},
+   {n:"Track parts shipped / returned",u:["DECK"],h:[],hr:1}
+  ],
+  "Reassembly":[
+   {n:"Install lower bearings & check",u:T_STG,c:"bearing",h:["pinch"],hr:3,r:"Bearing clearances — as-left"},
+   {n:"Set lower packing",u:T_ST,c:"packing",h:["pinch"],hr:4,f:1},
+   {n:"Set lower diaphragms",u:T_ST,c:"diaphragm",h:["susp","pinch"],hr:8,f:1},
+   {n:"Diaphragm / centerline alignment",u:T_ST,c:"diaphragm",h:["pinch"],hr:8,r:"Internal alignment sheet",hold:"Alignment witnessed"},
+   {n:"Install rotor & verify axial position",u:T_ST,c:"rotor",h:["susp","pinch"],hr:6,f:1,r:"Rotor position — as-left"},
+   {n:"Install generator field",u:["GEN"],c:"rotor",h:["susp","pinch"],hr:16},
+   {n:"Final clearances & as-left bump checks",u:T_ST,c:"packing",h:["pinch"],hr:6,r:"Clearances — as-left",hold:"Clearances accepted by customer / OEM"},
+   {n:"FME inspection before closing casing",u:T_ST,h:["conf"],hr:1,f:1,hold:"FME closeout signed"},
+   {n:"Set upper diaphragms & packing",u:T_ST,c:"diaphragm",h:["susp","pinch"],hr:6,f:1},
+   {n:"Set inner casing & cold joint check",u:T_ST,c:"casing",h:["susp","pinch"],hr:5,r:"Joint gap — as-left"},
+   {n:"Set outer casing / hood with joint compound",u:T_ST,c:"casing",h:["susp","pinch","chem"],hr:6},
+   {n:"Heat-tighten casing bolts (record rotation / stretch)",u:T_ST,c:"bolting",h:["hotwork","hot","elec"],hr:16,r:"Bolt tightening log"},
+   {n:"Final coupling alignment",u:T_STG,c:"coupling",h:["pinch"],hr:6,r:"Coupling alignment — as-left",hold:"Alignment accepted"},
+   {n:"Install & torque coupling bolts, check runout",u:T_STG,c:"coupling",h:["pinch"],hr:4,r:"Coupling bolt log"},
+   {n:"Set upper bearings, cap crush & thrust float",u:T_STG,c:"bearing",h:["pinch","susp"],hr:4,r:"Bearing / thrust — as-left"},
+   {n:"Install end shields, H2 seals & collector",u:["GEN"],c:"seals",h:["susp","pinch"],hr:12}
+  ],
+  "Closeout":[
+   {n:"Reinstall crossover / leads, new gaskets",u:T_ST,c:"piping",h:["susp","pinch","fall"],hr:16,r:"Flange torque log"},
+   {n:"Reinstall probes & set gaps",u:T_STG,c:"probe",h:["elec"],hr:3,r:"Probe gap sheet"},
+   {n:"Reinstall lagging",u:T_ST,c:"casing",h:["dust","sharp"],hr:12},
+   {n:"Lube oil flush to cleanliness spec",u:["DECK"],h:["slip","chem","rot"],hr:24,hold:"Oil sample accepted"},
+   {n:"Generator air test & hydrogen fill support",u:["GEN"],h:["h2"],hr:4,hold:"Gen leak test passed"},
+   {n:"Final FME walkdown",u:["DECK"],h:[],hr:2,f:1,hold:"FME closeout signed"},
+   {n:"Release LOTO & close permits",u:["DECK"],h:["stored"],hr:2,hold:"Plant releases LOTO"}
+  ],
+  "Startup & Testing":[
+   {n:"Turning gear & eccentricity check",u:T_ST,c:"probe",h:["rot"],hr:2,r:"Eccentricity on TG"},
+   {n:"Roll-up support & vibration monitoring",u:["DECK"],h:["rot","noise","hot"],hr:8,r:"Startup vibration data"},
+   {n:"Overspeed trip test support",u:["DECK"],h:["rot","noise"],hr:4,hold:"Trip test witnessed"},
+   {n:"Valve stroke & control checks",u:["HP","IP"],c:"valve",h:["stored","hot"],hr:4,r:"Valve stroke sheet"},
+   {n:"Trim balance (if needed)",u:T_STG,c:"rotor",h:["rot","hot"],hr:8,r:"Balance shot record"}
+  ],
+  "Demobilization":DEMOB
+ },
+ gas:{
+  "Mobilization":MOB,
+  "Cooldown & LOTO":[
+   {n:"Cooldown on turning gear, log wheelspace temps",u:["TURB"],c:"probe",h:["hot","rot"],hr:1,r:"Wheelspace temp log",hold:"Temps below OEM limit before TG stops"},
+   {n:"Isolate & purge fuel gas / liquid fuel",u:["COMB"],c:"piping",h:["fuel","stored"],hr:3,hold:"Fuel isolation & purge verified"},
+   {n:"Lock out CO2 fire protection",u:["DECK"],h:["co2"],hr:1,hold:"CO2 lockout verified before compartment entry"},
+   {n:"Lock out starting means, lube oil & turning gear",u:["LOAD"],h:["elec","rot"],hr:2},
+   {n:"Try/verify & zero-energy walkdown",u:["DECK"],h:["stored","elec"],hr:2,hold:"Zero-energy verified, permits signed"},
+   {n:"Hydrogen purge verified (if H2-cooled)",u:["GEN"],h:["h2","co2"],hr:1,hold:"Plant confirms purge"}
+  ],
+  "Deck Prep":[
+   {n:"Remove compartment roof & wall panels",u:["COMB","TURB"],h:["susp","fall","pinch"],hr:8},
+   {n:"Open inlet plenum access, protect filters",u:["COMP"],h:["conf","fall"],hr:3,f:1},
+   {n:"Remove TCs, flame detectors & vib probes — tag",u:["COMP","COMB","TURB","EXH"],c:"probe",h:["elec"],hr:4,r:"Instrument removal log"},
+   {n:"Remove fuel, atomizing & cooling air piping",u:["COMB","TURB"],c:"piping",h:["fuel","pinch"],hr:10,f:1},
+   {n:"Set FME zones & confined space permits",u:["DECK"],h:["conf"],hr:2,f:1}
+  ],
+  "As-Found Readings":[
+   {n:"Load coupling alignment (rim & face)",u:["LOAD","GEN"],c:"coupling",h:["pinch"],hr:4,r:"Coupling alignment — as-found"},
+   {n:"Rotor axial position & thrust float",u:["COMP"],c:"bearing",h:["pinch"],hr:2,r:"Thrust float sheet"},
+   {n:"Bearing clearances",u:["COMP","TURB","EXH","GEN"],c:"bearing",h:["pinch"],hr:2,r:"Bearing clearances — as-found"},
+   {n:"Blade tip clearances",u:["COMP","TURB"],c:"blades",h:["conf","pinch"],hr:4,r:"Tip clearance sheet"},
+   {n:"Borescope inspection",u:["COMP","TURB"],c:"blades",h:["conf"],hr:4,r:"Borescope report"},
+   {n:"Combustion as-found condition & photos",u:["COMB"],c:"combustion",h:["sharp"],hr:4,r:"Combustion inspection sheet"},
+   {n:"Casing joint & support key readings",u:["COMP","TURB"],c:"casing",h:["pinch"],hr:3,r:"Casing key sheet"}
+  ],
+  "Disassembly":[
+   {n:"Remove fuel nozzles & end covers",u:["COMB"],c:"combustion",h:["susp","pinch","chem"],hr:10,f:1,r:"Fuel nozzle removal log"},
+   {n:"Remove liners, flow sleeves & crossfire tubes",u:["COMB"],c:"combustion",h:["sharp","conf"],hr:12,f:1},
+   {n:"Remove transition pieces",u:["COMB"],c:"combustion",h:["conf","pinch","sharp"],hr:12,f:1},
+   {n:"Heat & remove turbine shell bolts",u:["TURB"],c:"bolting",h:["hotwork","hot","elec"],hr:12,r:"Bolt removal map"},
+   {n:"Lift turbine shell upper half",u:["TURB"],c:"casing",h:["susp","pinch"],hr:6,f:1,hold:"Lift plan signed"},
+   {n:"Remove upper nozzles & shrouds",u:["TURB"],c:"nozzle",h:["susp","sharp"],hr:8,f:1},
+   {n:"Lift compressor casing upper half",u:["COMP"],c:"casing",h:["susp","pinch"],hr:8,f:1,hold:"Lift plan signed"},
+   {n:"Remove upper stator vanes / IGVs (as scoped)",u:["COMP"],c:"blades",h:["sharp","pinch"],hr:12,f:1},
+   {n:"Unbolt load coupling",u:["LOAD"],c:"coupling",h:["pinch"],hr:4,r:"Coupling bolt log"},
+   {n:"Remove upper bearing caps & halves",u:["COMP","TURB","EXH","GEN"],c:"bearing",h:["pinch","susp"],hr:3},
+   {n:"Open exhaust frame / diffuser access",u:["EXH"],c:"casing",h:["conf","hot"],hr:6},
+   {n:"Clearance readings during disassembly",u:["COMP","TURB"],c:"blades",h:["pinch"],hr:4,r:"Clearances — as-found"}
+  ],
+  "Rotor Removal":[
+   {n:"Record rotor position before lift",u:["COMP","TURB"],c:"rotor",h:[],hr:1,r:"Rotor position sheet"},
+   {n:"Rig & lift rotor to stands",u:["COMP","TURB"],c:"rotor",h:["susp","pinch"],hr:8,f:1,hold:"Rotor lift plan signed / witnessed"},
+   {n:"Remove lower nozzles & shrouds",u:["TURB"],c:"nozzle",h:["pinch","sharp"],hr:8},
+   {n:"Roll out lower bearing halves",u:["COMP","TURB","EXH","GEN"],c:"bearing",h:["pinch"],hr:3},
+   {n:"Remove generator field",u:["GEN"],c:"rotor",h:["susp","pinch"],hr:16,hold:"Field removal plan signed"}
+  ],
+  "Clean & Inspect":[
+   {n:"Combustion hardware inspection (cracks, wear, TBC)",u:["COMB"],c:"combustion",h:["sharp"],hr:8,r:"Combustion inspection sheet"},
+   {n:"Bucket inspection: coating, cracks, tip rub",u:["TURB"],c:"blades",h:["sharp"],hr:6,r:"Bucket inspection map"},
+   {n:"Nozzle inspection: burn, cracks, erosion, bow",u:["TURB"],c:"nozzle",h:["sharp"],hr:6,r:"Nozzle inspection map"},
+   {n:"Compressor blade inspection: FOD, erosion, corrosion",u:["COMP"],c:"blades",h:["sharp"],hr:6,r:"Compressor blade map"},
+   {n:"Rotor NDE: dovetails, wheels, bolting",u:["COMP","TURB"],c:"rotor",h:["chem"],hr:10,r:"NDE report",hold:"NDE results reviewed by customer / OEM"},
+   {n:"Casing & bolting inspection",u:["COMP","TURB","EXH"],c:"casing",h:[],hr:4,r:"Casing inspection map"},
+   {n:"Bearing babbitt inspection",u:["COMP","TURB","EXH","GEN"],c:"bearing",h:[],hr:2,r:"Bearing inspection sheet"},
+   {n:"Exhaust frame & diffuser crack inspection",u:["EXH"],c:"casing",h:["conf","dust"],hr:6,r:"Exhaust inspection map"},
+   {n:"Findings meeting & repair approval",u:["DECK"],h:[],hr:2,hold:"Customer approves repair scope"}
+  ],
+  "Repairs":[
+   {n:"Ship combustion parts / receive exchange set",u:["COMB"],c:"combustion",h:["lift"],hr:4},
+   {n:"Replace buckets, nozzles or shrouds",u:["TURB"],c:"blades",h:["sharp","pinch","susp"],hr:24},
+   {n:"Compressor blade blend / replacement",u:["COMP"],c:"blades",h:["sharp","dust"],hr:16},
+   {n:"Exhaust frame weld repair",u:["EXH"],c:"casing",h:["hotwork","conf"],hr:24},
+   {n:"Bearing re-babbitt / replacement",u:["COMP","TURB","EXH","GEN"],c:"bearing",h:["lift"],hr:4},
+   {n:"Track parts shipped / returned",u:["DECK"],h:[],hr:1}
+  ],
+  "Reassembly":[
+   {n:"Install lower bearings & check",u:["COMP","TURB","EXH","GEN"],c:"bearing",h:["pinch"],hr:3,r:"Bearing clearances — as-left"},
+   {n:"Install lower nozzles & shrouds",u:["TURB"],c:"nozzle",h:["pinch","susp"],hr:8,f:1},
+   {n:"Set rotor & verify axial position",u:["COMP","TURB"],c:"rotor",h:["susp","pinch"],hr:8,f:1,r:"Rotor position — as-left"},
+   {n:"As-left tip clearances",u:["COMP","TURB"],c:"blades",h:["pinch"],hr:4,r:"Tip clearances — as-left",hold:"Clearances accepted"},
+   {n:"FME inspection before closing casings",u:["COMP","TURB","COMB"],h:["conf"],hr:1,f:1,hold:"FME closeout signed"},
+   {n:"Set upper casings",u:["COMP","TURB"],c:"casing",h:["susp","pinch"],hr:8},
+   {n:"Heat-tighten casing bolts (record stretch)",u:["COMP","TURB"],c:"bolting",h:["hotwork","hot"],hr:12,r:"Bolt tightening log"},
+   {n:"Install transition pieces",u:["COMB"],c:"combustion",h:["conf","pinch"],hr:12,f:1,r:"TP seal / clearance sheet"},
+   {n:"Install liners, flow sleeves & crossfire tubes",u:["COMB"],c:"combustion",h:["pinch","sharp"],hr:10,f:1},
+   {n:"Install fuel nozzles & end covers, torque",u:["COMB"],c:"combustion",h:["susp","pinch"],hr:10,r:"Torque log"},
+   {n:"Load coupling alignment & bolting",u:["LOAD","GEN"],c:"coupling",h:["pinch"],hr:6,r:"Coupling alignment — as-left",hold:"Alignment accepted"},
+   {n:"Set upper bearings & caps",u:["COMP","TURB","EXH","GEN"],c:"bearing",h:["pinch"],hr:3,r:"Bearing — as-left"}
+  ],
+  "Closeout":[
+   {n:"Reinstall fuel & cooling air piping, leak check",u:["COMB","TURB"],c:"piping",h:["fuel","pinch"],hr:10,r:"Flange torque log",hold:"Fuel system leak check passed"},
+   {n:"Reinstall TCs, flame detectors & probes",u:["COMP","COMB","TURB","EXH"],c:"probe",h:["elec"],hr:4,r:"Probe gap sheet"},
+   {n:"Reinstall compartment panels",u:["COMB","TURB"],h:["susp","fall"],hr:8},
+   {n:"Lube oil flush to cleanliness spec",u:["DECK"],h:["slip","chem","rot"],hr:24,hold:"Oil sample accepted"},
+   {n:"Final FME walkdown",u:["DECK"],h:[],hr:2,f:1,hold:"FME closeout signed"},
+   {n:"Release LOTO incl. CO2 & close permits",u:["DECK"],h:["co2","stored"],hr:2,hold:"Plant releases LOTO"}
+  ],
+  "Startup & Testing":[
+   {n:"Crank & turning gear check",u:["LOAD"],c:"gear",h:["rot"],hr:2},
+   {n:"Fire & roll-up support, exhaust spread",u:["EXH"],c:"probe",h:["rot","hot","noise"],hr:8,r:"Exhaust spread data"},
+   {n:"Vibration monitoring",u:["DECK"],h:["rot","noise"],hr:8,r:"Startup vibration data"},
+   {n:"Overspeed trip test support",u:["DECK"],h:["rot","noise"],hr:4,hold:"Trip test witnessed"},
+   {n:"Combustion tuning support",u:["COMB"],h:["hot","noise"],hr:8}
+  ],
+  "Demobilization":DEMOB
+ }
+};
+return {STAGES,HZ,UNITS,LIB}})();
+/* library hazards to the boxes on the company JSA form */
+const OBJSA={susp:{hz:["MECHANICAL/Struck By","EQUIPMENT/Crane Operations","EQUIPMENT/Load Stability","EQUIPMENT/Affected Area"],se:["Tag Lines","Barricades"],crane:1},
+ pinch:{hz:["MECHANICAL/Pinch Points","MECHANICAL/Trapped Between"],ppe:["Leather Gloves"]},
+ hot:{hz:["PHYSICAL/Burns","ENERGY SOURCES/Thermal"],ppe:["Leather Gloves","Long sleeves"]},
+ hotwork:{hz:["PHYSICAL/Burns","ENERGY SOURCES/Thermal","CHEMICAL/Dust/Mist/Fumes"],ppe:["Face Shield","FR Clothing","Leather Gloves"],em:["Fire Extinguisher"]},
+ elec:{hz:["ENERGY SOURCES/Electrical"]},stored:{hz:["ENERGY SOURCES/Mechanical","ENERGY SOURCES/Hydraulic","ENERGY SOURCES/Pneumatic"]},
+ rot:{hz:["MECHANICAL/Rotating Parts"]},fall:{hz:["PHYSICAL/Falling"],ppe:["Fall Protection Harness"],se:["Barricades"]},
+ conf:{hz:["ERGONOMIC/Confined Space"],em:["Hole Watch"],se:["Gas Monitor"]},dust:{hz:["CHEMICAL/Dust/Mist/Fumes","CHEMICAL/Inhalation"],ppe:["Respirator"]},
+ asb:{hz:["CHEMICAL/Inhalation","CHEMICAL/Dust/Mist/Fumes"],ppe:["Respirator"]},noise:{hz:["PHYSICAL/Noise"],ppe:["Hearing Protection"]},
+ sharp:{hz:["PHYSICAL/Cuts"],ppe:["Cut Resistant Gloves"]},lift:{hz:["ERGONOMIC/Over Exertion","ERGONOMIC/Twisting/Bending"]},
+ chem:{hz:["CHEMICAL/Skin Contact","CHEMICAL/Inhalation"],ppe:["Chemical Goggles","Rubber Gloves"],em:["Eye Wash Station"]},
+ h2:{hz:["CHEMICAL/Inhalation"],se:["Gas Monitor"]},fuel:{hz:["ENVIRONMENTAL/Leaks/Spills","CHEMICAL/Inhalation"],se:["Gas Monitor"]},
+ co2:{hz:["CHEMICAL/Inhalation"],se:["Gas Monitor"]},slip:{hz:["PHYSICAL/Slipping","ENVIRONMENTAL/Leaks/Spills"]}};
+window.OBJSA=OBJSA;
+/* the JSA reads each task's own hazards on top of the wording rules */
+{const _si=stepInfo;stepInfo=function(title){const o=_si.apply(this,arguments);try{const t=DB.tasks.find(x=>x.title===title&&x.jsa);if(t){const j=t.jsa;["hz","ppe","em","se"].forEach(k=>(j[k]||[]).forEach(v=>{if(!o[k].includes(v))o[k].push(v)}));if(j.crane)o.crane=1;if(t.fme&&!o.ctl.includes("FME area entry log"))o.ctl.push("FME area entry log");if(t.holdPt)o.ctl.push("Hold point: "+t.holdPt)}}catch(e){}return o}}
 /* ===== Parts bank: search any steam or gas turbine part, pick the work, create the tasks ===== */
 const BANK=[
  ["Steam","Site Setup",[["Turbine Deck Laydown","laydown deck"],["FME Zone","fme foreign material"],["Scaffolding","scaffold"],["Plant Crane & Rigging","crane rigging lift"],["Lagging & Insulation","lagging insulation blanket"],["Permits & LOTO","loto lockout clearance permit"]]],
@@ -1450,54 +1735,96 @@ function BPARTS(){const L=[];BANK.forEach(([ty,sec,ps])=>ps.forEach(([p,a])=>L.p
 window.BPARTS=BPARTS;window.BSECS=BSECS;
 (function(){
  const E=esc,D=document.createElement("dialog");D.id="dBank";D.innerHTML='<div class="dlg" id="bkB"></div>';document.body.appendChild(D);
- const st=document.createElement("style");st.textContent=`#bkB .bkp{display:flex;width:100%;text-align:left;align-items:center;gap:8px;min-height:48px;margin:4px 0;padding:8px 12px}#bkB .bkp small{color:var(--mute);margin-left:auto;font-size:13px}#bkB .bkSel{border-left:5px solid var(--accent,#1f6f6b)}#bkB details summary{font-weight:700;padding:8px 0;cursor:pointer}#bkB .bkt{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:6px 0}#bkB .bkt b{flex:1;font-size:15px}#bkB .bkt input{width:90px}`;document.head.appendChild(st);
- let Q="",TY="Steam",CUR=null,PICKS=[];
- try{TY=localStorage.getItem("tp-bank-ty")||"Steam"}catch(e){}
+ const st=document.createElement("style");st.textContent=`#bkB .bkp{display:flex;width:100%;text-align:left;align-items:center;gap:8px;min-height:48px;margin:4px 0;padding:8px 12px}#bkB .bkp small{color:var(--mute);margin-left:auto;font-size:13px}#bkB .bkSel{border-left:5px solid var(--accent,#1f6f6b)}#bkB details summary{font-weight:700;padding:8px 0;cursor:pointer}#bkB .bkt{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:6px 0}#bkB .bkt b{flex:1;font-size:15px}#bkB .bkt input{width:90px}
+ #bkB .bkStep{display:grid;grid-template-columns:30px 1fr;gap:8px;align-items:start;margin:8px 0}#bkB .bkN{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--line);font-weight:800;margin-top:24px}#bkB .bkStep.ok .bkN{background:var(--accent,#1f6f6b);color:#fff}
+ #bkB .bkCh{display:flex;flex-wrap:wrap;gap:6px}#bkB .bkCh button{min-height:40px;padding:4px 12px;border-radius:20px;font-size:15px}#bkB .bkCh button.on{background:var(--accent,#1f6f6b);color:#fff;border-color:transparent}
+ #bkB .bkAuto{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}#bkB .bkTag{display:inline-block;font-size:13px;font-weight:700;border:2px solid currentColor;border-radius:6px;padding:1px 7px;margin:2px 4px 2px 0}#bkB .bkTag.h{color:#e5675d}#bkB .bkTag.f{color:#5aa3e0}#bkB .bkTag.r{color:#4fb57a}#bkB .bkHz{display:inline-block;font-size:13px;background:var(--line);border-radius:6px;padding:2px 7px;margin:2px 3px 2px 0}`;document.head.appendChild(st);
+ let Q="",TY="Steam",MODE="steps",CUR=null,PICKS=[],SEC="",STG="",TSK="",CUST="",COMPS=[],HRS="";
+ try{TY=localStorage.getItem("tp-bank-ty")||"Steam";MODE=localStorage.getItem("tp-bank-mode")||"steps"}catch(e){}
+ const ty=()=>TY==="Gas"?"gas":"steam";
  const norm=s=>String(s||"").toLowerCase();
  function match(x,q){const hay=norm(x.p+" "+x.sec+" "+x.a);return norm(q).split(/\s+/).filter(Boolean).every(w=>hay.includes(w)||hay.split(/[^a-z0-9#\-\/]+/).some(t=>t.startsWith(w)))}
  const acts=sec=>BSACT[sec]||BACT;
  const keyOf=(sec,p,t)=>sec+"|"+p+"|"+t;
+ /* ---------- step by step (outage library) ---------- */
+ const SECS=()=>OB.UNITS[ty()],tasksFor=(u,s)=>((OB.LIB[ty()]||{})[s]||[]).filter(t=>t.u.includes(u));
+ function curTask(){if(TSK==="")return null;if(TSK==="custom")return CUST.trim()?{n:CUST.trim(),h:[],hr:"",custom:1}:null;return tasksFor(SEC,STG)[+TSK]||null}
+ const bankOf=t=>(t&&t.c&&SECS()[SEC]&&SECS()[SEC].c[t.c])||[];
+ const opt=(v,l,sel)=>`<option value="${E(v)}"${sel?" selected":""}>${E(l)}</option>`;
+ function stepsHTML(){const S=SECS(),t=curTask(),bank=bankOf(t),hz=t&&t.h?t.h:[];
+  const st=SEC?OB.STAGES.filter(s=>tasksFor(SEC,s).length):[];
+  return `<div class="bkStep${SEC?" ok":""}"><div class="bkN">1</div><label>Section / area<select id="obSec">${opt("","Choose section...")}${Object.keys(S).map(k=>opt(k,S[k].name,k===SEC)).join("")}</select></label></div>
+  <div class="bkStep${STG?" ok":""}"><div class="bkN">2</div><label>Outage stage<select id="obStg" ${SEC?"":"disabled"}>${opt("","Choose stage...")}${st.map(s=>opt(s,(OB.STAGES.indexOf(s)+1)+". "+s+"  ("+tasksFor(SEC,s).length+")",s===STG)).join("")}</select></label></div>
+  <div class="bkStep${t?" ok":""}"><div class="bkN">3</div><div><label>Task<select id="obTsk" ${STG?"":"disabled"}>${opt("","Choose task...")}${STG?tasksFor(SEC,STG).map((x,i)=>opt(i,x.n,String(i)===TSK)).join("")+opt("custom","+ Custom task",TSK==="custom"):""}</select></label>${TSK==="custom"?`<label>Describe the custom task<input id="obCust" value="${E(CUST)}"></label>`:""}</div></div>
+  <div class="bkStep${t&&(!bank.length||COMPS.length)?" ok":""}"><div class="bkN">4</div><div><span class="label" style="font-size:14px;font-weight:700">Components (tap one or more)</span><div class="bkCh" id="obComp">${!t?`<small class="hint">Pick a task first</small>`:!bank.length?`<small class="hint">Not needed for this task</small>`:`<button type="button" data-ob="all" class="${COMPS.length===bank.length?"on":""}">${COMPS.length===bank.length?"Clear all":"Select all"}</button>`+bank.map((c,i)=>`<button type="button" data-ob="c" data-i="${i}" class="${COMPS.includes(c)?"on":""}">${E(c)}</button>`).join("")}</div></div></div>
+  ${t?`<div class="bkAuto"><b style="font-size:13px;text-transform:uppercase;letter-spacing:.06em">Fills in automatically</b><div>${t.hold?`<span class="bkTag h">Hold point</span>`:""}${t.f?`<span class="bkTag f">FME</span>`:""}${t.r?`<span class="bkTag r">Readings</span>`:""}</div>
+   <small><b>JSA hazards:</b> ${hz.length?hz.map(k=>`<span class="bkHz">${E(OB.HZ[k])}</span>`).join(""):(t.custom?"Picked up from the wording":"General site hazards only")}</small>
+   <small><b>Data sheet:</b> ${E(t.r||"None")}</small><small><b>Hold point:</b> ${E(t.hold||"None")}</small>
+   <label>Expected crew-hours<input id="obHrs" type="number" min="0" step="0.5" inputmode="decimal" value="${E(HRS!==""?HRS:(t.hr||""))}"></label>
+   <div class="row"><button type="button" class="pri" data-ob="add" ${bank.length&&!COMPS.length?"disabled":""}>+ Add Task to List</button></div></div>`:""}`}
+ function addStep(){const t=curTask();if(!t)return;const bank=bankOf(t);if(bank.length&&!COMPS.length)return alert("Tap one or more components first.");
+  const S=SECS()[SEC],sec=S?S.name:"Site";const cmp=COMPS.length===bank.length&&bank.length>3?"all":COMPS.length&&COMPS.length<=3?COMPS.join("; "):COMPS.length?COMPS.length+" parts":"";
+  const title=(SEC==="DECK"?"":sec+": ")+t.n+(cmp?" – "+cmp:"");
+  const hz=t.h||[],J={hz:[],ppe:[],em:[],se:[],crane:0};hz.forEach(k=>{const m=OBJSA[k];if(!m)return;["hz","ppe","em","se"].forEach(q=>(m[q]||[]).forEach(v=>{if(!J[q].includes(v))J[q].push(v)}));if(m.crane)J.crane=1});
+  const cat=t.c?t.c.charAt(0).toUpperCase()+t.c.slice(1):"";
+  const k="ob|"+SEC+"|"+STG+"|"+title;if(PICKS.some(x=>x.k===k))return alert("That task is already on the list.");
+  const v=parseFloat(($("#obHrs")||{}).value);
+  PICKS.push({k,title,sec,p:COMPS.length===1?COMPS[0]:(cat?sec+" "+cat:STG),exp:v>0?v:0,x:{stage:STG,parts:COMPS.slice(),jsa:J,haz:hz.map(k=>OB.HZ[k]).join(", ")||undefined,holdPt:t.hold||"",sheet:t.r||"",fme:t.f?1:0}});
+  TSK="";CUST="";COMPS=[];HRS="";draw();const m=$("#bkMsg");if(m)m.textContent="Added: "+title+". Pick the next task, or tap Create.";}
+ /* ---------- search ---------- */
  function results(){const L=BPARTS().filter(x=>TY==="All"||x.ty===TY);
   if(Q.trim()){const m=L.filter(x=>match(x,Q));return m.length?m.slice(0,60).map(btn).join(""):`<div class="empty">No part matches "${E(Q)}". Add it below.</div>`}
   const g={};L.forEach(x=>(g[x.sec]=g[x.sec]||[]).push(x));return Object.keys(g).map(s=>`<details><summary>${E(s)} (${g[s].length})</summary>${g[s].map(btn).join("")}</details>`).join("")}
  const btn=x=>`<button type="button" class="bkp${CUR&&CUR.p===x.p&&CUR.sec===x.sec?" bkSel":""}" data-bk="part" data-s="${E(x.sec)}" data-p="${E(x.p)}"><b>${E(x.p)}</b><small>${E(x.sec)}${x.own?" &middot; added":""}</small></button>`;
  function workBox(){if(!CUR)return "";const H=histMap();
-  return `<div class="rec bkSel" id="bkW"><b>${E(CUR.sec)} &middot; ${E(CUR.p)}</b><small>Tick the work, then enter expected crew hours.</small>${acts(CUR.sec).map(([l,f])=>{const t=f.replace("{p}",CUR.p),k=keyOf(CUR.sec,CUR.p,t),on=PICKS.find(x=>x.k===k);
+  return `<div class="rec bkSel" id="bkW"><b>${E(CUR.sec)} &middot; ${E(CUR.p)}</b><small>Tick the work, then enter expected crew hours below.</small>${acts(CUR.sec).map(([l,f])=>{const t=f.replace("{p}",CUR.p),k=keyOf(CUR.sec,CUR.p,t),on=PICKS.find(x=>x.k===k);
    return `<label class="chk" style="margin:0;color:inherit;font-size:15px"><input type="checkbox" data-bk="act" data-t="${E(t)}" ${on?"checked":""}><span>${E(l)}${H[t]?` <small class="hint">Typical ${H[t].avg} h</small>`:""}</span></label>`}).join("")}
    <label>Other work on this part<input id="bkO" placeholder="e.g. Blue check and lap seats"></label><div class="row"><button type="button" data-bk="other">Add Other Work</button><button type="button" data-bk="done">Done With This Part</button></div></div>`}
- function picksBox(){return `<h3 style="margin-top:14px">Tasks to create (${PICKS.length})</h3>`+(PICKS.map((x,i)=>`<div class="bkt"><b>${E(x.title)}<br><small style="color:var(--mute)">${E(x.sec)}</small></b><input type="number" step="0.25" min="0" inputmode="decimal" placeholder="Exp. hrs" data-bk="exp" data-i="${i}" value="${x.exp||""}"><button type="button" data-bk="rm" data-i="${i}" aria-label="Remove">&times;</button></div>`).join("")||`<div class="hint">Search for a part above and tick the work.</div>`)}
- function draw(){const ppl=DB.people.slice().sort((a,b)=>(/Millwright/.test(b.role))-(/Millwright/.test(a.role)));
-  $("#bkB").innerHTML=`<h2>Add Tasks</h2><div class="hint">Type a part (bearings, diaphragms, packing, MSV) or open a section. Pick the work, set expected hours, then Create.</div>
-  <label>Unit<select id="bkU">${U.length?U.map(u=>`<option${u.name===SPU?" selected":""}>${E(u.name)}</option>`).join(""):"<option value=''>No units yet</option>"}</select></label>
-  <label>Work Date<input id="bkD" type="date" value="${SPD}"></label>
-  <details><summary>Assign To (${SPW.size})</summary>${ppl.map(p=>`<label class="chk" style="margin:0;color:inherit;font-size:15px"><input type="checkbox" data-w="${E(p.title)}" ${SPW.has(p.title)?"checked":""}><span>${E(p.title)} (${E(p.role||"")})</span></label>`).join("")||'<div class="hint">No crew added yet.</div>'}</details>
-  <div class="chips" style="padding:6px 0">${["Steam","Gas","All"].map(t=>`<button type="button" class="chip${TY===t?" on":""}" data-bk="ty" data-v="${t}">${t==="All"?"All Turbines":t+" Turbine"}</button>`).join("")}</div>
+ function searchHTML(){return `<div class="chips" style="padding:6px 0">${["Steam","Gas","All"].map(t=>`<button type="button" class="chip${TY===t?" on":""}" data-bk="ty" data-v="${t}">${t==="All"?"All Turbines":t+" Turbine"}</button>`).join("")}</div>
   <label>Find a part<input id="bkQ" type="search" placeholder="bearings, diaph, packing, MSV..." value="${E(Q)}" autocomplete="off"></label>
   <div id="bkW0">${workBox()}</div><div id="bkR">${results()}</div>
-  <details style="margin-top:10px"><summary>Part not listed? Add it</summary><label>Section<select id="bkNS">${BSECS().map(s=>`<option>${E(s)}</option>`).join("")}<option>Other</option></select></label><label>Part name<input id="bkNP" placeholder="e.g. HP Balance Piston Packing"></label><div class="row"><button type="button" data-bk="newp">Add Part</button></div><div class="hint">It is saved to the bank for everyone and shows up in searches from now on.</div></details>
+  <details style="margin-top:10px"><summary>Part not listed? Add it</summary><label>Section<select id="bkNS">${BSECS().map(s=>`<option>${E(s)}</option>`).join("")}<option>Other</option></select></label><label>Part name<input id="bkNP" placeholder="e.g. HP Balance Piston Packing"></label><div class="row"><button type="button" data-bk="newp">Add Part</button></div><div class="hint">It is saved to the bank for everyone and shows up in searches from now on.</div></details>`}
+ function picksBox(){return `<h3 style="margin-top:14px">Tasks to create (${PICKS.length})</h3>`+(PICKS.map((x,i)=>`<div class="bkt"><b>${E(x.title)}<br><small style="color:var(--mute)">${E(x.x&&x.x.stage?x.x.stage+" · ":"")}${E(x.sec)}${x.x&&x.x.holdPt?" · Hold point":""}${x.x&&x.x.fme?" · FME":""}</small></b><input type="number" step="0.25" min="0" inputmode="decimal" placeholder="Exp. hrs" data-bk="exp" data-i="${i}" value="${x.exp||""}"><button type="button" data-bk="rm" data-i="${i}" aria-label="Remove">&times;</button></div>`).join("")||`<div class="hint">Add tasks above. They go on the JSA when you tap Create.</div>`)}
+ function draw(){const ppl=DB.people.slice().sort((a,b)=>(/Millwright|Foreman/.test(b.role))-(/Millwright|Foreman/.test(a.role)));
+  $("#bkB").innerHTML=`<h2>Add Tasks</h2>
+  <label>Unit<select id="bkU">${U.length?U.map(u=>`<option${u.name===SPU?" selected":""}>${E(u.name)}</option>`).join(""):"<option value=''>No units yet</option>"}</select></label>
+  <label>Work Date<input id="bkD" type="date" value="${SPD}"></label>
+  <span class="label" style="font-size:14px;font-weight:700">Crew (tap to select)</span><div class="bkCh" id="bkCrew">${ppl.map(p=>`<button type="button" data-w="${E(p.title)}" class="${SPW.has(p.title)?"on":""}">${E(p.title)}</button>`).join("")||'<small class="hint">No crew added yet.</small>'}</div>
+  <div class="chips" style="padding:10px 0 4px">${[["steps","Step by Step"],["search","Search Parts"]].map(([k,l])=>`<button type="button" class="chip${MODE===k?" on":""}" data-bk="mode" data-v="${k}">${l}</button>`).join("")}${MODE==="steps"?["Steam","Gas"].map(t=>`<button type="button" class="chip${ty()===t.toLowerCase()?" on":""}" data-bk="ty" data-v="${t}">${t}</button>`).join(""):""}</div>
+  <div id="bkMain">${MODE==="steps"?stepsHTML():searchHTML()}</div><p class="hint" id="bkMsg" aria-live="polite"></p>
   <div id="bkP">${picksBox()}</div>
   <div class="srow"><button type="button" data-bk="x">Cancel</button><button type="button" class="pri" data-bk="go" ${PICKS.length?"":"disabled"}>Create ${PICKS.length} Task${PICKS.length===1?"":"s"}</button></div>`}
+ const redrawMain=()=>{const m=$("#bkMain");if(m)m.innerHTML=MODE==="steps"?stepsHTML():searchHTML()};
  const redrawParts=()=>{$("#bkR").innerHTML=results();$("#bkW0").innerHTML=workBox()};
  const redrawPicks=()=>{$("#bkP").innerHTML=picksBox();const g=D.querySelector('[data-bk="go"]');if(g){g.disabled=!PICKS.length;g.textContent="Create "+PICKS.length+" Task"+(PICKS.length===1?"":"s")}const w=D.querySelector("#bkW0");if(w)w.innerHTML=workBox()};
  function addPick(t){if(!CUR)return;const k=keyOf(CUR.sec,CUR.p,t);if(PICKS.some(x=>x.k===k))return;PICKS.push({k,title:t,sec:CUR.sec,p:CUR.p,exp:0})}
- stepPicker=function(){HIST=histMap();Q="";CUR=null;PICKS=[];SPW=new Set();SPU=(LAST.unit&&U.some(u=>u.name===LAST.unit))?LAST.unit:(U[0]?U[0].name:"");SPD=tdy();
-  const u=U.find(x=>x.name===SPU);if(u&&u.ttype)TY=u.ttype;draw();D.showModal();setTimeout(()=>{const q=$("#bkQ");if(q)q.focus()},60)};
- D.addEventListener("input",e=>{const t=e.target;if(t.id==="bkQ"){Q=t.value;$("#bkR").innerHTML=results()}else if(t.dataset.bk==="exp"){const p=PICKS[+t.dataset.i];if(p){const v=parseFloat(t.value);p.exp=v>0?v:0}}});
- D.addEventListener("change",e=>{const t=e.target;if(t.id==="bkU"){SPU=t.value;const u=U.find(x=>x.name===SPU);if(u&&u.ttype&&u.ttype!==TY){TY=u.ttype;draw()}}else if(t.id==="bkD")SPD=t.value;
-  else if(t.dataset.w!==undefined){t.checked?SPW.add(t.dataset.w):SPW.delete(t.dataset.w);const s=t.closest("details").querySelector("summary");if(s)s.textContent="Assign To ("+SPW.size+")"}
+ stepPicker=function(){HIST=histMap();Q="";CUR=null;PICKS=[];SEC="";STG="";TSK="";CUST="";COMPS=[];HRS="";SPW=new Set();SPU=(LAST.unit&&U.some(u=>u.name===LAST.unit))?LAST.unit:(U[0]?U[0].name:"");SPD=tdy();
+  const u=U.find(x=>x.name===SPU);if(u&&u.ttype)TY=u.ttype;draw();D.showModal()};
+ D.addEventListener("input",e=>{const t=e.target;if(t.id==="bkQ"){Q=t.value;$("#bkR").innerHTML=results()}else if(t.id==="obCust"){CUST=t.value;const b=D.querySelector('[data-ob="add"]');if(!b&&CUST.trim()){const p=t.selectionStart;redrawMain();const i=$("#obCust");if(i){i.focus();i.setSelectionRange(p,p)}}}else if(t.id==="obHrs"){HRS=t.value}else if(t.dataset.bk==="exp"){const p=PICKS[+t.dataset.i];if(p){const v=parseFloat(t.value);p.exp=v>0?v:0}}});
+ D.addEventListener("change",e=>{const t=e.target;if(t.id==="bkU"){SPU=t.value;const u=U.find(x=>x.name===SPU);if(u&&u.ttype&&u.ttype!==TY){TY=u.ttype;SEC="";STG="";TSK="";COMPS=[];draw()}}else if(t.id==="bkD")SPD=t.value;
+  else if(t.id==="obSec"){SEC=t.value;STG="";TSK="";COMPS=[];HRS="";redrawMain()}else if(t.id==="obStg"){STG=t.value;TSK="";COMPS=[];HRS="";redrawMain()}else if(t.id==="obTsk"){TSK=t.value;COMPS=[];HRS="";redrawMain()}
   else if(t.dataset.bk==="act"){const k=keyOf(CUR.sec,CUR.p,t.dataset.t);if(t.checked)addPick(t.dataset.t);else PICKS=PICKS.filter(x=>x.k!==k);redrawPicks()}});
- D.addEventListener("click",e=>{const b=e.target.closest("button[data-bk]");if(!b)return;const a=b.dataset.bk;
+ D.addEventListener("click",e=>{const w=e.target.closest("button[data-w]");if(w){const n=w.dataset.w;SPW.has(n)?SPW.delete(n):SPW.add(n);w.classList.toggle("on",SPW.has(n));return}
+  const o=e.target.closest("button[data-ob]");if(o){const a=o.dataset.ob,bank=bankOf(curTask());
+   if(a==="all"){COMPS=COMPS.length===bank.length?[]:bank.slice();return redrawMain()}
+   if(a==="c"){const c=bank[+o.dataset.i];COMPS=COMPS.includes(c)?COMPS.filter(x=>x!==c):COMPS.concat([c]);return redrawMain()}
+   if(a==="add")return addStep();return}
+  const b=e.target.closest("button[data-bk]");if(!b)return;const a=b.dataset.bk;
   if(a==="x")return D.close();
-  if(a==="ty"){TY=b.dataset.v;try{localStorage.setItem("tp-bank-ty",TY)}catch(x){}D.querySelectorAll('[data-bk="ty"]').forEach(c=>c.classList.toggle("on",c.dataset.v===TY));return redrawParts()}
-  if(a==="part"){CUR={sec:b.dataset.s,p:b.dataset.p};redrawParts();const w=$("#bkW");if(w)w.scrollIntoView({block:"nearest"});return}
+  if(a==="mode"){MODE=b.dataset.v;try{localStorage.setItem("tp-bank-mode",MODE)}catch(x){}return draw()}
+  if(a==="ty"){const v=b.dataset.v;if(MODE==="steps"&&v!==TY){SEC="";STG="";TSK="";COMPS=[]}TY=v;try{localStorage.setItem("tp-bank-ty",TY)}catch(x){}return draw()}
+  if(a==="part"){CUR={sec:b.dataset.s,p:b.dataset.p};redrawParts();const w2=$("#bkW");if(w2)w2.scrollIntoView({block:"nearest"});return}
   if(a==="done"){CUR=null;return redrawParts()}
   if(a==="other"){const v=($("#bkO").value||"").trim();if(!v)return alert("Describe the work first.");addPick(v+(new RegExp(CUR.p.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i").test(v)?"":", "+CUR.p));return redrawPicks()}
   if(a==="rm"){PICKS.splice(+b.dataset.i,1);return redrawPicks()}
   if(a==="newp"){const s=$("#bkNS").value,p=($("#bkNP").value||"").trim().replace(/\s+/g," ");if(!p)return alert("Type the part name first.");
    if(!BPARTS().some(x=>x.sec===s&&norm(x.p)===norm(p))){(DB.partBank=DB.partBank||[]).push({id:"pb"+Date.now().toString(36),ty:TY==="Gas"?"Gas":"Steam",sec:s,p,by:ME?ME.title:"",at:tdy()});sv()}
    CUR={sec:s,p};Q=p;draw();return}
-  if(a==="go"&&PICKS.length){const who=[...SPW].join(", ");PICKS.forEach(x=>DB.tasks.push(Object.assign({id:uid(),title:x.title,unit:SPU,who,due:SPD,st:"Open",note:x.sec,comp:x.p,exp:x.exp||0},cmeta(x.title))));
+  if(a==="go"&&PICKS.length){if(!SPW.size&&!confirm("No crew is selected. Create the tasks without anyone assigned?"))return;const who=[...SPW].join(", ");
+   PICKS.forEach(x=>{const t=Object.assign({id:uid(),title:x.title,unit:SPU,who,due:SPD,st:"Open",note:x.sec,comp:x.p,exp:x.exp||0},cmeta(x.title));if(x.x){Object.keys(x.x).forEach(k=>{if(x.x[k]!==undefined&&x.x[k]!==""&&!(Array.isArray(x.x[k])&&!x.x[k].length))t[k]=x.x[k]})}DB.tasks.push(t)});
    if(SPU){LAST.unit=SPU;try{localStorage.setItem("tp-last",JSON.stringify(LAST))}catch(x){}}sv();D.close();afterTasks()}});
+ /* Task Creator list: show the hold point, FME and data sheet on each task */
+ const _tv=tasksView;tasksView=function(){const r=_tv.apply(this,arguments);try{document.querySelectorAll("#mod .rec").forEach(rec=>{const b=rec.querySelector("button[data-id]");const t=b&&DB.tasks.find(x=>x.id===b.dataset.id);if(!t||rec.querySelector(".obTag"))return;const h=(t.stage?`<span class="tag obTag">${esc(t.stage)}</span>`:"")+(t.holdPt?`<span class="tag obTag" style="background:#b3342b;color:#fff">Hold point: ${esc(t.holdPt)}</span>`:"")+(t.fme?`<span class="tag obTag" style="background:#1d68a8;color:#fff">FME</span>`:"")+(t.sheet?`<span class="tag obTag" style="background:#2b7a4b;color:#fff">Readings: ${esc(t.sheet)}</span>`:"");if(h){const x=rec.querySelector("b");if(x)x.insertAdjacentHTML("afterend",`<div>${h}</div>`)}})}catch(e){}return r};
 })();
 
 let RPW=816,JID="",SIGCB=null,SIGD=false;
