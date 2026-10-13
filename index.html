@@ -5603,9 +5603,9 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  /* delays */
  const DR=["Waiting on parts","Vendor","Customer","Weather","Crane / equipment","Power","Other"];
  function delayView(){const s=S(),open=s.delays.filter(d=>!d.end),done=s.delays.filter(d=>d.end).slice(-20).reverse(),dur=d=>{const m=Math.round(((d.end||Date.now())-d.start)/6e4);return m>=60*24?(m/1440).toFixed(1)+" days":m>=60?(m/60).toFixed(1)+" h":m+" min"};
-  const card=d=>`<div class="rec"${d.end?"":' style="border-left-color:#d9534f"'}><b style="font-size:17px">${E(d.reason)}: ${E(d.unitId?((unitOf(d.unitId)||{}).name||"Unit"):"Whole shop")}</b><small>${E(d.note||"")}</small><small>Started ${E(new Date(d.start).toLocaleString())}${d.end?" &middot; ended "+E(new Date(d.end).toLocaleString()):""} &middot; ${dur(d)}</small>${d.end?"":`<div class="row"><button type="button" class="pri" data-shde="${d.id}">End Delay</button></div>`}</div>`;
+  const card=d=>`<div class="rec"${d.end?"":' style="border-left-color:#d9534f"'}><b style="font-size:17px">${E(d.reason)}: ${E(d.unitId?((unitOf(d.unitId)||{}).name||"Unit"):"Unit")}</b><small>${E(d.note||"")}</small><small>Started ${E(new Date(d.start).toLocaleString())}${d.end?" &middot; ended "+E(new Date(d.end).toLocaleString()):""} &middot; ${dur(d)}</small>${d.end?"":`<div class="row"><button type="button" class="pri" data-shde="${d.id}">End Delay</button></div>`}</div>`;
   MD.innerHTML=head("Delays")+`<div id="shp"><h2 class="sec">Running (${open.length})</h2>${open.map(card).join("")||`<div class="hint">No delays running.</div>`}
-  <div class="rec"><b>Start a delay</b><label>For<select id="dlU"><option value="">Whole shop</option>${s.units.map(u=>`<option value="${u.id}">${E(u.name)}</option>`).join("")}</select></label><label>Reason<select id="dlR">${DR.map(r=>`<option>${r}</option>`).join("")}</select></label><label>Note<input id="dlN"></label><div class="row"><button type="button" class="pri" data-sh="dlgo">Start Delay</button></div></div>
+  <div class="rec"><b>Start a delay</b><label>Unit<select id="dlU">${s.units.map(u=>`<option value="${u.id}">${E(u.name)}</option>`).join("")}</select></label><label>Reason<select id="dlR">${DR.map(r=>`<option>${r}</option>`).join("")}</select></label><label>Note<input id="dlN"></label><div class="row"><button type="button" class="pri" data-sh="dlgo">Start Delay</button></div></div>
   ${done.length?`<h2 class="sec">Past delays</h2>${done.map(card).join("")}`:""}</div>`}
  /* settings */
  function setView(){MD.innerHTML=head("Shop Settings")+`<div id="shp"><label>Shop name (on the JSA, weekly sheet and status sheet)<input id="ssN" value="${E(S().set.site||"Shop")}"></label><label>Shop address<textarea id="ssA" rows="2">${E(S().set.addr||"")}</textarea></label><div class="row"><button type="button" class="pri" data-sh="ssave">Save</button></div>
@@ -5695,7 +5695,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   if(k==="crdone")return crewView();
   if(k==="allin"){const T=s.time[today()]||(s.time[today()]={});s.crew.filter(c=>(c.shift||"Day")===CS&&!T[c.id]).forEach(c=>T[c.id]={h:10,in:hm(),out:""});sv();return crewView()}
   if(k==="payroll")return fprev(payrollHTML());
-  if(k==="dlgo"){s.delays.push({id:uidS("dl"),unitId:$("#dlU").value,reason:$("#dlR").value,note:nv($("#dlN").value),start:Date.now(),end:0});sv();return delayView()}
+  if(k==="dlgo"){if(!$("#dlU")||!$("#dlU").value)return alert("Create a unit first.");s.delays.push({id:uidS("dl"),unitId:$("#dlU").value,reason:$("#dlR").value,note:nv($("#dlN").value),start:Date.now(),end:0});sv();return delayView()}
   if(k==="ssave"){s.set.site=nv($("#ssN").value)||"Shop";s.set.addr=nv($("#ssA").value);try{QSD().site=s.set.site}catch(x){}sv();alert("Saved.");return}
   if(k==="signout"){ME=null;try{sessionStorage.removeItem("tp-me")}catch(x){}lockUI();return go("home")}
   if(k==="dsig")return sigPad("Driver signature",d=>{p.rec.sig=d;sv();pieceView()});
