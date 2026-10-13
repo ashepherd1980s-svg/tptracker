@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v51.6: first-day demos)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v52: job folders, task cards, Start My Day)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -309,28 +309,44 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dUnit"><div class="dlg" id="unitBody"></div></dialog>
 
 <script>
-/* ===== v51: Shop or Field Services. Chosen on every app open. The Shop side runs on its own separate data (never synced with Field) ===== */
+/* ===== v52: Shop or Field Services, chosen on every app open, plus a Demo that runs in its own separate space. The Shop side runs on its own data (never synced with Field). ===== */
 (function(){
- let side=null;try{side=sessionStorage.getItem("tp-side")}catch(e){}
- window.TPSIDE=side;window.SHOPMODE=side==="shop";
+ let side=null,demo=null;try{side=sessionStorage.getItem("tp-side");demo=sessionStorage.getItem("tp-demo")}catch(e){}
+ if(demo!=="shop"&&demo!=="field")demo=null;
+ if(demo)side=demo;
+ window.TPSIDE=side;window.SHOPMODE=side==="shop";window.TPDEMO=demo;
  const P=Storage.prototype,g=P.getItem,s=P.setItem,r=P.removeItem;
  window.FIELDGET=k=>g.call(localStorage,k);
- if(window.SHOPMODE){
-  /* every app key gets its own shop copy; Live Sync settings are not carried over, so Shop never syncs */
-  const SH=k=>(typeof k==="string"&&/^(tp-|turbine-tracker)/.test(k)&&!/^tp-shop-/.test(k)&&k!=="tp-mode")?"tp-shop-"+k:k;
-  P.getItem=function(k){return g.call(this,this===localStorage?SH(k):k)};
-  P.setItem=function(k,v){return s.call(this,this===localStorage?SH(k):k,v)};
-  P.removeItem=function(k){return r.call(this,this===localStorage?SH(k):k)};
+ const appKey=k=>typeof k==="string"&&/^(tp-|turbine-tracker)/.test(k)&&k!=="tp-mode";
+ let MAP=null;
+ if(demo){const pre="tp-demo-"+demo+"-";MAP=k=>(appKey(k)&&!/^tp-demo-(shop|field)-/.test(k))?pre+k:k}
+ else if(window.SHOPMODE){MAP=k=>(appKey(k)&&!/^tp-shop-/.test(k)&&!/^tp-demo-(shop|field)-/.test(k))?"tp-shop-"+k:k}
+ if(MAP){
+  /* every app key gets its own copy; Live Sync settings are not carried over, so Shop and the demos never sync */
+  P.getItem=function(k){return g.call(this,this===localStorage?MAP(k):k)};
+  P.setItem=function(k,v){return s.call(this,this===localStorage?MAP(k):k,v)};
+  P.removeItem=function(k){return r.call(this,this===localStorage?MAP(k):k)};
  }
- window.TPGO=function(to){try{sessionStorage.setItem("tp-side",to);sessionStorage.removeItem("tp-me");sessionStorage.removeItem("tp-shift")}catch(e){}location.reload()};
+ const clearDemo=d=>{try{const ks=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf("tp-demo-"+d+"-")===0)ks.push(k)}ks.forEach(k=>r.call(localStorage,k))}catch(e){}};
+ window.TPGO=function(to){try{sessionStorage.setItem("tp-side",to);sessionStorage.removeItem("tp-demo");sessionStorage.removeItem("tp-me");sessionStorage.removeItem("tp-shift")}catch(e){}location.reload()};
+ window.TPEXITDEMO=function(){const d=window.TPDEMO;try{sessionStorage.removeItem("tp-demo");sessionStorage.removeItem("tp-side");sessionStorage.removeItem("tp-me");sessionStorage.removeItem("tp-shift")}catch(e){}if(d)clearDemo(d);location.reload()};
+ function startDemo(d){clearDemo(d);try{s.call(localStorage,"tp-demo-"+d+"-tp-demo-first",d);sessionStorage.setItem("tp-demo",d);sessionStorage.setItem("tp-side",d);sessionStorage.removeItem("tp-me");sessionStorage.removeItem("tp-shift")}catch(e){}location.reload()}
  function menu(){if(document.getElementById("sideMenu"))return;const d=document.createElement("div");d.id="sideMenu";
-  d.innerHTML=`<style>#sideMenu{position:fixed;inset:0;z-index:9999;background:#0e1517;display:flex;align-items:center;justify-content:center;padding:24px}#sideMenu .sm{width:min(520px,100%);text-align:center}#sideMenu img{width:min(320px,80%);background:#fff;padding:8px 14px;border-radius:6px}#sideMenu h1{color:#e9efef;font:700 30px system-ui,sans-serif;margin:18px 0 6px}#sideMenu p{color:#8fa3a5;margin:0 0 22px;font:16px system-ui,sans-serif}#sideMenu button{display:block;width:100%;min-height:96px;margin:14px 0;border-radius:18px;border:0;font:800 28px system-ui,sans-serif;color:#fff;cursor:pointer}#sideMenu button small{display:block;font:500 15px system-ui,sans-serif;opacity:.85;margin-top:4px}#sideMenu .b1{background:linear-gradient(135deg,#a3283c,#7a1e2e)}#sideMenu .b2{background:linear-gradient(135deg,#1f6f6b,#14504d)}</style>
-  <div class="sm"><img id="smLogo" alt="TurbinePros"><h1>TP Tracker</h1><p>Choose where you are working</p><button type="button" class="b1" data-side="shop">Shop<small>Units, vendors, crew and hours</small></button><button type="button" class="b2" data-side="field">Field Services<small>Power plant outages</small></button></div>`;
+  d.innerHTML=`<style>#sideMenu{position:fixed;inset:0;z-index:9999;background:#0e1517;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}#sideMenu .sm{width:min(520px,100%);text-align:center}#sideMenu img{width:min(320px,80%);background:#fff;padding:8px 14px;border-radius:6px}#sideMenu h1{color:#e9efef;font:700 30px system-ui,sans-serif;margin:18px 0 6px}#sideMenu p{color:#8fa3a5;margin:0 0 22px;font:16px system-ui,sans-serif}#sideMenu button{display:block;width:100%;min-height:96px;margin:14px 0;border-radius:18px;border:0;font:800 28px system-ui,sans-serif;color:#fff;cursor:pointer}#sideMenu button small{display:block;font:500 15px system-ui,sans-serif;opacity:.85;margin-top:4px}#sideMenu .b1{background:linear-gradient(135deg,#a3283c,#7a1e2e)}#sideMenu .b2{background:linear-gradient(135deg,#1f6f6b,#14504d)}
+  #sideMenu .bd{min-height:56px;font:700 19px system-ui,sans-serif;background:transparent;border:2px dashed #4a5a5c;color:#cfdcdc;margin-top:28px}#sideMenu .dm{display:none;border:1px solid #2a3739;border-radius:16px;padding:6px 14px 10px;margin-top:10px}#sideMenu .dm.on{display:block}#sideMenu .dm button{min-height:64px;font-size:21px;background:#22302f}#sideMenu .dm .x{min-height:46px;font-size:16px;background:transparent;border:1px solid #4a5a5c;color:#cfdcdc}#sideMenu .dm p{margin:10px 0 0;font-size:14px}</style>
+  <div class="sm"><img id="smLogo" alt="TurbinePros"><h1>TP Tracker</h1><p>Choose where you are working</p><button type="button" class="b1" data-side="shop">Shop<small>Job folders, task cards, crew and hours</small></button><button type="button" class="b2" data-side="field">Field Services<small>Power plant outages</small></button>
+  <button type="button" class="bd" data-side="demo">Demo</button><div class="dm" id="smDemo"><p>A demo runs in its own separate space. Your real Shop and Field data are not touched.</p><button type="button" data-demo="shop">Shop demo<small>Sign in as Austin Shepherd, PIN 1001</small></button><button type="button" data-demo="field">Field demo<small>Sign in as Austin Shepherd, PIN 1001</small></button><button type="button" class="x" data-demo="x">Cancel</button></div></div>`;
   document.body.appendChild(d);
   try{const L=document.querySelector("img.logo");if(L&&L.src)d.querySelector("#smLogo").src=L.src;else setTimeout(()=>{const L2=document.querySelector("img.logo");if(L2&&L2.src)d.querySelector("#smLogo").src=L2.src},400)}catch(e){}
-  d.addEventListener("click",e=>{const b=e.target.closest("button[data-side]");if(!b)return;const to=b.dataset.side;
+  d.addEventListener("click",e=>{const dm=e.target.closest("button[data-demo]");if(dm){if(dm.dataset.demo==="x")return d.querySelector("#smDemo").classList.remove("on");return startDemo(dm.dataset.demo)}
+   const b=e.target.closest("button[data-side]");if(!b)return;const to=b.dataset.side;
+   if(to==="demo"){d.querySelector("#smDemo").classList.add("on");return}
    if(to==="field"){try{sessionStorage.setItem("tp-side","field")}catch(x){}window.TPSIDE="field";d.remove()}else TPGO("shop")})}
- if(!side){if(document.body)menu();else document.addEventListener("DOMContentLoaded",menu)}
+ function banner(){if(document.getElementById("demoBar"))return;const b=document.createElement("div");b.id="demoBar";
+  b.innerHTML=`<style>#demoBar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:9000;display:flex;align-items:center;gap:12px;background:#e0a04e;color:#1a1206;border-radius:24px;padding:6px 8px 6px 16px;font:800 15px system-ui,sans-serif;box-shadow:0 4px 18px rgba(0,0,0,.4)}#demoBar button{min-height:38px;border-radius:19px;border:0;background:#1a1206;color:#fff;font:700 14px system-ui,sans-serif;padding:0 14px}@media print{#demoBar{display:none}}</style>DEMO &middot; ${demo==="shop"?"Shop":"Field"}<button type="button" id="demoExit">Exit Demo</button>`;
+  document.body.appendChild(b);b.querySelector("#demoExit").onclick=()=>{if(confirm("Exit the demo? Demo data is cleared. Your real data is not touched."))TPEXITDEMO()}}
+ const go=()=>{if(demo)banner();else if(!side)menu()};
+ if(document.body)go();else document.addEventListener("DOMContentLoaded",go);
 })();
 
 window.TPREMOVED=["fm_brk","fm_ntf","brk_rep"];window.TPRENAME={"tasks": "Task Creator", "crew": "Millwright Task Tracker", "jsa": "Daily JSA", "dsr": "Daily Report", "delay": "Delay Tracker", "qtools": "Camera & Calculator", "fm_media": "Photo Files", "data": "Data Entry", "fm_msg": "Messages", "fm_hand": "Shift Turnover", "fm_eos": "End of Shift", "loto": "LOTO", "fme": "FME", "fm_em": "Site Emergency Contact", "prog": "Unit Progress Tracker", "mcal": "Whiteboard Calendar", "tools": "Damaged Tooling", "qs": "Quick Start Setup", "people": "Employees", "costs": "Time Tracker", "sync": "Live Sync", "reset": "App Data Reset", "safety": "Safety Tools", "fm_case": "HSEQ Link", "fm_tout": "Stop Work", "status": "Live Status", "sstat": "To-Date Status", "fm_req": "New Request", "shop": "Request List", "vend": "Vendor Shipments", "fm_rcv": "Shipping & Receiving", "rent": "Rentals", "fm_hold": "Hold Points"};
@@ -5906,19 +5922,312 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   if(t.dataset.shh){const x=(s.time[today()]||{})[t.dataset.shh];if(x){x.h=t.value;sv()}return}
   if(t.id==="sfV"){readSF();SF.vendorId=t.value;$("#sfNew").hidden=t.value!=="new";return}
   if(t.id==="stD"&&u){u.shipDate=t.value;sv();return}
-  if(t.type==="file"&&t.files.length){const ids=await savePh(t.files);t.value="";
+  if(t.type==="file"&&t.files.length&&!t.dataset.q52){const ids=await savePh(t.files);t.value="";
    if(t.id==="fdP"){FDP=FDP.concat(ids);$("#fdPn").textContent=FDP.length+" photo"+(FDP.length===1?"":"s")+" ready";return}
    if(t.id==="pcP"){p.photos=p.photos.concat(ids)}else if(t.id==="rcP"){p.rec.photos=(p.rec.photos||[]).concat(ids)}else if(t.id==="rcN"){p.rec.np=(p.rec.np||[]).concat(ids)}else if(t.id==="sfP"){readSF();SF.photos=(SF.photos||[]).concat(ids);sv();return sendForm()}
    sv();return pieceView()}});
+ /* ===================== v52: job folders, task cards, Start My Day, daily plan, hours by job (ST/OT/DT), wrap up ===================== */
+ const MS=[["rcv","Received"],["dis","Disassembly complete"],["insp","Inspection & discovery complete"],["reas","Reassembly complete"],["rpt","Final report"],["ship","Shipped / storage"]];
+ const UF=[["job","Job number"],["unitNo","Unit (e.g. Unit 1)"],["cust","Customer"],["origin","Origin (shipped from)"],["model","Model"],["tser","Turbine serial"],["gser","Generator serial"],["dRec","Date received","date"],["dTgt","Target ship date","date"],["dShip","Actual ship date","date"]];
+ const LINKS=[["info","Unit info"],["prog","Progress & task cards"],["pcs","Pieces"],["crew","Crew"],["plan","Daily plan"],["jsa","JSAs"],["time","Timesheets"],["vend","Vendors"],["parts","Parts"],["photos","Photos"],["finds","Findings"],["delay","Delays"],["hseq","HSEQ & FME"],["status","Customer status"]];
+ const LROUTE={info:"sh_ui",prog:"sh_tc",pcs:"sh_unit",crew:"sh_uc",plan:"sh_up",jsa:"sh_uj",time:"sh_ut",vend:"sh_uv",parts:"sh_parts",photos:"sh_uph",finds:"sh_uf",delay:"sh_ud",hseq:"sh_uh",status:"sh_status"};
+ const uName=u=>[nv(u.job),nv(u.unitNo)].filter(Boolean).join(" ")||u.name||"Unit";
+ function fixU(u){if(!Array.isArray(u.steps))u.steps=[];if(!u.ms||typeof u.ms!=="object")u.ms={};if(!Array.isArray(u.docs))u.docs=[];if(!Array.isArray(u.pieces))u.pieces=[];if(!Array.isArray(u.tpl))u.tpl=[];if(nv(u.job)||nv(u.unitNo))u.name=uName(u);return u}
+ const UNITS=()=>{const s=S(),o=s.set.uord||[];s.units.forEach(fixU);return s.units.slice().sort((a,b)=>{const ia=o.indexOf(a.id),ib=o.indexOf(b.id);return (ia<0?1e6:ia)-(ib<0?1e6:ib)})};
+ const LORD=()=>{const o=S().set.lord||[];return LINKS.slice().sort((a,b)=>{const ia=o.indexOf(a[0]),ib=o.indexOf(b[0]);return (ia<0?99:ia)-(ib<0?99:ib)})};
+ window.SHOPNEWJOB=o=>{const u=fixU(Object.assign({id:uidS("su"),tpl:[],created:today(),pieces:[]},o));S().units.push(u);sv();syncU();return u};
+ const ME_=()=>(typeof ME!=="undefined"&&ME&&ME.title)||"";
+ const stepsDone=u=>u.steps.filter(x=>x.done).length;
+ const uPct=u=>u.steps.length?Math.round(100*stepsDone(u)/u.steps.length):Math.round(100*MS.filter(([k])=>u.ms[k]).length/MS.length);
+ const curMs=u=>{let c="Not received yet";MS.forEach(([k,l])=>{if(u.ms[k])c=l});return c};
+ const nextStep=u=>u.steps.find(x=>!x.done);
+ const crewOf=id=>S().crew.find(c=>c.id===id);
+ const PLAN=d=>{const s=S();s.plan=s.plan||{};return s.plan[d]||(s.plan[d]={items:[],wrap:null})};
+ const TYPEL={step:"",reading:"READING",hold:"HOLD"};
+ const tag=t=>t==="hold"?`<span class="qtg qh">HOLD</span>`:t==="reading"?`<span class="qtg qr">READING</span>`:"";
+ /* ---------- hours: straight time, overtime, double time ---------- */
+ const HOLC={};
+ function hol(y){if(HOLC[y])return HOLC[y];const D=(m,d)=>new Date(y,m,d,12),nth=(m,wd,n)=>{const x=new Date(y,m,1,12);let c=0;for(;;){if(x.getDay()===wd&&++c===n)return new Date(x);x.setDate(x.getDate()+1)}},last=(m,wd)=>{const x=new Date(y,m+1,0,12);while(x.getDay()!==wd)x.setDate(x.getDate()-1);return x};
+  return HOLC[y]=[D(0,1),nth(1,1,3),last(4,1),D(6,4),nth(8,1,1),nth(10,4,4),D(11,25)].map(x=>{const w=x.getDay();if(w===0)x.setDate(x.getDate()+1);if(w===6)x.setDate(x.getDate()-1);return ymd(x)})}
+ const dayKind=d=>{const x=new Date(d+"T12:00:00");if(hol(x.getFullYear()).includes(d))return "hol";const w=x.getDay();return w===0||w===6?"wkend":"wk"};
+ const KINDL={hol:"Holiday (double time)",wkend:"Weekend (overtime)",wk:"Weekday (8 ST + OT after 8)"};
+ function defJob(d,c){const it=PLAN(d).items.find(i=>(i.crew||[]).includes(c.id)&&i.u);if(it)return it.u;if(c.job&&S().units.some(u=>u.id===c.job))return c.job;return ""}
+ function tnorm(d,c){const T=S().time[d]||{},t=T[c.id];if(!t)return null;const h=+t.h||0;if(!Array.isArray(t.jobs)||!t.jobs.length)t.jobs=[{u:defJob(d,c),h}];
+  const sum=t.jobs.reduce((a,j)=>a+(+j.h||0),0);if(Math.abs(sum-h)>.001){if(t.jobs.length===1)t.jobs[0].h=h;else{const L=t.jobs[t.jobs.length-1],rest=sum-(+L.h||0);L.h=Math.max(0,h-rest);t.h=t.jobs.reduce((a,j)=>a+(+j.h||0),0)}}return t}
+ function cls(t,d){const k=dayKind(d);let used=0;return (t.jobs||[]).map(j=>{const h=+j.h||0;let st=0,ot=0,dt=0;if(k==="hol")dt=h;else if(k==="wkend")ot=h;else{st=Math.max(0,Math.min(h,8-used));ot=+(h-st).toFixed(2)}used+=h;return{u:j.u,h,st,ot,dt}})}
+ const wkDays=o=>{const w0=wkStart(o);return [...Array(7)].map((_,i)=>{const d=new Date(w0);d.setDate(d.getDate()+i);return ymd(d)})};
+ function hoursFor(uid,D){const s=S(),out={};D.forEach(d=>{s.crew.forEach(c=>{const t=tnorm(d,c);if(!t)return;cls(t,d).forEach(x=>{if((x.u||"")!==(uid||""))return;const r=out[c.id]||(out[c.id]={c,days:{},st:0,ot:0,dt:0});r.days[d]=(r.days[d]||0)+x.h;r.st+=x.st;r.ot+=x.ot;r.dt+=x.dt})})});return Object.values(out)}
+ const f2=n=>{n=+n||0;return Math.round(n*100)/100};
+ /* ---------- look ---------- */
+ const st52=document.createElement("style");st52.textContent=`#shSide{display:none}
+ @media(min-width:820px){body.shop #shSide{display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;width:216px;padding:calc(16px + env(safe-area-inset-top,0px)) 10px 22px;background:rgba(14,21,23,.97);border-right:1px solid rgba(255,255,255,.12);overflow-y:auto;z-index:5;gap:4px}}
+ #shSide button{display:flex;align-items:center;justify-content:flex-start;gap:8px;width:100%;text-align:left;min-height:46px;padding:6px 12px;border-radius:12px;border:0;background:transparent;color:#e6eded;font-size:16px;font-weight:600}
+ #shSide button:hover,#shSide button.on{background:rgba(255,255,255,.08)}#shSide .sday{background:linear-gradient(135deg,#1f6f6b,#14504d);font-weight:800;min-height:52px}#shSide .sday small{display:block;font-weight:500;opacity:.8;font-size:12px}
+ #shSide h4{margin:14px 6px 4px;font:700 12px system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8fa3a5;display:flex;align-items:center;gap:6px}#shSide h4 button{width:auto;min-height:30px;font-size:13px;padding:0 10px;margin-left:auto;border:1px solid #3a4a4c;letter-spacing:0;text-transform:none}
+ #shSide .fold{font-weight:800}#shSide .fold small{display:block;font-weight:500;color:#8fa3a5;font-size:12px}#shSide .fold .chev{margin-left:auto;opacity:.6}
+ #shSide .lnk{min-height:38px;font-size:14px;font-weight:500;padding-left:26px;color:#cfdcdc}#shSide .sep{border-top:1px solid rgba(255,255,255,.12);margin:10px 4px}
+ #shSide .qrow{display:flex;align-items:center}#shSide .qrow .qhd,#shp .qhd{flex:0 0 36px;min-height:40px;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:grab;color:#8fa3a5;font-size:20px;user-select:none;-webkit-user-select:none}
+ .qdrag{opacity:.55}.qtg{display:inline-block;font:800 11px system-ui,sans-serif;letter-spacing:.06em;padding:2px 7px;border-radius:5px;margin-right:6px;vertical-align:2px}.qh{background:#b3342b;color:#fff}.qr{background:#1f6f6b;color:#fff}
+ .qstep{border-bottom:1px solid var(--line);padding:10px 2px;display:flex;gap:12px;align-items:flex-start}.qstep .qck{flex:0 0 34px;width:34px;height:34px;margin:2px 0 0;accent-color:#2f7d4a}.qstep .qtx{flex:1;min-width:0}.qstep .qtx p{margin:0 0 4px;font-size:16px;line-height:1.45}.qstep ul{margin:4px 0 4px 18px;padding:0;font-size:15px}.qstep .qn{font-style:italic;color:var(--mute);font-size:14px}.qstep.qd .qtx p{color:var(--mute);text-decoration:line-through;text-decoration-color:rgba(127,127,127,.5)}.qstep small{color:var(--mute)}
+ .qms{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.qms button{min-height:44px;border-radius:22px;padding:4px 14px;font-size:14px;font-weight:700}.qms button.on{background:#2f7d4a;color:#fff;border-color:#2f7d4a}
+ .qjob{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-left:6px solid #a3283c;border-radius:14px;padding:14px 16px;margin:10px 0}.qjob b{font-size:24px;display:block;letter-spacing:.01em}.qjob small{color:var(--mute);display:block;margin-top:2px;font-size:14px}.qjob .qnx{color:inherit;font-size:15px;margin-top:6px}
+ .qday{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 12px}.qday button{flex:1 1 220px;min-height:64px;border-radius:16px;font-size:20px;font-weight:800}
+ .qdots{display:flex;gap:6px;overflow-x:auto;padding:8px 0}.qdots button{flex:0 0 auto;min-height:44px;border-radius:22px;padding:0 14px;font-weight:700}.qdots button.on{background:#1f6f6b;color:#fff;border-color:transparent}.qdots button.ok{border-color:#2f7d4a}
+ .qlinks{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}.qlinks button{min-height:64px;border-radius:14px;font-size:17px;font-weight:700;text-align:left;padding:10px 16px}
+ .qit{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;background:var(--card)}.qit b{display:block}.qit .chips{padding:6px 0 0}
+ .qhrs{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:4px 0}.qhrs select{flex:1;min-width:140px}.qhrs input{width:80px}
+ .qkind{font-size:13px;color:var(--mute)}.qstep .qtx label{display:block;max-width:100%}.qstep .qtx input{max-width:100%;box-sizing:border-box}details.qgrp summary small{margin-left:8px}.qit .row button,.qstep .row button{flex:0 0 auto;min-height:40px;padding:0 16px}`;document.head.appendChild(st52);
+ /* ---------- sidebar (iPad) ---------- */
+ let SBOPEN=new Set(),SBEDIT=false;
+ function side(){let d=document.getElementById("shSide");if(!d){d=document.createElement("nav");d.id="shSide";d.setAttribute("aria-label","Shop");document.body.appendChild(d)}
+  if(document.getElementById("lock")&&!$("#lock").hidden){d.innerHTML="";return}
+  const L=LORD(),us=UNITS();if(UID&&!SBOPEN.has(UID))SBOPEN=new Set([UID]);
+  const fold=u=>`<div class="qrow" data-qid="${u.id}">${SBEDIT?`<span class="qhd" aria-label="Drag to reorder">&#8801;</span>`:""}<button type="button" class="fold${UID===u.id?" on":""}" data-qa="sbf" data-qu="${u.id}"><span>${E(uName(u))}<small>${E(nv(u.origin)||curMs(u))}</small></span><span class="chev">${SBOPEN.has(u.id)?"&#9662;":"&#9656;"}</span></button></div>`+
+   (SBOPEN.has(u.id)&&!SBEDIT?L.map(([k,l])=>`<button type="button" class="lnk${UID===u.id&&LROUTE[k]===cur?" on":""}" data-qa="lnk" data-qu="${u.id}" data-qk="${k}">${E(l)}</button>`).join(""):"");
+  d.innerHTML=`<button type="button" class="sday" data-qa="go" data-qk="sh_day"><span>Start My Day<small>${E(new Date().toLocaleDateString([],{weekday:"long",month:"short",day:"numeric"}))}</small></span></button><button type="button" data-qa="go" data-qk="sh_wrap">Wrap Up</button>
+  <h4>Jobs<button type="button" data-qa="sbedit">${SBEDIT?"Done":"Edit"}</button></h4><div data-qdrag="uord">${us.map(fold).join("")}</div>${us.length?"":`<div style="color:#8fa3a5;font-size:14px;padding:6px 12px">No jobs yet.</div>`}
+  <button type="button" data-qa="newj" style="color:#8fa3a5;font-size:14px">+ New job / unit</button>
+  ${SBEDIT?`<h4>Folder link order</h4><div data-qdrag="lord">${L.map(([k,l])=>`<div class="qrow" data-qid="${k}"><span class="qhd" aria-label="Drag to reorder">&#8801;</span><button type="button" class="lnk" style="padding-left:6px" tabindex="-1">${E(l)}</button></div>`).join("")}</div>`:""}
+  <div class="sep"></div><button type="button" data-qa="go" data-qk="sh_vend"${cur==="sh_vend"?' class="on"':""}>Vendors &amp; Request PDFs</button><button type="button" data-qa="go" data-qk="sh_safe"${cur==="sh_safe"?' class="on"':""}>Shop Safety</button><button type="button" data-qa="go" data-qk="sh_crew"${cur==="sh_crew"?' class="on"':""}>Shop Crew &amp; Hours</button><button type="button" data-qa="go" data-qk="sh_set"${cur==="sh_set"?' class="on"':""}>Settings</button><button type="button" data-qa="go" data-qk="home"${cur==="home"?' class="on"':""}>Home</button>`}
+ /* drag to reorder (works with a finger on the iPad) */
+ function dragInit(root){let it=null,box=null;
+  root.addEventListener("pointerdown",e=>{const h=e.target.closest(".qhd");if(!h)return;it=h.closest("[data-qid]");box=it&&it.parentElement;if(!box||!box.dataset.qdrag){it=null;return}e.preventDefault();it.classList.add("qdrag");try{h.setPointerCapture(e.pointerId)}catch(x){}});
+  root.addEventListener("pointermove",e=>{if(!it)return;e.preventDefault();const sib=[...box.children].filter(x=>x!==it&&x.dataset.qid);let before=null;for(const x of sib){const r=x.getBoundingClientRect();if(e.clientY<r.top+r.height/2){before=x;break}}box.insertBefore(it,before)});
+  const end=()=>{if(!it)return;it.classList.remove("qdrag");const ord=[...box.children].map(x=>x.dataset.qid).filter(Boolean),k=box.dataset.qdrag;S().set[k]=ord;sv();it=null;box=null;side();try{if(cur==="sh_jf")jfView()}catch(x){}};
+  root.addEventListener("pointerup",end);root.addEventListener("pointercancel",end)}
+ setTimeout(()=>{side();dragInit(document.getElementById("shSide"))},0);
+ document.addEventListener("click",e=>{const sd=document.getElementById("shSide");if(!sd||!sd.contains(e.target))return;const b=e.target.closest("button[data-qa]");if(!b)return;const a=b.dataset.qa;
+  if(a==="sbedit"){SBEDIT=!SBEDIT;return side()}
+  if(a==="sbf"){const id=b.dataset.qu;if(SBEDIT)return;if(SBOPEN.has(id)&&UID===id){SBOPEN.delete(id);return side()}SBOPEN=new Set([id]);UID=id;return go("sh_jf")}
+  if(a==="lnk")return openLink(b.dataset.qu,b.dataset.qk);
+  if(a==="newj"){NEWU=true;go("home");return homeShop()}
+  if(a==="go"){if(b.dataset.qk==="sh_day")DSTEP=firstOpenStep();return go(b.dataset.qk)}});
+ function openLink(uid,k){UID=uid;SBOPEN=new Set([uid]);const r=LROUTE[k];if(r==="sh_parts"){cur="sh_unit"}return go(r)}
+ /* ---------- home ---------- */
+ homeShop=function(){let h=document.getElementById("shopHome");if(!h){h=document.createElement("div");h.id="shopHome";$("#home").appendChild(h)}
+  const s=S(),late=s.sends.filter(x=>vStat(x)==="late").length,inN=Object.keys(s.time[today()]||{}).length,holds=s.units.reduce((a,u)=>a+u.pieces.filter(holdOn).length,0),logo=(document.querySelector("img.logo")||{}).src||"",P0=PLAN(today()),us=UNITS();
+  h.innerHTML=`<div class="shTop">${logo?`<img src="${logo}" alt="TurbinePros">`:""}<h1>Shop</h1><button type="button" data-shgo="sh_set">Settings</button><button type="button" data-tpgo="field">Switch to Field</button></div>
+  <div class="qday"><button type="button" class="pri" data-qa="go" data-qk="sh_day">Start My Day${P0.items.length?` <small style="display:block;font-size:13px;font-weight:600">${P0.items.length} task${P0.items.length===1?"":"s"} assigned &middot; ${inN} in</small>`:""}</button><button type="button" data-qa="go" data-qk="sh_wrap">Wrap Up${P0.wrap?` <small style="display:block;font-size:13px;font-weight:600">Done ${E(P0.wrap.at)}</small>`:""}</button></div>
+  <div class="shNav"><button type="button" data-shgo="sh_crew">Crew${inN?` <span class="cnt" style="background:#1f6f6b">${inN} in</span>`:""}</button><button type="button" data-shgo="sh_vend">Vendors${late?`<span class="cnt">${late}</span>`:""}</button><button type="button" data-shgo="sh_parts">Parts</button><button type="button" data-shgo="sh_safe">Safety &amp; QC${holds?`<span class="cnt">${holds}</span>`:""}</button><button type="button" data-shgo="sh_delay">Delays</button></div>
+  ${NEWU?newJobForm():`<div class="row" style="margin:0"><button type="button" class="pri" data-sh="newu" style="min-height:52px;flex:1">+ New Job / Unit</button></div>`}
+  ${us.map(u=>{const nx=nextStep(u),hd=u.pieces.filter(holdOn).length,todayN=P0.items.filter(i=>i.u===u.id).length;
+   return `<button type="button" class="qjob" data-qa="job" data-qu="${u.id}"><b>${E(uName(u))}</b><small>${E([nv(u.origin),nv(u.cust),nv(u.model)].filter(Boolean).join(" · ")||"Tap to open the job folder")}</small><small><span class="stg${u.ms.rcv?"":" exp"}">${E(curMs(u))}</span>${hd?` <span class="tg" style="background:#d9534f">${hd} QC hold</span>`:""}${todayN?` &middot; ${todayN} assigned today`:""}</small>${nx?`<div class="qnx">Next: ${tag(nx.type)}${E(nx.text.length>110?nx.text.slice(0,110)+"…":nx.text)}</div>`:u.steps.length?`<div class="qnx">All ${u.steps.length} steps done</div>`:`<div class="qnx" style="color:var(--mute)">No task cards yet</div>`}<div class="shBar"><i style="width:${uPct(u)}%"></i></div></button>`}).join("")||`<div class="empty">No jobs yet. Tap New Job / Unit when the first unit is coming.</div>`}`;
+  side()};
+ function newJobForm(){return `<div class="rec"><b>New Job / Unit</b><div class="hint">One job number per unit. Starts neutral: no steps until you load a step file or add them.</div>
+  <label>Job number *<input id="njJ" autocomplete="off" placeholder="e.g. 7572-01"></label><label>Unit *<input id="njU" autocomplete="off" placeholder="e.g. Unit 1"></label><label>Customer<input id="njC" autocomplete="off"></label><label>Origin (shipped from)<input id="njO" autocomplete="off" placeholder="e.g. Panama"></label><label>Model<input id="njM" autocomplete="off" placeholder="e.g. GE 6B"></label>
+  <label class="chk" style="color:inherit"><input type="checkbox" id="njP"><span>Add the starter piece list (${TPL.major.length} pieces, editable)</span></label>
+  <div class="row"><button type="button" data-sh="newx">Cancel</button><button type="button" class="pri" data-qa="newjob">Create</button></div></div>`}
+ $("#home").addEventListener("click",e=>{const b=e.target.closest("button[data-qa]");if(!b||!$("#shopHome")||!$("#shopHome").contains(b))return;const a=b.dataset.qa;
+  if(a==="go"){if(b.dataset.qk==="sh_day")DSTEP=firstOpenStep();return go(b.dataset.qk)}
+  if(a==="job"){UID=b.dataset.qu;SBOPEN=new Set([UID]);return go("sh_jf")}
+  if(a==="newjob"){const j=nv($("#njJ").value),un=nv($("#njU").value);if(!j||!un)return alert("Enter the job number and the unit.");
+   const u=SHOPNEWJOB({job:j,unitNo:un,cust:nv($("#njC").value),origin:nv($("#njO").value),model:nv($("#njM").value)});if($("#njP").checked){u.tpl=["major"];TPL.major.forEach(([pn,cl])=>u.pieces.push(mkPiece(pn,cl)));sv()}
+   NEWU=false;UID=u.id;SBOPEN=new Set([u.id]);return go("sh_jf")}});
+ /* ---------- job folder page (all widths) ---------- */
+ function jfView(){const u=unitOf(UID);if(!u)return go("home");fixU(u);const nx=nextStep(u);
+  MD.innerHTML=head(uName(u))+`<div id="shp"><div class="rec"><b>${E([nv(u.origin),nv(u.cust),nv(u.model)].filter(Boolean).join(" · ")||"Job folder")}</b><small>${E(curMs(u))} &middot; ${u.steps.length?stepsDone(u)+" of "+u.steps.length+" steps done":"no task cards yet"}</small>${nx?`<small>Next: ${E(nx.text.slice(0,140))}</small>`:""}<div class="shBar"><i style="width:${uPct(u)}%"></i></div></div>
+  <div class="qlinks">${LORD().map(([k,l])=>`<button type="button" data-qa="lnk" data-qk="${k}">${E(l)}</button>`).join("")}</div><div class="hint">Change the order of these links with Edit in the side menu (iPad) or below.</div>
+  <details><summary>Change link order</summary><div data-qdrag="lord" id="jfOrd">${LORD().map(([k,l])=>`<div class="qrow" data-qid="${k}" style="display:flex;align-items:center;border-bottom:1px solid var(--line)"><span class="qhd">&#8801;</span><span style="padding:10px 4px">${E(l)}</span></div>`).join("")}</div></details></div>`;
+  const o=$("#jfOrd");if(o&&!o.dataset.dg){o.dataset.dg=1;dragInit(o)}}
+ /* ---------- unit info ---------- */
+ function uiView(){const u=unitOf(UID);if(!u)return go("home");fixU(u);
+  MD.innerHTML=head("Unit Info: "+uName(u),"sh_jf")+`<div id="shp"><div class="hint">Tap &times; to clear a line. Unit info stays on this iPad.</div>`+
+  UF.map(([k,l,t])=>`<div class="shRow" style="align-items:flex-end"><label style="flex:1">${E(l)}<input data-qf="${k}" ${t==="date"?'type="date"':""} value="${E(u[k]||"")}" autocomplete="off"></label><button type="button" data-qa="ufx" data-qk="${k}" aria-label="Clear ${E(l)}" style="min-height:44px">&times;</button></div>`).join("")+
+  `<h2 class="sec">Unit documents (${u.docs.length})</h2><div class="hint">PDFs for this unit (scope, packing lists, transfer of custody). Kept on this iPad only.</div>${u.docs.map(d=>`<div class="rec"><b>${E(d.name)}</b><small>Added ${E(d.at)}</small><div class="row"><button type="button" class="pri" data-qa="udo" data-qi="${d.id}">Open</button><button type="button" class="danger" data-qa="udx" data-qi="${d.id}">Remove</button></div></div>`).join("")}
+  <div class="row"><label class="btn" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 16px;border:1px solid var(--line);border-radius:12px;cursor:pointer">Add PDF from Files<input type="file" id="uiF" data-q52="1" accept="application/pdf,.pdf" multiple hidden></label></div>
+  <div class="row" style="margin-top:24px"><button type="button" class="danger" data-qa="udel">Delete this job / unit</button></div></div>`}
+ /* ---------- progress and task cards ---------- */
+ let TCEDIT=false,TCIMP=null,TCOPEN=null;
+ function tcView(){const u=unitOf(UID);if(!u)return go("home");fixU(u);const nx=nextStep(u),groups=[];u.steps.forEach(x=>{let g=groups.find(y=>y.n===x.grp);if(!g){g={n:x.grp,part:x.part,L:[]};groups.push(g)}g.L.push(x)});
+  const openG=TCOPEN||(nx?nx.grp:"");
+  const stepHTML=x=>{const holdNeed=x.type==="hold"&&!x.hold;return `<div class="qstep${x.done?" qd":""}" id="q_${x.id}"><input type="checkbox" class="qck" data-qa="sdone" data-qs="${x.id}"${x.done?" checked":""}${holdNeed&&!x.done?" disabled":""} aria-label="Step done"><div class="qtx"><p>${tag(x.type)}${E(x.text)}</p>${x.sub&&x.sub.length?`<ul>${x.sub.map(t=>`<li>${E(t)}</li>`).join("")}</ul>`:""}${(x.notes||[]).map(t=>`<div class="qn">Note: ${E(t)}</div>`).join("")}
+   ${x.type==="reading"?`<label style="margin-top:6px">Reading / data sheet note<input data-qv="${x.id}" value="${E(x.val||"")}" placeholder="Value or 'on data sheet'"></label>`:""}
+   ${x.type==="hold"?(x.hold?`<small style="color:#3fae66;font-weight:700">Hold point released by ${E(x.hold.by)} ${E(x.hold.at)}</small>`:`<div class="row" style="padding:4px 0"><button type="button" class="danger" data-qa="shold" data-qs="${x.id}">Release Hold Point</button></div><small>Stop here. Release the hold point before marking this step done.</small>`):""}
+   ${x.done?`<small>Done by ${E(x.done.by||"")} ${E(x.done.at||"")}</small>`:""}${TCEDIT?`<div class="row" style="padding:4px 0"><button type="button" class="danger" data-qa="sdel" data-qs="${x.id}">Remove step</button></div>`:""}</div></div>`};
+  MD.innerHTML=head("Progress: "+uName(u),"sh_jf")+`<div id="shp"><h2 class="sec">Milestones</h2><div class="hint">Tap a milestone when it is reached.</div><div class="qms">${MS.map(([k,l])=>`<button type="button" class="${u.ms[k]?"on":""}" data-qa="ms" data-qk="${k}">${u.ms[k]?"&#10003; ":""}${E(l)}${u.ms[k]?` <small style="font-weight:500">${E(fmtD(u.ms[k]))}</small>`:""}</button>`).join("")}</div>
+  <div class="rec"><b>${u.steps.length?stepsDone(u)+" of "+u.steps.length+" steps done":"No task cards yet"}</b><div class="shBar"><i style="width:${uPct(u)}%"></i></div>${nx?`<small>Next: ${E(nx.grp)}: ${E(nx.text.slice(0,120))}</small>`:""}</div>
+  <div class="row"><label class="btn" style="display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 16px;border:1px solid var(--line);border-radius:12px;cursor:pointer;font-weight:700;font-size:16px">Load Step File<input type="file" id="tcF" data-q52="1" accept=".json,application/json" hidden></label><button type="button" data-qa="sadd">+ Add Step</button><button type="button" data-qa="tcedit">${TCEDIT?"Done Editing":"Edit Steps"}</button></div>
+  <div id="tcImp">${TCIMP?impHTML():""}</div><div id="tcAdd"></div>`+
+  (groups.map(g=>{const dn=g.L.filter(x=>x.done).length;return `<details class="qgrp" data-qg="${E(g.n)}"${g.n===openG?" open":""}><summary style="font-size:18px;font-weight:800;padding:12px 0">${E(g.n)} <small style="font-weight:500;color:var(--mute)">${dn} of ${g.L.length}${g.L.some(x=>x.type==="hold"&&!x.hold)?" · hold points ahead":""}</small></summary>${g.L.map(stepHTML).join("")}${TCEDIT?`<div class="row"><button type="button" class="danger" data-qa="gdel" data-qg="${E(g.n)}">Remove section</button></div>`:""}</details>`}).join("")||`<div class="hint">This job starts neutral. Load a step file (for example the GE 6B major inspection file) or add steps one at a time.</div>`)+`</div>`;
+  if(nx&&!TCOPEN)setTimeout(()=>{const el=document.getElementById("q_"+nx.id);if(el&&el.scrollIntoView)el.scrollIntoView({block:"center"})},60)}
+ function impHTML(){const d=TCIMP,u=unitOf(UID),have=new Set(u.steps.map(x=>x.grp));return `<div class="rec" style="border-left:5px solid #1f6f6b"><b>${E(d.title||"Step file")}</b><small>${E(d.source||"")}</small><div class="hint">Tick the sections this unit needs.</div>${d.groups.map((g,i)=>`<label class="chk" style="color:inherit"><input type="checkbox" data-qi="${i}"${have.has(g.name)?"":" checked"}><span>${E(g.part?g.part+": ":"")}${E(g.name)} (${g.steps.length} steps)${have.has(g.name)?" · already on this unit":""}</span></label>`).join("")}${(d.missing||[]).length?`<small>Not in this file: ${E(d.missing.join("; "))}</small>`:""}<div class="row"><button type="button" data-qa="impx">Cancel</button><button type="button" class="pri" data-qa="impgo">Add to ${E(uName(u))}</button></div></div>`}
+ function addStepForm(){const u=unitOf(UID),gs=[...new Set(u.steps.map(x=>x.grp))];return `<div class="rec"><b>Add a step</b><label>Section<select id="asG">${gs.map(g=>`<option>${E(g)}</option>`).join("")}<option value="__new">New section...</option></select></label><label id="asNL"${gs.length?" hidden":""}>New section name<input id="asN" placeholder="e.g. Auxiliaries"></label><label>Step<textarea id="asT" rows="3"></textarea></label><label>Type<select id="asY"><option value="step">Work step</option><option value="reading">Reading (record on data sheet)</option><option value="hold">Hold point</option></select></label><div class="row"><button type="button" data-qa="asx">Cancel</button><button type="button" class="pri" data-qa="asgo">Add Step</button></div></div>`}
+ /* ---------- Start My Day ---------- */
+ let DSTEP=0,DCS="Day";
+ const DSN=["Site","Crew","Jobs","Assign","JSA","Check-in"];
+ function dayOk(i){const s=S(),td=today();if(i===0)return !!(nv(s.set.site)&&s.set.site!=="Shop"&&nv(QSD().em));if(i===1)return s.crew.length>0;if(i===2)return s.units.length>0;if(i===3)return PLAN(td).items.length>0;if(i===4)return (DB.jsas||[]).some(j=>j.date===td);if(i===5)return Object.keys(s.time[td]||{}).length>0;return false}
+ function firstOpenStep(){for(let i=0;i<6;i++)if(!dayOk(i))return i;return 5}
+ function carry(td){const s=S(),ks=Object.keys(s.plan||{}).filter(d=>d<td).sort();if(!ks.length)return [];const prev=ks[ks.length-1],P0=PLAN(td);return PLAN(prev).items.filter(i=>!i.done&&!i.carried&&!P0.items.some(x=>x.from===i.id)).map(i=>Object.assign({},i,{_d:prev}))}
+ const stepOf=(u,id)=>u&&u.steps.find(x=>x.id===id);
+ function itemHTML(i,withCrew){const u=unitOf(i.u),x=stepOf(u,i.sid),L=S().crew.filter(c=>(c.shift||"Day")===DCS);
+  return `<div class="qit"><b>${u?E(uName(u))+": ":""}${x?tag(x.type):""}${E(i.text)}</b>${x?`<small style="color:var(--mute)">${E(x.grp)}</small>`:""}${withCrew?`<div class="chips">${L.map(c=>`<button type="button" class="chip${(i.crew||[]).includes(c.id)?" on":""}" data-qa="icrew" data-qi="${i.id}" data-qc="${c.id}">${E(c.title)}</button>`).join("")||`<small>No ${DCS.toLowerCase()} crew yet.</small>`}</div>`:""}<div class="row" style="padding:4px 0"><button type="button" class="danger" data-qa="irm" data-qi="${i.id}">Remove</button></div></div>`}
+ function checkinHTML(){const s=S(),td=today(),T=s.time[td]||{},L=s.crew.filter(c=>(c.shift||"Day")===DCS),us=UNITS(),opt=v=>`<option value="">No job</option>${us.map(u=>`<option value="${u.id}"${u.id===v?" selected":""}>${E(uName(u))}</option>`).join("")}`;
+  return `<div class="hint">Tap the names of the people you see. Each gets 10 hours on the job they are assigned to. ${E(KINDL[dayKind(td)])}.</div>`+L.map(c=>{const t=tnorm(td,c);if(!t)return `<div class="shCrew"><div class="nm"><b>${E(c.title)}</b><small style="color:var(--mute)">${E(c.role||"")}${defJob(td,c)?" · "+E(uName(unitOf(defJob(td,c)))):""}</small></div><button type="button" class="pri in" data-qa="cin" data-qc="${c.id}">Check In</button></div>`;
+   const C=cls(t,td),tot=C.reduce((a,x)=>({st:a.st+x.st,ot:a.ot+x.ot,dt:a.dt+x.dt}),{st:0,ot:0,dt:0});
+   return `<div class="qit"><div class="shRow"><b style="flex:1;font-size:17px">${E(c.title)}</b><span class="qkind">${f2(tot.st)} ST &middot; ${f2(tot.ot)} OT${tot.dt?` &middot; ${f2(tot.dt)} DT`:""}</span><button type="button" class="danger" data-qa="cout" data-qc="${c.id}" aria-label="Not in">&times;</button></div>`+
+   t.jobs.map((j,ix)=>`<div class="qhrs"><select data-qjs="${c.id}" data-qi="${ix}" aria-label="Job">${opt(j.u)}</select><input type="number" step="0.25" min="0" inputmode="decimal" data-qhh="${c.id}" data-qi="${ix}" value="${E(j.h)}" aria-label="Hours"><span>h</span>${t.jobs.length>1?`<button type="button" data-qa="jrm" data-qc="${c.id}" data-qi="${ix}" aria-label="Remove split">&times;</button>`:""}</div>`).join("")+`<div class="row" style="padding:2px 0"><button type="button" data-qa="jsplit" data-qc="${c.id}">+ Split to another job</button></div></div>`}).join("")+
+  (L.length?`<div class="row"><button type="button" data-qa="callin">Check In Everyone Not In</button></div>`:`<div class="empty">No ${DCS.toLowerCase()} crew yet.</div>`)}
+ function dayView(){const s=S(),td=today(),P0=PLAN(td),i=DSTEP;
+  const dots=`<div class="qdots">${DSN.map((n,k)=>`<button type="button" class="${k===i?"on ":""}${dayOk(k)?"ok":""}" data-qa="dstep" data-qi="${k}">${dayOk(k)&&k!==i?"&#10003; ":""}${k+1}. ${n}</button>`).join("")}</div>`;
+  const shiftChips=`<div class="chips" style="padding:4px 0">${["Day","Night"].map(x=>`<button type="button" class="chip${DCS===x?" on":""}" data-qa="dcs" data-qk="${x}">${x} Crew (${s.crew.filter(c=>(c.shift||"Day")===x).length})</button>`).join("")}</div>`;
+  let b="";
+  if(i===0)b=`<div class="hint">Set once on day one. Carries over after that.</div><label>Shop name<input id="dsN" value="${E(s.set.site==="Shop"?"":s.set.site||"")}" placeholder="e.g. Gulf Freight Management (temporary shop)"></label><label>Shop address<textarea id="dsA" rows="2">${E(s.set.addr||"")}</textarea></label><div class="row"><button type="button" class="pri" data-qa="dssave">Save</button><button type="button" data-qa="emcard">Emergency Info Card${nv(QSD().em)?" &#10003;":""}</button></div>`;
+  if(i===1){const L=s.crew.filter(c=>(c.shift||"Day")===DCS),us=UNITS();b=shiftChips+`<div class="hint">Everyone at the shop is in one pool. Put each person on a job; one tap moves them.</div>`+L.map(c=>`<div class="shCrew"><div class="nm"><b>${E(c.title)}</b><small style="color:var(--mute)">${E(c.role||"")}</small></div><select data-qcj="${c.id}" aria-label="Job for ${E(c.title)}" style="max-width:220px"><option value="">No job</option>${us.map(u=>`<option value="${u.id}"${c.job===u.id?" selected":""}>${E(uName(u))}</option>`).join("")}</select></div>`).join("")+
+   `<div class="rec"><b>Add to ${DCS} crew</b><div class="shRow"><input id="dcN" placeholder="Name"><select id="dcR">${ROLES.map(r=>`<option>${r}</option>`).join("")}</select><button type="button" class="pri" data-qa="dcadd">Add</button></div><div class="row"><button type="button" data-shgo="sh_crew">Contacts, Copy from Field, more...</button></div></div>`}
+  if(i===2)b=`<div class="hint">One job number per unit. Tap a job to open its folder.</div>`+UNITS().map(u=>`<button type="button" class="qjob" data-qa="djob" data-qu="${u.id}" style="padding:10px 14px"><b style="font-size:19px">${E(uName(u))}</b><small>${E([nv(u.origin),curMs(u)].filter(Boolean).join(" · "))} &middot; ${u.steps.length?stepsDone(u)+"/"+u.steps.length+" steps":"no task cards"}</small></button>`).join("")+`<div class="row"><button type="button" data-qa="newj">+ New Job / Unit</button></div>`;
+  if(i===3){const cy=carry(td);b=shiftChips+(cy.length?`<h2 class="sec">Carryover from ${E(fmtD(cy[0]._d))} (${cy.length})</h2>${cy.map(x=>{const u=unitOf(x.u);return `<div class="qit"><b>${u?E(uName(u))+": ":""}${E(x.text)}</b><div class="row" style="padding:4px 0"><button type="button" class="pri" data-qa="cyadd" data-qi="${x.id}" data-qk="${x._d}">Add to Today</button><button type="button" data-qa="cyskip" data-qi="${x.id}" data-qk="${x._d}">Drop</button></div></div>`}).join("")}`:"")+
+   `<h2 class="sec">Today's work (${P0.items.length})</h2>${P0.items.map(x=>itemHTML(x,true)).join("")||`<div class="hint">Nothing assigned yet. Add the suggested next steps below.</div>`}`+
+   UNITS().map(u=>{const inP=new Set(P0.items.map(x=>x.sid)),nxt=u.steps.filter(x=>!x.done&&!inP.has(x.id)).slice(0,6);return `<h2 class="sec">${E(uName(u))}: next steps</h2>${nxt.map(x=>`<div class="qit"><b>${tag(x.type)}${E(x.text.length>160?x.text.slice(0,160)+"…":x.text)}</b><small style="color:var(--mute)">${E(x.grp)}</small><div class="row" style="padding:4px 0"><button type="button" class="pri" data-qa="sugadd" data-qu="${u.id}" data-qs="${x.id}">Add to Today</button></div></div>`).join("")||`<div class="hint">${u.steps.length?"All steps are done or already assigned.":"No task cards yet. Type the work below or load a step file in the job folder."}</div>`}`}).join("")+
+   `<div class="rec"><b>Type a task by hand</b><label>Job<select id="mtU">${UNITS().map(u=>`<option value="${u.id}">${E(uName(u))}</option>`).join("")}<option value="">Shop (no job)</option></select></label><label>What they are doing<input id="mtT" placeholder="e.g. Unload and stage generator"></label><div class="row"><button type="button" class="pri" data-qa="mtadd">Add to Today</button></div></div>
+   <div class="row"><button type="button" class="pri" data-qa="talk">Morning Task Talk (print)</button></div>`}
+  if(i===4){const js=(DB.jsas||[]).filter(j=>j.date===td);b=`<div class="rec"><b>Today's JSA</b><small>${js.length?(js[0].final?"Finalized":"Started, "+jsaMissing(js[0]).length+" items to answer"):"Not started"}</small><small>The JSA covers people's safety: hazards and controls for today's work. The procedure stays on the task cards.</small><div class="row"><button type="button" class="pri" data-qa="go" data-qk="jsa">${js.length?"Open":"Start"} Today's JSA</button></div></div>
+   <div class="hint">Today's work for the JSA discussion:</div>${P0.items.map(x=>{const u=unitOf(x.u);return `<div class="qit"><b>${u?E(uName(u))+": ":""}${E(x.text.length>120?x.text.slice(0,120)+"…":x.text)}</b><small style="color:var(--mute)">${E((x.crew||[]).map(id=>(crewOf(id)||{}).title).filter(Boolean).join(", "))}</small></div>`}).join("")||`<div class="hint">No work assigned yet.</div>`}`}
+  if(i===5)b=shiftChips+checkinHTML();
+  MD.innerHTML=head("Start My Day")+`<div id="shp"><small style="color:var(--mute)">${E(new Date().toLocaleDateString([],{weekday:"long",month:"long",day:"numeric"}))}</small>${dots}<h2 class="sec">${i+1}. ${DSN[i]}</h2>${b}
+  <div class="row" style="margin-top:18px">${i?`<button type="button" data-qa="dstep" data-qi="${i-1}">&larr; Back</button>`:""}${i<5?`<button type="button" class="pri" data-qa="dstep" data-qi="${i+1}" style="flex:1">Next: ${DSN[i+1]} &rarr;</button>`:`<button type="button" class="pri" data-qa="go" data-qk="home" style="flex:1">Done &rarr; Home</button>`}</div></div>`}
+ function talkHTML(){const s=S(),td=today(),P0=PLAN(td),cn=i=>(i.crew||[]).map(id=>(crewOf(id)||{}).title).filter(Boolean).join(", "),sec="font:700 15px Arial,sans-serif;margin:14px 0 4px;border-bottom:2px solid #000",it="margin:0 0 8px;font-size:12px";
+  const full=i=>{const u=unitOf(i.u),x=stepOf(u,i.sid);return `<div style="${it}"><b>${u?E(uName(u))+": ":""}${x?(x.type==="hold"?"[HOLD] ":x.type==="reading"?"[READING] ":""):""}${E(i.text)}</b>${x&&x.sub&&x.sub.length?`<ul style="margin:2px 0 2px 18px;padding:0">${x.sub.map(t=>`<li>${E(t)}</li>`).join("")}</ul>`:""}${x?(x.notes||[]).map(t=>`<div><i>Note: ${E(t)}</i></div>`).join(""):""}<div>Crew: ${E(cn(i)||"not assigned")}</div></div>`};
+  const carried=P0.items.filter(i=>i.from),fresh=P0.items.filter(i=>!i.from),reads=P0.items.filter(i=>{const x=stepOf(unitOf(i.u),i.sid);return x&&x.type==="reading"});
+  const holds=UNITS().map(u=>[u,u.steps.filter(x=>x.type==="hold"&&!x.hold&&!x.done).slice(0,3)]).filter(a=>a[1].length);
+  return `<div class="pg" style="padding:.4in .5in;font-family:Arial,sans-serif"><div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:6px"><img src="${LOGO}" alt="" style="height:.45in"><div style="text-align:right"><div style="font:700 18px Arial,sans-serif">Morning Task Talk</div><div>${E(s.set.site||"Shop")} &middot; ${E(new Date().toLocaleDateString([],{weekday:"long",month:"long",day:"numeric",year:"numeric"}))}</div></div></div>
+  ${carried.length?`<div style="${sec}">Carryover from yesterday</div>${carried.map(full).join("")}`:""}<div style="${sec}">Today's steps</div>${fresh.map(full).join("")||"<div>No steps assigned.</div>"}
+  <div style="${sec}">Readings due today</div>${reads.map(i=>`<div style="${it}">${E(uName(unitOf(i.u)))}: ${E(i.text.slice(0,140))}</div>`).join("")||"<div style='font-size:12px'>None.</div>"}
+  <div style="${sec}">Hold points ahead</div>${holds.map(([u,L])=>L.map(x=>`<div style="${it}"><b>${E(uName(u))}:</b> ${E(x.text.slice(0,160))}</div>`).join("")).join("")||"<div style='font-size:12px'>None in the next steps.</div>"}
+  <div style="margin-top:20px;font-size:11px">Safety is covered on today's JSA. Stop at every hold point until it is released.</div></div>`}
+ /* ---------- wrap up ---------- */
+ function wrapView(){const td=today(),P0=PLAN(td);
+  MD.innerHTML=head("Wrap Up")+`<div id="shp"><small style="color:var(--mute)">${E(new Date().toLocaleDateString([],{weekday:"long",month:"long",day:"numeric"}))}</small>${P0.wrap?`<div class="rec" style="border-left:5px solid #2f7d4a"><b>Wrapped up ${E(P0.wrap.at)}</b><small>You can update it and finish again.</small></div>`:""}
+  <h2 class="sec">1. What got done today</h2><div class="hint">Tick what got done. Anything not ticked carries to tomorrow's plan.</div>${P0.items.map(i=>{const u=unitOf(i.u);return `<label class="qstep${i.done?" qd":""}" style="cursor:pointer"><input type="checkbox" class="qck" data-qwd="${i.id}"${i.done?" checked":""}><span class="qtx"><p>${u?E(uName(u))+": ":""}${E(i.text.length>160?i.text.slice(0,160)+"…":i.text)}</p><small>${E((i.crew||[]).map(id=>(crewOf(id)||{}).title).filter(Boolean).join(", "))}</small></span></label>`}).join("")||`<div class="hint">No tasks were assigned today.</div>`}
+  <h2 class="sec">2. Delays</h2><div class="row"><button type="button" data-shgo="sh_delay">Log or end a delay (${S().delays.filter(d=>!d.end).length} running)</button></div>
+  <h2 class="sec">3. Hand off to nights</h2><label>Notes for the night shift<textarea id="wrN" rows="4">${E((P0.wrap&&P0.wrap.note)||"")}</textarea></label>
+  <h2 class="sec">4. Customer update</h2><div class="hint">Finishing refreshes each job's customer status sheet. Open one to print, PDF or email it.</div><div class="row">${UNITS().map(u=>`<button type="button" data-qa="wstat" data-qu="${u.id}">${E(uName(u))} status</button>`).join("")}</div>
+  <div class="row" style="margin-top:18px"><button type="button" class="pri" data-qa="wfin" style="flex:1;min-height:56px">Finish Wrap Up</button></div></div>`}
+ /* ---------- folder screens ---------- */
+ function ucView(){const u=unitOf(UID);if(!u)return go("home");const s=S(),on=s.crew.filter(c=>c.job===u.id),off=s.crew.filter(c=>c.job!==u.id),td=today();
+  MD.innerHTML=head("Crew: "+uName(u),"sh_jf")+`<div id="shp"><h2 class="sec">On this job (${on.length})</h2>${on.map(c=>{const t=tnorm(td,c),h=t?cls(t,td).filter(x=>x.u===u.id).reduce((a,x)=>a+x.h,0):0;return `<div class="shCrew"><div class="nm"><b>${E(c.title)}</b><small style="color:var(--mute)">${E(c.role||"")} &middot; ${E(c.shift||"Day")}${t?` &middot; ${f2(h)} h here today`:" &middot; not in today"}</small></div><button type="button" data-qa="ucoff" data-qc="${c.id}">Take off job</button></div>`}).join("")||`<div class="hint">Nobody assigned yet.</div>`}
+  <h2 class="sec">Shop crew</h2>${off.map(c=>`<div class="shCrew"><div class="nm"><b>${E(c.title)}</b><small style="color:var(--mute)">${E(c.role||"")} &middot; ${E(c.shift||"Day")}${c.job&&unitOf(c.job)?" &middot; on "+E(uName(unitOf(c.job))):""}</small></div><button type="button" class="pri" data-qa="ucon" data-qc="${c.id}">Put on this job</button></div>`).join("")||`<div class="hint">Everyone is on this job.</div>`}
+  <div class="row"><button type="button" data-qa="go" data-qk="sh_day">Check-in &amp; hours (Start My Day)</button></div></div>`}
+ function upView(){const u=unitOf(UID);if(!u)return go("home");const ks=Object.keys(S().plan||{}).sort().reverse().slice(0,21);
+  MD.innerHTML=head("Daily Plan: "+uName(u),"sh_jf")+`<div id="shp">${ks.map(d=>{const L=PLAN(d).items.filter(i=>i.u===u.id);if(!L.length)return "";return `<h2 class="sec">${E(new Date(d+"T12:00:00").toLocaleDateString([],{weekday:"short",month:"short",day:"numeric"}))}</h2>${L.map(i=>`<div class="qit"><b>${i.done?"&#10003; ":""}${E(i.text.length>160?i.text.slice(0,160)+"…":i.text)}</b><small style="color:var(--mute)">${E((i.crew||[]).map(id=>(crewOf(id)||{}).title).filter(Boolean).join(", ")||"no crew")}${i.from?" · carried over":""}${i.done?" · done":""}</small></div>`).join("")}`}).join("")||`<div class="hint">No work planned on this job yet. Assign it in Start My Day.</div>`}<div class="row"><button type="button" data-qa="go" data-qk="sh_day">Start My Day</button></div></div>`}
+ function ujView(){const u=unitOf(UID);const L=(DB.jsas||[]).slice().sort((a,b)=>(b.date||"")>(a.date||"")?1:-1).slice(0,30);
+  MD.innerHTML=head("JSAs"+(u?": "+uName(u):""),"sh_jf")+`<div id="shp"><div class="hint">One shop JSA per day covers every job. It is about people's safety; the procedure stays on the task cards.</div>${L.map(j=>{const w=PLAN(j.date||"").items.filter(i=>u&&i.u===u.id).length;return `<div class="rec"><b>${E(new Date((j.date||today())+"T12:00:00").toLocaleDateString([],{weekday:"short",month:"short",day:"numeric",year:"numeric"}))}</b><small>${j.final?"Finalized":"Not finalized"}${w?` &middot; ${w} task${w===1?"":"s"} on this job that day`:""}</small><div class="row"><button type="button" class="pri" data-qa="ujo" data-qi="${E(j.id)}">Open</button></div></div>`}).join("")||`<div class="hint">No JSAs yet.</div>`}<div class="row"><button type="button" data-qa="go" data-qk="jsa">Today's JSA</button></div></div>`}
+ let UWK=0;
+ function utView(){const u=unitOf(UID);if(!u)return go("home");const D=wkDays(UWK),R=hoursFor(u.id,D),tot=R.reduce((a,r)=>({st:a.st+r.st,ot:a.ot+r.ot,dt:a.dt+r.dt}),{st:0,ot:0,dt:0});
+  MD.innerHTML=head("Timesheets: "+uName(u),"sh_jf")+`<div id="shp"><div class="row" style="align-items:center"><button type="button" data-qa="uwk" data-qi="-1">&larr;</button><b style="flex:1;text-align:center">${E(fmtD(D[0]))} to ${E(fmtD(D[6]))}</b><button type="button" data-qa="uwk" data-qi="1"${UWK>=0?" disabled":""}>&rarr;</button></div>
+  <div class="rec"><b>${f2(tot.st+tot.ot+tot.dt)} hours on this job</b><small>${f2(tot.st)} ST &middot; ${f2(tot.ot)} OT &middot; ${f2(tot.dt)} DT</small></div>
+  <div style="overflow-x:auto"><table class="shWk"><tr><th>Name</th>${D.map(d=>`<th>${new Date(d+"T12:00:00").toLocaleDateString([],{weekday:"short"})}<br><small>${E(fmtD(d))}</small></th>`).join("")}<th>ST</th><th>OT</th><th>DT</th></tr>${R.map(r=>`<tr><td>${E(r.c.title)}</td>${D.map(d=>`<td>${r.days[d]?f2(r.days[d]):""}</td>`).join("")}<td>${f2(r.st)}</td><td>${f2(r.ot)}</td><td>${f2(r.dt)}</td></tr>`).join("")||`<tr><td colspan="11">No hours on this job this week.</td></tr>`}</table></div>
+  <div class="row"><button type="button" class="pri" data-qa="utp">Print This Job's Week</button><button type="button" data-shgo="sh_crew">Whole shop weekly sheet</button></div></div>`}
+ function utHTML(u){const D=wkDays(UWK),R=hoursFor(u.id,D),th="border:1px solid #000;padding:4px;background:#ede9dc;font-weight:700",td="border:1px solid #000;padding:4px;text-align:center";
+  return `<div class="pg" style="padding:.4in .5in;font-family:Arial,sans-serif"><div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:6px"><img src="${LOGO}" alt="" style="height:.5in"><div style="text-align:right"><div style="font:700 18px Arial,sans-serif">Weekly Hours by Job</div><div>${E(uName(u))} &middot; Week of ${E(new Date(D[0]+"T12:00:00").toLocaleDateString([],{month:"long",day:"numeric",year:"numeric"}))} (Sun to Sat)</div></div></div>
+  <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:12px"><tr><th style="${th};text-align:left">Name</th>${D.map(d=>`<th style="${th}">${new Date(d+"T12:00:00").toLocaleDateString([],{weekday:"short",month:"numeric",day:"numeric"})}</th>`).join("")}<th style="${th}">ST</th><th style="${th}">OT</th><th style="${th}">DT</th></tr>${R.map(r=>`<tr><td style="${td};text-align:left">${E(r.c.title)}</td>${D.map(d=>`<td style="${td}">${r.days[d]?f2(r.days[d]):""}</td>`).join("")}<td style="${td}">${f2(r.st)}</td><td style="${td}">${f2(r.ot)}</td><td style="${td}">${f2(r.dt)}</td></tr>`).join("")}</table><div style="margin-top:30px">Approved by: ______________________ &nbsp; Date: __________</div></div>`}
+ function byJobHTML(){const D=wkDays(WK),th="border:1px solid #000;padding:4px;background:#ede9dc;font-weight:700",td="border:1px solid #000;padding:4px;text-align:center",ids=UNITS().map(u=>u.id).concat([""]);
+  const parts=ids.map(id=>{const R=hoursFor(id,D);if(!R.length)return "";const u=unitOf(id);return `<div style="font:700 13px Arial,sans-serif;margin:10px 0 4px">${u?E(uName(u)):"No job"}</div><table style="width:100%;border-collapse:collapse;font-size:12px"><tr><th style="${th};text-align:left">Name</th><th style="${th}">ST</th><th style="${th}">OT</th><th style="${th}">DT</th><th style="${th}">Total</th></tr>${R.map(r=>`<tr><td style="${td};text-align:left">${E(r.c.title)}</td><td style="${td}">${f2(r.st)}</td><td style="${td}">${f2(r.ot)}</td><td style="${td}">${f2(r.dt)}</td><td style="${td};font-weight:700">${f2(r.st+r.ot+r.dt)}</td></tr>`).join("")}</table>`}).join("");
+  return parts?`<div style="font:700 14px Arial,sans-serif;margin:16px 0 4px;border-top:2px solid #000;padding-top:8px">Hours by job number (ST / OT / DT)</div>${parts}`:""}
+ const _pay=payrollHTML;payrollHTML=function(){const h=_pay.apply(this,arguments);return h.replace('<div style="margin-top:30px">Approved',byJobHTML()+'<div style="margin-top:30px">Approved')};
+ function uvView(){const u=unitOf(UID);if(!u)return go("home");const L=S().sends.filter(x=>x.unitId===u.id);
+  MD.innerHTML=head("Vendors: "+uName(u),"sh_jf")+`<div id="shp"><h2 class="sec">Out at vendors (${L.filter(x=>!x.back).length})</h2>${L.filter(x=>!x.back).map(sendCard).join("")||`<div class="hint">Nothing from this job is out at a vendor.</div>`}${L.some(x=>x.back)?`<details><summary>Returned (${L.filter(x=>x.back).length})</summary>${L.filter(x=>x.back).map(sendCard).join("")}</details>`:""}<div class="hint">To send a part out, open the piece in Pieces and choose Send to vendor.</div><div class="row"><button type="button" data-qa="lnk" data-qk="pcs">Pieces</button><button type="button" data-shgo="sh_vend">All vendors &amp; Request PDFs</button></div></div>`}
+ function uphView(){const u=unitOf(UID);if(!u)return go("home");const L=[];u.pieces.forEach(p=>{(p.photos||[]).concat((p.rec||{}).photos||[],(p.rec||{}).np||[]).forEach(id=>L.push([p,id]));(p.finds||[]).forEach(f=>(f.photos||[]).forEach(id=>L.push([p,id])))});
+  MD.innerHTML=head("Photos: "+uName(u),"sh_jf")+`<div id="shp"><div class="hint">${L.length} photo${L.length===1?"":"s"} on this unit's pieces. Tap one to open its piece.</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">${L.map(([p,id])=>`<button type="button" data-shp="${p.id}" style="padding:0;border-radius:10px;overflow:hidden;min-height:0"><img data-qp="${id}" alt="${E(p.name)}" style="width:100%;height:130px;object-fit:cover;display:block;background:var(--line)"><small style="display:block;padding:4px 6px;text-align:left">${E(p.name)}</small></button>`).join("")}</div></div>`;
+  MD.querySelectorAll("img[data-qp]").forEach(i=>pGet(i.dataset.qp).then(x=>{if(x)i.src=typeof x==="string"?x:URL.createObjectURL(x)}).catch(()=>{}))}
+ function ufView(){const u=unitOf(UID);if(!u)return go("home");const L=[];u.pieces.forEach(p=>(p.finds||[]).forEach(f=>L.push([p,f])));
+  MD.innerHTML=head("Findings: "+uName(u),"sh_jf")+`<div id="shp">${L.map(([p,f])=>`<button type="button" class="shPc" data-shp="${p.id}"><span class="nm"><b>${E(f.note||"Finding")}</b><small>${E(p.name)} &middot; ${E(f.action||"")} &middot; ${E(f.at||"")}</small></span></button>`).join("")||`<div class="hint">No findings yet. Findings are logged on each piece.</div>`}</div>`}
+ function udView(){const u=unitOf(UID);if(!u)return go("home");const L=S().delays.filter(d=>d.unitId===u.id),dur=d=>{const m=Math.round(((d.end||Date.now())-d.start)/6e4);return m>=1440?(m/1440).toFixed(1)+" days":m>=60?(m/60).toFixed(1)+" h":m+" min"};
+  MD.innerHTML=head("Delays: "+uName(u),"sh_jf")+`<div id="shp">${L.slice().reverse().map(d=>`<div class="rec"${d.end?"":' style="border-left-color:#d9534f"'}><b style="font-size:17px">${E(d.reason)}</b><small>${E(d.note||"")}</small><small>Started ${E(new Date(d.start).toLocaleString())}${d.end?" &middot; ended "+E(new Date(d.end).toLocaleString()):""} &middot; ${dur(d)}</small>${d.end?"":`<div class="row"><button type="button" class="pri" data-qa="dend" data-qi="${d.id}">End Delay</button></div>`}</div>`).join("")||`<div class="hint">No delays on this job.</div>`}
+  <div class="rec"><b>Start a delay on ${E(uName(u))}</b><label>Reason<select id="qdR">${DR.map(r=>`<option>${r}</option>`).join("")}</select></label><label>Note<input id="qdN"></label><div class="row"><button type="button" class="pri" data-qa="dstart">Start Delay</button></div></div></div>`}
+ function uhView(){const u=unitOf(UID);MD.innerHTML=head("HSEQ & FME"+(u?": "+uName(u):""),"sh_jf")+`<div id="shp"><div class="hint">Log HSEQ cases and FME under the job they happened on. Put the job number (${E(u?uName(u):"")}) in the case.</div><div class="row"><button type="button" class="pri" data-shgo="fm_case">HSEQ</button><button type="button" class="pri" data-shgo="fme">FME</button></div></div>`}
+ /* ---------- routes ---------- */
+ const R52={sh_jf:[jfView,"Job Folder"],sh_ui:[uiView,"Unit Info"],sh_tc:[tcView,"Progress"],sh_day:[dayView,"Start My Day"],sh_wrap:[wrapView,"Wrap Up"],sh_uc:[ucView,"Crew"],sh_up:[upView,"Daily Plan"],sh_uj:[ujView,"JSAs"],sh_ut:[utView,"Timesheets"],sh_uv:[uvView,"Vendors"],sh_uph:[uphView,"Photos"],sh_uf:[ufView,"Findings"],sh_ud:[udView,"Delays"],sh_uh:[uhView,"HSEQ & FME"]};
+ Object.keys(R52).forEach(k=>{RENDER[k]=R52[k][0];M[k]={t:R52[k][1],f:[],sum:()=>""};ALLOWED.add(k)});
+ const _sh52=show;show=function(v){const r=_sh52.apply(this,arguments);try{side()}catch(e){}return r};
+ const _uv=unitView;unitView=function(){const u=unitOf(UID);_uv.apply(this,arguments);try{const h=MD.querySelector(".mh");if(h&&u){const bk=h.querySelector("[data-shgo]");if(bk)bk.dataset.shgo="sh_jf";const t=h.querySelector("h2");if(t)t.textContent="Pieces: "+uName(u)}}catch(e){}};
+ /* ---------- events ---------- */
+ const pcs=()=>{const u=unitOf(UID);return u};
+ MD.addEventListener("click",async e=>{if(!/^sh_/.test(cur))return;const b=e.target.closest("[data-qa]");if(!b)return;const a=b.dataset.qa,s=S(),u=unitOf(UID),td=today();
+  if(a==="go"){if(b.dataset.qk==="sh_day")DSTEP=firstOpenStep();return go(b.dataset.qk)}
+  if(a==="lnk")return openLink(UID,b.dataset.qk);
+  if(a==="ufx"){if(!u)return;delete u[b.dataset.qk];fixU(u);sv();syncU();return uiView()}
+  if(a==="udo"){const x=await pGet(b.dataset.qi);if(!x)return alert("That file is not on this iPad.");window.open(typeof x==="string"?x:URL.createObjectURL(x),"_blank");return}
+  if(a==="udx"){if(!confirm("Remove this document from the unit and this iPad?"))return;u.docs=u.docs.filter(d=>d.id!==b.dataset.qi);try{pDel(b.dataset.qi)}catch(x){}sv();return uiView()}
+  if(a==="udel"){if(!confirm("Delete "+uName(u)+" and everything on it (pieces, task cards, findings)? Hours stay on the weekly sheets."))return;s.units=s.units.filter(x=>x!==u);s.crew.forEach(c=>{if(c.job===u.id)delete c.job});sv();UID="";return go("home")}
+  if(a==="ms"){const k=b.dataset.qk;if(u.ms[k]){if(!confirm("Clear this milestone?"))return;delete u.ms[k]}else u.ms[k]=td;sv();return tcView()}
+  if(a==="sdone"){const x=stepOf(u,b.dataset.qs);if(!x)return;if(x.done){if(!confirm("Mark this step not done?")){b.checked=true;return}x.done=null}else{if(x.type==="hold"&&!x.hold){b.checked=false;return alert("Release the hold point first.")}x.done={by:ME_(),at:nowTxt(),d:td}}
+   Object.values(s.plan||{}).forEach(P=>P.items.forEach(i=>{if(i.u===u.id&&i.sid===x.id)i.done=!!x.done}));sv();TCOPEN=x.grp;tcView();setTimeout(()=>{const el=document.getElementById("q_"+x.id);if(el)el.scrollIntoView({block:"center"})},30);return}
+  if(a==="shold"){const x=stepOf(u,b.dataset.qs);if(!x)return;if(!confirm("Release this hold point? Your name and the time are recorded."))return;x.hold={by:ME_(),at:nowTxt()};sv();TCOPEN=x.grp;return tcView()}
+  if(a==="sdel"){const x=stepOf(u,b.dataset.qs);if(x&&confirm("Remove this step?")){u.steps=u.steps.filter(y=>y!==x);sv();TCOPEN=x.grp;tcView()}return}
+  if(a==="gdel"){const g=b.dataset.qg;if(confirm("Remove the whole section \""+g+"\" from this unit?")){u.steps=u.steps.filter(y=>y.grp!==g);sv();TCOPEN=null;tcView()}return}
+  if(a==="tcedit"){TCEDIT=!TCEDIT;return tcView()}
+  if(a==="sadd"){$("#tcAdd").innerHTML=addStepForm();return}
+  if(a==="asx"){$("#tcAdd").innerHTML="";return}
+  if(a==="asgo"){let g=$("#asG").value;if(g==="__new"||!g)g=nv($("#asN").value);const t=nv($("#asT").value);if(!g)return alert("Name the section.");if(!t)return alert("Type the step.");u.steps.push({id:uidS("st"),grp:g,part:"",text:t,sub:[],notes:[],type:$("#asY").value,man:true});sv();TCOPEN=g;return tcView()}
+  if(a==="impx"){TCIMP=null;return tcView()}
+  if(a==="impgo"){const d=TCIMP;let n=0;MD.querySelectorAll("#tcImp input[data-qi]").forEach(c=>{if(!c.checked)return;const g=d.groups[+c.dataset.qi];g.steps.forEach(x=>{u.steps.push({id:uidS("st"),grp:g.name,part:g.part||"",text:String(x.text||""),sub:Array.isArray(x.sub)?x.sub.map(String):[],notes:Array.isArray(x.notes)?x.notes.map(String):[],type:["step","reading","hold"].includes(x.type)?x.type:"step"});n++})});TCIMP=null;sv();alert(n+" steps added to "+uName(u)+".");TCOPEN=null;return tcView()}
+  /* Start My Day */
+  if(a==="dstep"){DSTEP=Math.max(0,Math.min(5,+b.dataset.qi));dayView();scrollTo(0,0);return}
+  if(a==="dcs"){DCS=b.dataset.qk;return dayView()}
+  if(a==="dssave"){s.set.site=nv($("#dsN").value)||"Shop";s.set.addr=nv($("#dsA").value);try{QSD().site=s.set.site}catch(x){}sv();return dayView()}
+  if(a==="emcard")return go("sh_em");
+  if(a==="dcadd"){const n=nv($("#dcN").value);if(!n)return alert("Type the name.");if(s.crew.some(c=>c.title.toLowerCase()===n.toLowerCase()))return alert(n+" is already on the crew.");s.crew.push({id:uidS("cr"),title:n,role:$("#dcR").value,phone:"",shift:DCS});sv();return dayView()}
+  if(a==="djob"){UID=b.dataset.qu;return go("sh_jf")}
+  if(a==="newj"){NEWU=true;go("home");return homeShop()}
+  if(a==="sugadd"){const uu=unitOf(b.dataset.qu),x=stepOf(uu,b.dataset.qs);if(!x)return;PLAN(td).items.push({id:uidS("it"),u:uu.id,sid:x.id,text:x.text,crew:s.crew.filter(c=>c.job===uu.id&&(c.shift||"Day")===DCS).map(c=>c.id),done:false});sv();return dayView()}
+  if(a==="mtadd"){const t=nv($("#mtT").value);if(!t)return alert("Type what they are doing.");const uid=$("#mtU").value;PLAN(td).items.push({id:uidS("it"),u:uid,sid:null,text:t,crew:s.crew.filter(c=>uid&&c.job===uid&&(c.shift||"Day")===DCS).map(c=>c.id),done:false});sv();return dayView()}
+  if(a==="cyadd"||a==="cyskip"){const old=PLAN(b.dataset.qk).items.find(i=>i.id===b.dataset.qi);if(!old)return;old.carried=true;if(a==="cyadd")PLAN(td).items.unshift({id:uidS("it"),u:old.u,sid:old.sid,text:old.text,crew:(old.crew||[]).slice(),done:false,from:old.id});sv();return dayView()}
+  if(a==="icrew"){const i=PLAN(td).items.find(x=>x.id===b.dataset.qi);if(!i)return;i.crew=i.crew||[];const c=b.dataset.qc;i.crew=i.crew.includes(c)?i.crew.filter(x=>x!==c):i.crew.concat([c]);sv();b.classList.toggle("on");return}
+  if(a==="irm"){const P0=PLAN(td);P0.items=P0.items.filter(x=>x.id!==b.dataset.qi);sv();return cur==="sh_day"?dayView():wrapView()}
+  if(a==="talk")return fprev(talkHTML());
+  if(a==="cin"){const c=crewOf(b.dataset.qc);if(!c)return;const T=s.time[td]||(s.time[td]={});T[c.id]={h:10,in:hm(),out:"",jobs:[{u:defJob(td,c),h:10}]};sv();return dayView()}
+  if(a==="callin"){const T=s.time[td]||(s.time[td]={});s.crew.filter(c=>(c.shift||"Day")===DCS&&!T[c.id]).forEach(c=>{T[c.id]={h:10,in:hm(),out:"",jobs:[{u:defJob(td,c),h:10}]}});sv();return dayView()}
+  if(a==="cout"){const T=s.time[td]||{};delete T[b.dataset.qc];sv();return dayView()}
+  if(a==="jsplit"){const c=crewOf(b.dataset.qc),t=tnorm(td,c);if(!t)return;const last=t.jobs[t.jobs.length-1],give=Math.min(+last.h||0,Math.max(0,Math.round(((+last.h||0)/2)*4)/4));last.h=f2((+last.h||0)-give);t.jobs.push({u:"",h:give});sv();return dayView()}
+  if(a==="jrm"){const c=crewOf(b.dataset.qc),t=tnorm(td,c);if(!t||t.jobs.length<2)return;const x=t.jobs.splice(+b.dataset.qi,1)[0];t.jobs[0].h=f2((+t.jobs[0].h||0)+(+x.h||0));sv();return dayView()}
+  /* wrap up */
+  if(a==="wstat"){UID=b.dataset.qu;return go("sh_status")}
+  if(a==="wfin"){const P0=PLAN(td);P0.wrap={at:nowTxt(),by:ME_(),note:nv(($("#wrN")||{}).value||"")};s.set.statusAt=nowTxt();sv();const left=P0.items.filter(i=>!i.done).length;alert("Wrapped up. "+P0.items.filter(i=>i.done).length+" done"+(left?", "+left+" carry to tomorrow":"")+". Customer status sheets are up to date.");return wrapView()}
+  /* folder screens */
+  if(a==="ucon"||a==="ucoff"){const c=crewOf(b.dataset.qc);if(!c)return;if(a==="ucon")c.job=u.id;else delete c.job;sv();return ucView()}
+  if(a==="ujo"){const id=b.dataset.qi;show("jsa");setTimeout(()=>{try{jsaEdit(id)}catch(x){}},0);return}
+  if(a==="uwk"){UWK=Math.min(0,UWK+(+b.dataset.qi));return utView()}
+  if(a==="utp")return fprev(utHTML(u));
+  if(a==="dstart"){s.delays.push({id:uidS("dl"),unitId:u.id,reason:$("#qdR").value,note:nv($("#qdN").value),start:Date.now(),end:0});sv();return udView()}
+  if(a==="dend"){const d=s.delays.find(x=>x.id===b.dataset.qi);if(d){d.end=Date.now();sv();udView()}return}
+ });
+ let qt=0;
+ MD.addEventListener("input",e=>{if(!/^sh_/.test(cur))return;const t=e.target,u=unitOf(UID),s=S(),td=today();
+  if(t.dataset.qf&&u){u[t.dataset.qf]=t.value;clearTimeout(qt);qt=setTimeout(()=>{fixU(u);sv();syncU();side()},400);return}
+  if(t.dataset.qv&&u){const x=stepOf(u,t.dataset.qv);if(x){x.val=t.value;clearTimeout(qt);qt=setTimeout(sv,400)}return}
+  if(t.dataset.qhh){const c=crewOf(t.dataset.qhh),T=(s.time[td]||{})[c&&c.id];if(!T)return;const j=T.jobs[+t.dataset.qi];if(!j)return;j.h=Math.max(0,+t.value||0);T.h=f2(T.jobs.reduce((a,x)=>a+(+x.h||0),0));clearTimeout(qt);qt=setTimeout(()=>{sv();const y=scrollY;dayView();scrollTo(0,y)},900);return}
+ });
+ MD.addEventListener("change",async e=>{if(!/^sh_/.test(cur))return;const t=e.target,u=unitOf(UID),s=S(),td=today();
+  if(t.dataset.qcj){const c=crewOf(t.dataset.qcj);if(c){if(t.value)c.job=t.value;else delete c.job;sv()}return}
+  if(t.dataset.qjs){const c=crewOf(t.dataset.qjs),T=(s.time[td]||{})[c&&c.id];if(T&&T.jobs[+t.dataset.qi]){T.jobs[+t.dataset.qi].u=t.value;sv()}return}
+  if(t.id==="asG"){const l=$("#asNL");if(l)l.hidden=t.value!=="__new";return}
+  if(t.id==="uiF"&&t.files.length&&u){for(const f of [...t.files]){if(f.size>40e6){alert(f.name+" is over 40 MB.");continue}const id=uidS("ud");await pPut(id,f);u.docs.push({id,name:f.name,at:nowTxt()})}t.value="";sv();return uiView()}
+  if(t.id==="tcF"&&t.files.length&&u){const f=t.files[0];t.value="";let d=null;try{d=JSON.parse(await f.text())}catch(x){}
+   if(!d||d.format!=="tp-steps"||!Array.isArray(d.groups))return alert("That file is not a TP Tracker step file.");
+   d.groups=d.groups.filter(g=>g&&Array.isArray(g.steps)&&g.steps.length).map(g=>({name:String(g.name||"Steps").slice(0,120),part:String(g.part||"").slice(0,60),steps:g.steps}));TCIMP=d;return tcView()}
+  if(t.dataset.qwd){const i=PLAN(td).items.find(x=>x.id===t.dataset.qwd);if(!i)return;i.done=t.checked;const uu=unitOf(i.u),x=stepOf(uu,i.sid);if(x){if(i.done){if(x.type==="hold"&&!x.hold){i.done=false;t.checked=false;sv();return alert("This step has a hold point that is not released yet. Release it on the task card first.")}x.done=x.done||{by:ME_(),at:nowTxt(),d:td}}else x.done=null}sv();return}
+ });
+ /* customer status sheet: job number, milestones and task card progress */
+ const _stH=statusHTML;statusHTML=function(u){fixU(u);let h=_stH.apply(this,arguments);const th="border:1px solid #000;padding:4px 6px;background:#ede9dc;font-weight:700;text-align:left",td="border:1px solid #000;padding:4px 6px";
+  const add=`<div style="font:700 14px Arial,sans-serif;margin:10px 0 4px">Overall: ${uPct(u)}% complete</div><div>${E([nv(u.cust),nv(u.origin)?"from "+nv(u.origin):"",nv(u.model)].filter(Boolean).join(" · "))}</div>${u.steps.length?`<div>Task cards: ${stepsDone(u)} of ${u.steps.length} steps done</div>`:""}
+  <table style="width:100%;border-collapse:collapse;margin-top:8px"><tr><th style="${th}">Milestone</th><th style="${th}">Reached</th></tr>${MS.map(([k,l])=>`<tr><td style="${td}">${E(l)}</td><td style="${td}">${u.ms[k]?E(fmtD(u.ms[k])):""}</td></tr>`).join("")}</table>`;
+  h=h.replace(/<div style="font:700 14px Arial,sans-serif;margin:10px 0 4px">Overall: \d+% complete<\/div>/,add);
+  if(!u.pieces.length)h=h.replace(/<table style="width:100%;border-collapse:collapse;margin-top:8px"><tr><th[^>]*>Piece<\/th>[\s\S]*?<\/table>/,"");return h};
+ const _stT=statusText;statusText=function(u){fixU(u);return _stT.apply(this,arguments).replace(/Overall: \d+% complete/,"Overall: "+uPct(u)+"% complete"+(u.steps.length?" ("+stepsDone(u)+" of "+u.steps.length+" steps)":"")+"\n"+MS.filter(([k])=>u.ms[k]).map(([k,l])=>l+": "+fmtD(u.ms[k])).join("\n"))};
+ const _stV=statusView;statusView=function(){_stV.apply(this,arguments);try{const bk=MD.querySelector(".mh [data-shgo]");if(bk)bk.dataset.shgo="sh_jf"}catch(e){}};RENDER.sh_status=statusView;
+ RENDER.sh_unit=unitView;
+ window.SHOPOPEN=(uid,r)=>{UID=uid;go(r)};
+
  setTimeout(()=>{try{syncU();if(cur==="home"||!cur)show("home")}catch(e){}},0);
 })();
 
-/* ===== v51.6: First-Day demos (Field and Shop). Job start info filled in, nothing else. Factory Reset now only clears the side you are on. ===== */
+/* ===== v52: demo seeding (runs only inside the separate demo space) and a Factory Reset that only clears the side you are on ===== */
 (function(){
  const SHOP=!!window.SHOPMODE,FK="tp-demo-first";
  const rawKeys=()=>{const a=[];try{for(let i=0;i<localStorage.length;i++)a.push(localStorage.key(i))}catch(e){}return a};
- const mine=k=>SHOP?/^tp-shop-/.test(k):(/^(tp-|turbine-tracker)/.test(k)&&!/^tp-shop-/.test(k));
- const other=k=>SHOP?(/^(tp-|turbine-tracker)/.test(k)&&!/^tp-shop-/.test(k)&&k!=="tp-mode"):/^tp-shop-/.test(k);
+ const DM=window.TPDEMO,app=k=>/^(tp-|turbine-tracker)/.test(k)&&k!=="tp-mode",isDemoK=k=>/^tp-demo-(shop|field)-/.test(k);
+ const mine=k=>DM?k.indexOf("tp-demo-"+DM+"-")===0:SHOP?/^tp-shop-/.test(k):(app(k)&&!/^tp-shop-/.test(k)&&!isDemoK(k));
+ const other=k=>app(k)&&!mine(k)&&!isDemoK(k);
  /* clears this side only (Shop or Field). The other side's data and the shared photo/PDF store are left alone. */
  function wipeSide(){rawKeys().filter(mine).forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
   try{["tp-me","tp-shift"].forEach(k=>sessionStorage.removeItem(k))}catch(e){}}
@@ -5926,8 +6235,8 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  /* Factory Reset: same as before, but it no longer erases the other side */
  try{rstWipe=async function(cloud){WIPING=true;if(cloud){try{await syncWipe()}catch(e){if(!confirm("Could not erase the cloud data ("+(e&&e.message||e)+"). Erase this device only?")){WIPING=false;return}}}
   const keepOther=rawKeys().some(other);wipeSide();
-  if(!SHOP){try{await new Promise(r=>{const q=indexedDB.deleteDatabase("tp-sync");q.onsuccess=q.onerror=q.onblocked=()=>r()})}catch(e){}}
-  if(!keepOther){try{const d=await idb;if(d)d.close()}catch(e){}try{await new Promise(r=>{const q=indexedDB.deleteDatabase("tp-photos");q.onsuccess=q.onerror=q.onblocked=()=>r()})}catch(e){}}
+  if(!SHOP&&!DM){try{await new Promise(r=>{const q=indexedDB.deleteDatabase("tp-sync");q.onsuccess=q.onerror=q.onblocked=()=>r()})}catch(e){}}
+  if(!keepOther&&!DM){try{const d=await idb;if(d)d.close()}catch(e){}try{await new Promise(r=>{const q=indexedDB.deleteDatabase("tp-photos");q.onsuccess=q.onerror=q.onblocked=()=>r()})}catch(e){}}
   location.reload()}}catch(e){}
 
  const dayOf=n=>{const d=new Date();d.setDate(d.getDate()+n);return ymd(d)};
@@ -5976,30 +6285,18 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   Object.assign(QSD(),{site:SITE,em:"911",siteEm:"281-555-0150 (gate guard)",hosp:"Bayside Medical Center (demo)",hospAddr:"4400 Bayside Dr, Houston, TX 77015",hospPh:"281-555-0190",
    clinic:"Eastside Occupational Clinic (demo), 281-555-0195",muster:"Front gate, east side of the yard",aed:"First aid kit and AED in the office trailer. Eye wash station at the break room.",pm:"Austin Shepherd",pmPh:"713-555-0142"});
   Object.assign(ds().contacts,{sName:"Dana Ruiz",sPh:"713-555-0177"});
-  DB.shopDemoUnit="Panama";
+  DB.shopDemoUnit={job:"DEMO-01",unitNo:"Unit 1",cust:"Demo Power Co.",origin:"Panama (demo)",model:"GE 6B"};
  }
 
  /* runs once after the reload that follows the demo choice */
  let flag="";try{flag=localStorage.getItem(FK)||""}catch(e){}
  if(flag){try{localStorage.removeItem(FK)}catch(e){}
-  (async()=>{try{if(flag==="shop")seedShop();else await seedField();save();sv();localStorage.setItem("tp-seeded","1");localStorage.setItem("tp-demo-v1","1");sessionStorage.removeItem("tp-me")}catch(e){alert("Demo setup failed: "+(e&&e.message||e))}location.reload()})();}
+  (async()=>{if(!DM){location.reload();return}try{if(flag==="shop")seedShop();else await seedField();save();sv();localStorage.setItem("tp-seeded","1");localStorage.setItem("tp-demo-v1","1");sessionStorage.removeItem("tp-me")}catch(e){alert("Demo setup failed: "+(e&&e.message||e))}location.reload()})();}
  /* Shop: the demo unit is created through the Shop's own unit maker once the Shop side is up */
- if(SHOP&&DB.shopDemoUnit&&window.SHOPNEWUNIT){try{SHOPNEWUNIT(DB.shopDemoUnit,["major"]);delete DB.shopDemoUnit;sv()}catch(e){}}
+ if(SHOP&&DB.shopDemoUnit&&typeof DB.shopDemoUnit==="object"&&window.SHOPNEWJOB){try{SHOPNEWJOB(DB.shopDemoUnit);delete DB.shopDemoUnit;sv()}catch(e){}}
 
- /* ---------- the buttons: More > Factory Reset > Demo data ---------- */
- function addButtons(){if(typeof cur==="undefined")return;
-  const txt=SHOP?"The Shop on day one at the Gulf Freight Management temporary site: shop name, emergency info card, day and night crew lists and vendors are filled in, and unit Panama is set up with all of its pieces expected. No hours, JSAs or work yet.":"Day one of a fictional gas turbine hot gas path at Marsh Creek Energy Center: job and site, customer and plant contacts, TurbinePros team, day and night crew with PINs, safety and emergency, permits, lock box and the plant clearance are all filled in. You approve the LOTO, lock the crew on, build the first JSA and start the shift.";
-  const fd=`<div class="rec" style="border-left:5px solid #1f6f6b"><b>First-Day demo${SHOP?" (Shop)":" (Field Services)"}</b><small>${txt}</small><small>Sign in as Austin Shepherd, PIN 1001. Replaces everything on the ${SHOP?"Shop":"Field Services"} side of this device. The ${SHOP?"Field Services":"Shop"} side is not touched.</small></div><div class="row"><button type="button" data-rsfd="1">Load First-Day Demo...</button></div>`;
-  if(SHOP){if(cur!=="sh_set")return;const p=$("#shp");if(!p||$("#fdDemo"))return;p.insertAdjacentHTML("beforeend",`<details id="fdDemo" style="margin-top:22px"><summary>Demo data (not for live work)</summary>${fd}</details>`);return}
-  if(cur!=="reset")return;const det=[...document.querySelectorAll("#mod details")].find(x=>/demo/i.test(x.textContent));if(!det||det.dataset.fd)return;det.dataset.fd="1";
-  det.querySelector("summary").textContent="Demo data (not for a live job)";det.insertAdjacentHTML("beforeend",fd)}
- try{new MutationObserver(()=>{try{addButtons()}catch(e){}}).observe($("#mod"),{childList:true})}catch(e){}
- $("#mod").addEventListener("click",e=>{const b=e.target.closest("button[data-rsfd]");if(!b||(cur!=="reset"&&cur!=="sh_set"))return;e.stopPropagation();
-  pcGate("Load First-Day Demo","This replaces all "+(SHOP?"Shop":"Field Services")+" data on this device with the First-Day demo. Enter your 4-digit passcode to continue.",()=>{const F=$("#dDatF");
-   F.innerHTML=`<h2>Confirm First-Day Demo</h2><div class="hint">Type <b>DEMO</b> to replace everything on the ${SHOP?"Shop":"Field Services"} side of this device with the First-Day demo.</div><label>Type DEMO<input name="cf" autocomplete="off" autocapitalize="characters"></label><div class="row"><button type="button" id="dX">Cancel</button><button type="button" class="pri" id="dS">Load First-Day Demo</button></div>`;F.onchange=F.oninput=null;
-   F.onclick=ev=>{const x=ev.target.closest("button");if(!x)return;if(x.id==="dX")return $("#dDat").close();if(x.id!=="dS")return;if(F.elements.cf.value.trim()!=="DEMO")return alert("Type DEMO exactly to continue.");$("#dDat").close();
-    try{WIPING=true}catch(z){}wipeSide();try{localStorage.setItem(FK,SHOP?"shop":"field")}catch(z){}location.reload()};
-   $("#dDat").showModal();setTimeout(()=>F.elements.cf.focus(),50)})},true);
+ /* the demos now start from the opening screen; the old demo links on Factory Reset are removed */
+ try{new MutationObserver(()=>{try{if(typeof cur!=="undefined"&&cur==="reset")document.querySelectorAll("#mod details").forEach(d=>{if(/demo/i.test((d.querySelector("summary")||{}).textContent||""))d.remove()})}catch(e){}}).observe($("#mod"),{childList:true})}catch(e){}
 })();
 
 /* ===== Installable web app: offline cache + keep storage ===== */
