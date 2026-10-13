@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v50.4)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v51: Shop side)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -309,6 +309,30 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dUnit"><div class="dlg" id="unitBody"></div></dialog>
 
 <script>
+/* ===== v51: Shop or Field Services. Chosen on every app open. The Shop side runs on its own separate data (never synced with Field) ===== */
+(function(){
+ let side=null;try{side=sessionStorage.getItem("tp-side")}catch(e){}
+ window.TPSIDE=side;window.SHOPMODE=side==="shop";
+ const P=Storage.prototype,g=P.getItem,s=P.setItem,r=P.removeItem;
+ window.FIELDGET=k=>g.call(localStorage,k);
+ if(window.SHOPMODE){
+  /* every app key gets its own shop copy; Live Sync settings are not carried over, so Shop never syncs */
+  const SH=k=>(typeof k==="string"&&/^(tp-|turbine-tracker)/.test(k)&&!/^tp-shop-/.test(k)&&k!=="tp-mode")?"tp-shop-"+k:k;
+  P.getItem=function(k){return g.call(this,this===localStorage?SH(k):k)};
+  P.setItem=function(k,v){return s.call(this,this===localStorage?SH(k):k,v)};
+  P.removeItem=function(k){return r.call(this,this===localStorage?SH(k):k)};
+ }
+ window.TPGO=function(to){try{sessionStorage.setItem("tp-side",to);sessionStorage.removeItem("tp-me");sessionStorage.removeItem("tp-shift")}catch(e){}location.reload()};
+ function menu(){if(document.getElementById("sideMenu"))return;const d=document.createElement("div");d.id="sideMenu";
+  d.innerHTML=`<style>#sideMenu{position:fixed;inset:0;z-index:9999;background:#0e1517;display:flex;align-items:center;justify-content:center;padding:24px}#sideMenu .sm{width:min(520px,100%);text-align:center}#sideMenu img{width:min(320px,80%);background:#fff;padding:8px 14px;border-radius:6px}#sideMenu h1{color:#e9efef;font:700 30px system-ui,sans-serif;margin:18px 0 6px}#sideMenu p{color:#8fa3a5;margin:0 0 22px;font:16px system-ui,sans-serif}#sideMenu button{display:block;width:100%;min-height:96px;margin:14px 0;border-radius:18px;border:0;font:800 28px system-ui,sans-serif;color:#fff;cursor:pointer}#sideMenu button small{display:block;font:500 15px system-ui,sans-serif;opacity:.85;margin-top:4px}#sideMenu .b1{background:linear-gradient(135deg,#a3283c,#7a1e2e)}#sideMenu .b2{background:linear-gradient(135deg,#1f6f6b,#14504d)}</style>
+  <div class="sm"><img id="smLogo" alt="TurbinePros"><h1>TP Tracker</h1><p>Choose where you are working</p><button type="button" class="b1" data-side="shop">Shop<small>Units, vendors, crew and hours</small></button><button type="button" class="b2" data-side="field">Field Services<small>Power plant outages</small></button></div>`;
+  document.body.appendChild(d);
+  try{const L=document.querySelector("img.logo");if(L&&L.src)d.querySelector("#smLogo").src=L.src;else setTimeout(()=>{const L2=document.querySelector("img.logo");if(L2&&L2.src)d.querySelector("#smLogo").src=L2.src},400)}catch(e){}
+  d.addEventListener("click",e=>{const b=e.target.closest("button[data-side]");if(!b)return;const to=b.dataset.side;
+   if(to==="field"){try{sessionStorage.setItem("tp-side","field")}catch(x){}window.TPSIDE="field";d.remove()}else TPGO("shop")})}
+ if(!side){if(document.body)menu();else document.addEventListener("DOMContentLoaded",menu)}
+})();
+
 window.TPREMOVED=["fm_brk","fm_ntf","brk_rep"];window.TPRENAME={"tasks": "Task Creator", "crew": "Millwright Task Tracker", "jsa": "Daily JSA", "dsr": "Daily Report", "delay": "Delay Tracker", "qtools": "Camera & Calculator", "fm_media": "Photo Files", "data": "Data Entry", "fm_msg": "Messages", "fm_hand": "Shift Turnover", "fm_eos": "End of Shift", "loto": "LOTO", "fme": "FME", "fm_em": "Site Emergency Contact", "prog": "Unit Progress Tracker", "mcal": "Whiteboard Calendar", "tools": "Damaged Tooling", "qs": "Quick Start Setup", "people": "Employees", "costs": "Time Tracker", "sync": "Live Sync", "reset": "App Data Reset", "safety": "Safety Tools", "fm_case": "HSEQ Link", "fm_tout": "Stop Work", "status": "Live Status", "sstat": "To-Date Status", "fm_req": "New Request", "shop": "Request List", "vend": "Vendor Shipments", "fm_rcv": "Shipping & Receiving", "rent": "Rentals", "fm_hold": "Hold Points"};
 
 const STAGES=[
@@ -1894,7 +1918,7 @@ function jsaEdit(id){JID=id;const r=jget();if(!r)return;jsaPad(r);cur="jsa";cons
  ${sec("Permits and Contractors")}${inp("permits","Required Permits (type N/A if none)")}${inp("affOut","How do our activities affect contractors around us?")}${inp("affIn","How do other contractors around us affect our activities?")}${sel("comm","Have we communicated with these other contractors?",["Yes","No"])}${inp("who","Who")}${sel("appr","Are apprentices / newly hired personnel paired with Key / Experience personnel?",["Yes","No"])}
  ${sec("Crew Signatures")}<div class="hint">This Pre-Task Plan must be reviewed by the foreman and signed by all workers involved prior to starting any work.</div>
  ${r.crew.map((x,i)=>`<div class="rec" style="margin:8px 0"><b style="font-size:17px">${esc(x.name)}</b><img class="sgp" src="${x.sig}" alt="Signature"><small>${esc(x.t||"")}</small>${(!r.final||isSup())?`<div class="row"><button class="danger" data-j="rmsig" data-i="${i}">Remove</button></div>`:""}</div>`).join("")}
- ${r.final?"":(()=>{const sg=new Set(r.crew.map(x=>String(x.name).toLowerCase())),onT=new Set(DB.tasks.filter(t=>t.unit===r.unit&&t.due===r.date).flatMap(t=>String(t.who||"").split(/,\s*/).filter(Boolean))),L=(DB.people||[]).filter(p=>!sg.has(p.title.toLowerCase())).sort((a,b)=>(onT.has(b.title)-onT.has(a.title))||((b.title===r.foreman)-(a.title===r.foreman)));return L.length?`<div class="label" style="font-size:14px;font-weight:700;margin-top:10px">Tap your name to sign (${L.length} still to sign)</div><div class="jsaNames">${L.map(p=>`<button type="button" class="chip${onT.has(p.title)?" on":""}" data-jcn="${esc(p.title)}">${esc(p.title)}</button>`).join("")}</div>`:`<div class="hint">Everyone on this shift has signed.</div>`})()}<label>Name not listed? Type it<input id="jcn" list="jpl" placeholder="Type your name" autocomplete="off"></label><datalist id="jpl">${(DB.people||[]).concat(DB.pplOther||[]).map(p=>`<option value="${esc(p.title)}">`).join("")}</datalist><button class="pri" data-j="sign" style="width:100%;margin-top:8px">Sign</button>
+ ${r.final?"":(()=>{const sg=new Set(r.crew.map(x=>String(x.name).toLowerCase())),onT=new Set(DB.tasks.filter(t=>t.unit===r.unit&&t.due===r.date).flatMap(t=>String(t.who||"").split(/,\s*/).filter(Boolean))),L=(window.JSAPPL?JSAPPL():(DB.people||[])).filter(p=>!sg.has(p.title.toLowerCase())).sort((a,b)=>(onT.has(b.title)-onT.has(a.title))||((b.title===r.foreman)-(a.title===r.foreman)));return L.length?`<div class="label" style="font-size:14px;font-weight:700;margin-top:10px">Tap your name to sign (${L.length} still to sign)</div><div class="jsaNames">${L.map(p=>`<button type="button" class="chip${onT.has(p.title)?" on":""}" data-jcn="${esc(p.title)}">${esc(p.title)}</button>`).join("")}</div>`:`<div class="hint">Everyone on this shift has signed.</div>`})()}<label>Name not listed? Type it<input id="jcn" list="jpl" placeholder="Type your name" autocomplete="off"></label><datalist id="jpl">${(DB.people||[]).concat(DB.pplOther||[]).map(p=>`<option value="${esc(p.title)}">`).join("")}</datalist><button class="pri" data-j="sign" style="width:100%;margin-top:8px">Sign</button>
  <div class="rec" id="jBan2" style="margin:16px 0">${r.final?"":mk()}</div>
  <div class="row">${r.final?(isSup()?`<button data-j="reopen">Reopen</button>`:""):`<button class="pri" data-j="final" id="jFin">Finalize JSA</button>`}<button data-j="prev" data-id="${r.id}">Preview &amp; Print</button></div></div>`;
  const fz=$("#jFin");if(fz)fz.disabled=jsaMissing(r).length>0}
@@ -5419,6 +5443,276 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  /* every new visit to a JSA starts on the form */
  const _s=show;show=function(v){MODE="form";TO=null;return _s.apply(this,arguments)};
  const _jl=jsaList;jsaList=function(){MODE="form";TO=null;return _jl.apply(this,arguments)};
+})();
+
+/* ===== v51: SHOP side. Units (6B packages) and their pieces from receiving to shipping, vendors, parts, crew check-in and hours, JSA, HSEQ, FME, delays and QC. Project manager only ===== */
+(function(){
+ /* the Field side gets a way over to the Shop */
+ if(!window.SHOPMODE){try{const mm=document.querySelector("#dMore .more");if(mm&&!mm.querySelector("[data-tpgo]")){const x=document.createElement("button");x.dataset.tpgo="shop";x.textContent="Switch to Shop";x.onclick=()=>TPGO("shop");mm.appendChild(x)}}catch(e){}return}
+ const E=esc,MD=$("#mod"),nv=v=>String(v==null?"":v).trim();
+ const uidS=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+ const nowTxt=()=>new Date().toLocaleString([],{month:"numeric",day:"numeric",year:"2-digit",hour:"numeric",minute:"2-digit"});
+ const hm=()=>new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
+ const fmtD=d=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(d||""))return d||"";const x=new Date(d+"T12:00:00");return x.toLocaleDateString([],{month:"short",day:"numeric"})};
+ const days=(a,b)=>Math.round((Date.parse(b+"T12:00:00")-Date.parse(a+"T12:00:00"))/864e5);
+ const S=()=>{const o=DB.shop&&typeof DB.shop==="object"?DB.shop:(DB.shop={});["units","crew","vendors","sends","parts","delays"].forEach(k=>{if(!Array.isArray(o[k]))o[k]=[]});o.time=o.time||{};o.set=o.set||{site:"Shop"};return o};
+ const STG=["Receive","Teardown","Inspect","Repair","Reassemble","Test","Ship"];
+ const ACT=["Repair in-house","Send to vendor","Replace","Use as is"];
+ const ROLES=["Millwright","Journeyman Millwright","Apprentice Millwright","Lead / Foreman"];
+ /* starter piece list (draft from the Shop plan; edit pieces and checklists per unit) */
+ const TPL={major:[["Gas turbine (compressor, combustion, turbine)",["Borescope as-found","Teardown per scope","Inspect compressor blades, buckets, nozzles and shrouds","Record clearances","Reassemble","Preserve"]],
+  ["Combustion system",["Inspect liners","Inspect transition pieces","Inspect fuel nozzles","Inspect crossfire tubes","Replace or send out for repair"]],
+  ["Generator",["As-received inspection","Insulation resistance test","Inspect stator, rotor and bearings","Collector and brushes","Preserve"]],
+  ["Lube oil pumps and motors",["Inspect pump and seals","Motor insulation test and bearings","Coupling alignment","Run test"]],
+  ["Hydraulic and fuel pumps",["Inspect pump and seals","Motor checks","Leak check"]],
+  ["Lube oil coolers",["Clean tubes","Pressure test","Inspect fittings"]],
+  ["Fin-fan coolers",["Fan blades and bearings","Motor checks","Clean coils"]],
+  ["Lube oil skid",["Clean reservoir","Replace filters","Flush piping","Inspect valves and instruments"]],
+  ["Fuel skid",["Valves and filters","Leak check","Instruments"]],
+  ["Water wash skid",["Pump, nozzles and tank","Leak check"]],
+  ["Starting means and torque converter",["Inspect starter","Torque converter fluid and bearings","Run test"]],
+  ["Accessory and load gears",["Gear tooth inspection","Bearings","Backlash","Oil"]]],
+  dc:[["Controls (data center prep)",["Controls upgrade scope","Wiring and panels"]],["Fuel system (data center prep)",["Fuel conversion scope"]],["Package and enclosure (data center prep)",["Enclosure, skid and piping changes"]]]};
+ const mkPiece=(n,cl)=>({id:uidS("pc"),name:n,status:"expected",stage:0,done:false,holds:{},rec:{photos:[],np:[]},check:(cl||[]).map(t=>({t,done:false})),finds:[],photos:[]});
+ const unitOf=id=>S().units.find(u=>u.id===id),pieceOf=(u,id)=>u&&u.pieces.find(p=>p.id===id);
+ /* units also go in the app's unit list so FME and the JSA can pick them */
+ function syncU(){try{S().units.forEach(u=>{let x=U.find(y=>y.id===u.id);if(!x){x={id:u.id,name:u.name,customer:"",ttype:"Gas",maker:"GE",model:"Frame 6B",project:"Shop",serial:"",src:u.name,dest:"",eta:"",stage:0,checks:{},hold:"",done:false,log:[]};U.push(x)}x.name=u.name});save()}catch(e){}}
+ const today=()=>tdy();
+ const vStat=s=>{if(s.back)return "back";if(!s.due)return "out";const d=days(today(),s.due);return d<0?"late":d<=3?"soon":"out"};
+ const VC={late:"#d9534f",soon:"#e0a04e",out:"#3fae66",back:"#7a8288"},VL={late:"Overdue",soon:"Due soon",out:"On time",back:"Back"};
+ const pieceSends=(u,p)=>S().sends.filter(s=>s.unitId===u.id&&s.pieceId===p.id);
+ const atVendor=(u,p)=>pieceSends(u,p).some(s=>!s.back);
+ const holdOn=p=>{const h=p.holds[p.stage];return h&&h.on&&!h.rel};
+ const unitPct=u=>{const L=u.pieces;if(!L.length)return 0;return Math.round(100*L.reduce((a,p)=>a+(p.done?7:p.stage),0)/(L.length*7))};
+ /* ---------- look ---------- */
+ const st=document.createElement("style");st.textContent=`body.shop #home>*:not(#shopHome){display:none!important}body.shop #tab,body.shop #fab,body.shop .hUnit{display:none!important}body.shop{padding-bottom:20px!important}
+ #shopHome{padding:10px 16px 40px;max-width:1100px;margin:0 auto}#shopHome .shTop{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 12px}#shopHome .shTop img{height:40px;background:#fff;padding:4px 8px;border-radius:4px}#shopHome .shTop h1{font-size:30px;flex:1;margin:0}
+ .shNav{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}.shNav button{min-height:48px;padding:6px 16px;border-radius:24px;font-weight:700;position:relative}.shNav .cnt{display:inline-block;min-width:22px;padding:0 6px;border-radius:11px;background:#d9534f;color:#fff;font-size:13px;margin-left:6px}
+ .shUnit{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-left:6px solid #a3283c;border-radius:14px;padding:14px 16px;margin:10px 0}.shUnit b{font-size:22px;display:block}.shUnit small{color:var(--mute);display:block;margin-top:2px}
+ .shBar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:8px}.shBar i{display:block;height:100%;background:linear-gradient(90deg,#1f6f6b,#3fae66)}
+ .shPc{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:12px 4px;min-height:58px}.shPc .nm{flex:1}.shPc .nm b{display:block;font-size:17px}.shPc .nm small{color:var(--mute)}
+ .stg{display:inline-block;padding:3px 10px;border-radius:12px;font-size:13px;font-weight:800;background:#1f6f6b;color:#fff;white-space:nowrap}.stg.exp{background:#5d686b}.stg.done{background:#2f7d4a}.tg{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:800;margin-left:6px;color:#fff}
+ .shSteps{display:flex;gap:4px;margin:10px 0}.shSteps span{flex:1;text-align:center;font-size:12px;font-weight:700;padding:8px 2px;border-radius:6px;background:var(--line);color:var(--mute)}.shSteps span.sok{background:#2f7d4a;color:#fff}.shSteps span.on{background:#1f6f6b;color:#fff}.shSteps span.hold{background:#d9534f;color:#fff}
+ #shp .sec{padding:16px 0 4px}#shp .rec{margin:8px 0}#shp{padding:0 16px 50px}.shRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.shRow>input,.shRow>select{flex:1;min-width:120px}
+ .shCrew{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding:8px 0}.shCrew .nm{flex:1}.shCrew .nm b{display:block;font-size:17px}.shCrew input{width:80px}.shCrew button.in{min-width:120px}
+ table.shWk{width:100%;border-collapse:collapse;font-size:14px}table.shWk th,table.shWk td{border:1px solid var(--line);padding:6px;text-align:center}table.shWk td:first-child,table.shWk th:first-child{text-align:left}`;document.head.appendChild(st);
+ document.body.classList.add("shop");
+ try{const f=document.querySelector("#lock .fsd");if(f)f.textContent="Shop · Project Manager";const h=document.querySelector(".fsd:not(#lock .fsd)");}catch(e){}
+ /* one person: pick Day Shift on the sign-in screen by itself */
+ new MutationObserver(()=>{const b=document.querySelector('#lock button[data-sh="Day"]');if(b&&!$("#lock").hidden)setTimeout(()=>b.click(),0);const t=$("#lkT");if(t&&/Set Up/.test(t.textContent)&&t.textContent!=="Shop: Set Up Your Account")t.textContent="Shop: Set Up Your Account"}).observe($("#lock"),{childList:true,subtree:true,characterData:true});
+ setTimeout(()=>{const b=document.querySelector('#lock button[data-sh="Day"]');if(b&&!$("#lock").hidden)b.click()},50);
+ /* ---------- screens ---------- */
+ const SCR={sh_unit:"Unit",sh_piece:"Piece",sh_vend:"Vendors",sh_crew:"Crew",sh_safe:"Safety & QC",sh_parts:"Parts",sh_delay:"Delays",sh_set:"Shop Settings"};
+ Object.keys(SCR).forEach(k=>M[k]={t:SCR[k],f:[],sum:()=>""});
+ let UID="",PID="",VT="board",CS="Day",WK=0,NEWU=false;
+ const back=to=>`<button type="button" data-shgo="${to}">&larr; Back</button>`;
+ const head=(t,to)=>`<div class="mh">${back(to||"home")}<h2>${E(t)}</h2></div>`;
+ /* home */
+ function homeShop(){let h=document.getElementById("shopHome");if(!h){h=document.createElement("div");h.id="shopHome";$("#home").appendChild(h)}
+  const s=S(),late=s.sends.filter(x=>vStat(x)==="late").length,inN=Object.keys(s.time[today()]||{}).length,holds=s.units.reduce((a,u)=>a+u.pieces.filter(holdOn).length,0),logo=(document.querySelector("img.logo")||{}).src||"";
+  h.innerHTML=`<div class="shTop">${logo?`<img src="${logo}" alt="TurbinePros">`:""}<h1>Shop</h1><button type="button" data-shgo="sh_set">Settings</button><button type="button" data-tpgo="field">Switch to Field</button></div>
+  <div class="shNav"><button type="button" data-shgo="sh_crew">Crew${inN?` <span class="cnt" style="background:#1f6f6b">${inN} in</span>`:""}</button><button type="button" data-shgo="sh_vend">Vendors${late?`<span class="cnt">${late}</span>`:""}</button><button type="button" data-shgo="sh_parts">Parts</button><button type="button" data-shgo="sh_safe">Safety &amp; QC${holds?`<span class="cnt">${holds}</span>`:""}</button><button type="button" data-shgo="sh_delay">Delays</button></div>
+  ${NEWU?newUnitForm():`<div class="row" style="margin:0"><button type="button" class="pri" data-sh="newu" style="min-height:52px;flex:1">+ New Unit</button></div>`}
+  ${s.units.map(u=>{const rc=u.pieces.filter(p=>p.status==="received").length,av=u.pieces.filter(p=>atVendor(u,p)).length,hd=u.pieces.filter(holdOn).length,sh=u.pieces.filter(p=>p.done).length;
+   return `<button type="button" class="shUnit" data-shu="${u.id}"><b>${E(u.name)}</b><small>${u.pieces.length} pieces &middot; ${rc} received &middot; ${sh} shipped${av?` &middot; ${av} at vendor`:""}${hd?` &middot; <span style="color:#d9534f;font-weight:800">${hd} QC hold</span>`:""}</small><div class="shBar"><i style="width:${unitPct(u)}%"></i></div></button>`}).join("")||`<div class="empty">No units yet. Tap New Unit when the first one arrives.</div>`}`}
+ function newUnitForm(){return `<div class="rec"><b>New Unit</b><label>Unit name (where it shipped from, e.g. Panama)<input id="nuN" autocomplete="off"></label>
+  <label class="chk" style="color:inherit"><input type="checkbox" id="nuM" checked><span>Major overhaul piece list (${TPL.major.length} pieces)</span></label><label class="chk" style="color:inherit"><input type="checkbox" id="nuD"><span>Data center prep pieces (${TPL.dc.length} more)</span></label>
+  <div class="hint">Pieces load as Expected. Check each one in as it arrives. You can add or remove pieces later.</div><div class="row"><button type="button" data-sh="newx">Cancel</button><button type="button" class="pri" data-sh="newok">Create Unit</button></div></div>`}
+ /* unit */
+ function unitView(){const u=unitOf(UID);if(!u)return go("home");const pc=unitPct(u);
+  MD.innerHTML=head(u.name)+`<div id="shp"><div class="rec"><b>${pc}% through the stages</b><div class="shBar"><i style="width:${pc}%"></i></div><small>${u.tpl.map(t=>t==="major"?"Major overhaul":"Data center prep").join(" + ")||"Custom"} &middot; created ${E(fmtD(u.created))}</small></div>
+  <div class="row"><button type="button" data-sh="status">Customer Status Sheet</button><button type="button" data-sh="uparts">Parts (${S().parts.filter(x=>x.unitId===u.id&&x.st!=="Received").length} open)</button><button type="button" data-sh="urename">Rename</button></div>
+  <h2 class="sec">Pieces (${u.pieces.length})</h2>`+u.pieces.map(p=>{const av=atVendor(u,p),hd=holdOn(p);
+   return `<button type="button" class="shPc" data-shp="${p.id}"><span class="nm"><b>${E(p.name)}</b><small>${p.status==="expected"?"Expected, not received yet":"Received "+E(fmtD(p.rec.date||""))}${p.finds.length?" &middot; "+p.finds.length+" finding"+(p.finds.length===1?"":"s"):""}</small></span>${av?`<span class="tg" style="background:#e0a04e">At vendor</span>`:""}${hd?`<span class="tg" style="background:#d9534f">QC hold</span>`:""}<span class="stg${p.status==="expected"?" exp":p.done?" done":""}">${p.status==="expected"?"Expected":p.done?"Shipped":STG[p.stage]}</span></button>`}).join("")+
+  `<div class="shRow" style="margin-top:12px"><input id="apN" placeholder="Add a piece (e.g. Exhaust frame)"><button type="button" data-sh="addp">Add Piece</button></div><div class="row" style="margin-top:20px"><button type="button" class="danger" data-sh="delu">Delete Unit</button></div></div>`}
+ /* piece */
+ function pieceView(){const u=unitOf(UID),p=pieceOf(u,PID);if(!p)return go("sh_unit");const r=p.rec,hd=holdOn(p),h=p.holds[p.stage],sends=pieceSends(u,p);
+  const steps=`<div class="shSteps">${STG.map((s,i)=>`<span class="${p.done||i<p.stage?"sok":i===p.stage?(hd?"hold":"on"):""}">${s}</span>`).join("")}</div>`;
+  MD.innerHTML=head(p.name,"sh_unit")+`<div id="shp"><small style="color:var(--mute)">${E(u.name)}</small>
+  ${p.status==="expected"?`<div class="rec hold"><b>Expected</b><small>Not received yet.</small><div class="row"><button type="button" class="pri" data-sh="recv">Check In This Piece</button></div></div>`:
+  `${steps}<div class="rec"${hd?' style="border-left-color:#d9534f"':""}><b>${p.done?"Shipped":"Stage: "+STG[p.stage]}</b>${atVendor(u,p)?`<small style="color:#e0a04e;font-weight:800">At vendor</small>`:""}
+   ${p.done?"":`<label class="chk" style="color:inherit"><input type="checkbox" data-sh="hold"${h&&h.on?" checked":""}><span>QC hold point on this stage</span></label>${h&&h.on?(h.rel?`<small>Released by ${E(h.rel.by)} ${E(h.rel.at)}</small>`:`<div class="row"><button type="button" class="pri" data-sh="rel">QC Release</button></div>`):""}`}
+   <div class="row">${p.stage>0||p.done?`<button type="button" data-sh="sback">&larr; Back a Stage</button>`:""}${p.done?"":`<button type="button" class="pri" data-sh="snext"${hd?" disabled":""}>${p.stage===6?"Mark Shipped":"Done: Move to "+STG[p.stage+1]} &rarr;</button>`}</div>${hd?`<small style="color:#d9534f">QC hold: release it before moving on.</small>`:""}</div>`}
+  <h2 class="sec">Checklist (${p.check.filter(c=>c.done).length} of ${p.check.length})</h2>${p.check.map((c,i)=>`<label class="chk" style="color:inherit"><input type="checkbox" data-shc="${i}"${c.done?" checked":""}><span>${E(c.t)}</span></label>`).join("")}
+  <div class="shRow"><input id="acT" placeholder="Add a checklist item"><button type="button" data-sh="addc">Add</button></div>
+  <h2 class="sec">Teardown Findings (${p.finds.length})</h2>${p.finds.map(f=>`<div class="rec"><b style="font-size:16px">${E(f.note)}</b><small>${E(f.action)} &middot; ${E(f.at)}</small>${(f.photos||[]).map(id=>`<img class="th" data-p="${id}" alt="Photo">`).join("")}</div>`).join("")}
+  <div class="rec"><label>What was found<textarea id="fdN" rows="2"></textarea></label><label>Action<select id="fdA">${ACT.map(a=>`<option>${a}</option>`).join("")}</select></label><label class="lnk" style="cursor:pointer;display:block;margin:6px 0">Add Photos<input type="file" id="fdP" accept="image/*" multiple hidden></label><small id="fdPn"></small><div class="row"><button type="button" class="pri" data-sh="addf">Save Finding</button></div></div>
+  <h2 class="sec">Vendor (${sends.length})</h2>${sends.map(sendCard).join("")}<div class="row"><button type="button" data-sh="sendv">Send to Vendor</button></div>
+  <h2 class="sec">Photos (${p.photos.length})</h2><div>${p.photos.map(id=>`<img class="th" data-p="${id}" alt="Photo">`).join("")}</div><label class="lnk" style="cursor:pointer;display:block;margin:6px 0">Add Photos<input type="file" id="pcP" accept="image/*" capture="environment" multiple hidden></label>
+  ${p.status==="received"?`<h2 class="sec">Receiving Inspection</h2>${recForm(p)}`:""}
+  <div class="row" style="margin-top:20px"><button type="button" data-sh="pren">Rename</button><button type="button" class="danger" data-sh="delp">Remove Piece</button></div></div>`}
+ function recForm(p){const r=p.rec;return `<div class="hint">All optional for now.</div><div class="rec"><label>Received date<input type="date" data-shr="date" value="${E(r.date||"")}"></label><label>Serial number<input data-shr="serial" value="${E(r.serial||"")}"></label>
+  <label>Damage noted<textarea data-shr="damage" rows="2">${E(r.damage||"")}</textarea></label><label>Missing parts<textarea data-shr="missing" rows="2">${E(r.missing||"")}</textarea></label>
+  <div class="shRow"><label style="flex:1">Carrier<input data-shr="carrier" value="${E(r.carrier||"")}"></label><label style="flex:1">BOL number<input data-shr="bol" value="${E(r.bol||"")}"></label></div>
+  <div><b style="font-size:15px">Photos, all sides (${(r.photos||[]).length})</b></div>${(r.photos||[]).map(id=>`<img class="th" data-p="${id}" alt="Photo">`).join("")}<label class="lnk" style="cursor:pointer;display:block;margin:6px 0">Add Photos<input type="file" id="rcP" accept="image/*" capture="environment" multiple hidden></label>
+  <div><b style="font-size:15px">Nameplate photo</b></div>${(r.np||[]).map(id=>`<img class="th" data-p="${id}" alt="Nameplate">`).join("")}<label class="lnk" style="cursor:pointer;display:block;margin:6px 0">Add Nameplate Photo<input type="file" id="rcN" accept="image/*" capture="environment" hidden></label>
+  <div class="row">${r.sig?`<img src="${r.sig}" alt="Driver signature" style="height:60px;background:#fff;border-radius:6px">`:""}<button type="button" data-sh="dsig">${r.sig?"Re-sign":"Driver Signature"}</button></div></div>`}
+ const vName=id=>(S().vendors.find(v=>v.id===id)||{}).name||"Vendor";
+ function sendCard(s){const k=vStat(s),u=unitOf(s.unitId),p=pieceOf(u,s.pieceId);
+  return `<div class="rec" style="border-left-color:${VC[k]}"><b style="font-size:17px">${E(vName(s.vendorId))}: ${E(s.what||(p?p.name:""))}</b><small>${u?E(u.name)+" &middot; ":""}${E(s.work||"")}${s.po?" &middot; PO "+E(s.po):""}</small>
+  <small>Sent ${E(fmtD(s.sent))}${s.due?" &middot; due back "+E(fmtD(s.due)):""}${s.back?" &middot; back "+E(fmtD(s.back)):""} &middot; <b style="display:inline;font-size:13px;color:${VC[k]}">${VL[k]}${k==="late"?" "+(-days(today(),s.due))+" days":""}</b></small>${(s.photos||[]).map(id=>`<img class="th" data-p="${id}" alt="Photo">`).join("")}
+  ${s.back?"":`<div class="row"><button type="button" class="pri" data-shback="${s.id}">Mark Received Back</button><button type="button" data-shedit="${s.id}">Edit</button></div>`}</div>`}
+ /* vendor send form */
+ let SF=null;
+ function sendForm(){const s=SF,V=S().vendors,u=unitOf(s.unitId),p=pieceOf(u,s.pieceId);
+  MD.innerHTML=head(s.id?"Edit Vendor Send":"Send to Vendor","sh_piece")+`<div id="shp"><small style="color:var(--mute)">${E(u?u.name:"")} &middot; ${E(p?p.name:"")}</small>
+  <label>Vendor<select id="sfV"><option value="">Pick a vendor...</option>${V.map(v=>`<option value="${v.id}"${v.id===s.vendorId?" selected":""}>${E(v.name)}</option>`).join("")}<option value="new">+ New vendor</option></select></label>
+  <div id="sfNew" ${s.vendorId==="new"?"":"hidden"} class="rec"><label>Vendor name<input id="nvN"></label><label>Contact name<input id="nvC" data-vct="1"></label><label>Phone<input id="nvP" inputmode="tel"></label><label>Email<input id="nvE" inputmode="email"></label><div class="row"><button type="button" data-sh="vct">Pick from Contacts</button></div></div>
+  <label>What is going out<input id="sfW" value="${E(s.what||"")}" placeholder="Whole piece, or the part (e.g. stage 1 buckets)"></label>
+  <label>Work to be done<input id="sfK" value="${E(s.work||"")}" placeholder="e.g. coating repair, balancing, rewind"></label>
+  <div class="shRow"><label style="flex:1">Date sent<input type="date" id="sfS" value="${E(s.sent||today())}"></label><label style="flex:1">Due back<input type="date" id="sfD" value="${E(s.due||"")}"></label></div>
+  <div class="shRow"><label style="flex:1">PO number (optional)<input id="sfPo" value="${E(s.po||"")}"></label><label style="flex:1">BOL number<input id="sfB" value="${E(s.bol||"")}"></label></div>
+  <div><b style="font-size:15px">Ship-out photos (${(s.photos||[]).length})</b></div>${(s.photos||[]).map(id=>`<img class="th" data-p="${id}" alt="Photo">`).join("")}<label class="lnk" style="cursor:pointer;display:block;margin:6px 0">Add Photos<input type="file" id="sfP" accept="image/*" capture="environment" multiple hidden></label>
+  <div class="row"><button type="button" data-shgo="sh_piece">Cancel</button><button type="button" class="pri" data-sh="sfsave">Save</button></div></div>`}
+ function readSF(){const s=SF;["W:what","K:work","S:sent","D:due","Po:po","B:bol"].forEach(x=>{const[a,b]=x.split(":"),i=$("#sf"+a);if(i)s[b]=i.value.trim()});const v=$("#sfV");if(v)s.vendorId=v.value}
+ /* vendors board + scorecard + list */
+ function vendView(){const s=S(),open=s.sends.filter(x=>!x.back).sort((a,b)=>(a.due||"9")>(b.due||"9")?1:-1),ord={late:0,soon:1,out:2};open.sort((a,b)=>ord[vStat(a)]-ord[vStat(b)]);
+  const chip=(v,l)=>`<button type="button" class="chip${VT===v?" on":""}" data-shvt="${v}">${l}</button>`;
+  let b="";if(VT==="board")b=(open.map(sendCard).join("")||`<div class="empty">Nothing out at vendors.</div>`)+(s.sends.some(x=>x.back)?`<details style="margin-top:10px"><summary>Returned (${s.sends.filter(x=>x.back).length})</summary>${s.sends.filter(x=>x.back).slice().reverse().map(sendCard).join("")}</details>`:"");
+  else if(VT==="score"){b=s.vendors.map(v=>{const L=s.sends.filter(x=>x.vendorId===v.id),R=L.filter(x=>x.back),on=R.filter(x=>!x.due||x.back<=x.due).length,tat=R.length?Math.round(R.reduce((a,x)=>a+days(x.sent,x.back),0)/R.length):null;
+   return `<div class="rec"><b>${E(v.name)}</b><small>${L.length} sent &middot; ${R.length} back &middot; ${L.length-R.length} out</small><small>${R.length?`On time ${Math.round(100*on/R.length)}% &middot; average turnaround ${tat} days`:"No returns yet"}</small></div>`}).join("")||`<div class="empty">No vendors yet.</div>`}
+  else b=s.vendors.map(v=>`<div class="rec"><b>${E(v.name)}</b><small>${E([v.contact,v.phone,v.email].filter(Boolean).join(" · "))}</small>${v.phone?`<div class="row"><a class="lnk" href="tel:${E(v.phone.replace(/[^\d+]/g,""))}">Call</a>${v.email?`<a class="lnk" href="mailto:${E(v.email)}">Email</a>`:""}</div>`:""}</div>`).join("")+`<div class="rec"><b>Add a vendor</b><label>Vendor name<input id="nvN"></label><label>Contact name<input id="nvC"></label><label>Phone<input id="nvP" inputmode="tel"></label><label>Email<input id="nvE" inputmode="email"></label><div class="row"><button type="button" data-sh="vct">Pick from Contacts</button><button type="button" class="pri" data-sh="vadd">Save Vendor</button></div></div>`;
+  MD.innerHTML=head("Vendors")+`<div id="shp"><div class="chips" style="padding:6px 0">${chip("board","Parts Out")}${chip("score","Scorecard")}${chip("list","Vendor List")}</div><div class="hint">Yellow: due back within 3 days. Red: overdue.</div>${b}</div>`}
+ /* parts */
+ function partsView(){const s=S(),L=s.parts.filter(x=>!UID||x.unitId===UID),u=unitOf(UID),order=["Needed","Ordered","Received"];
+  MD.innerHTML=head("Parts"+(u?": "+u.name:""),u?"sh_unit":"home")+`<div id="shp">`+["Needed","Ordered","Received"].map(stt=>{const G=L.filter(x=>x.st===stt);return `<h2 class="sec">${stt} (${G.length})</h2>`+(G.map(x=>{const uu=unitOf(x.unitId),pp=pieceOf(uu,x.pieceId);return `<div class="rec"${x.bo?' style="border-left-color:#d9534f"':""}><b style="font-size:17px">${E(x.desc)}${x.qty&&x.qty!=="1"?" &times; "+E(x.qty):""}</b><small>${E([uu&&uu.name,pp&&pp.name,x.pn&&"P/N "+x.pn].filter(Boolean).join(" · "))}${x.bo?' &middot; <b style="display:inline;font-size:13px;color:#d9534f">Backorder</b>':""}</small><div class="row">${stt!=="Received"?`<button type="button" class="pri" data-shpt="${x.id}" data-v="${order[order.indexOf(stt)+1]}">Mark ${order[order.indexOf(stt)+1]}</button>`:""}${stt==="Ordered"?`<button type="button" data-shbo="${x.id}">${x.bo?"Clear Backorder":"Backorder"}</button>`:""}<button type="button" class="danger" data-shpx="${x.id}">Remove</button></div></div>`}).join("")||`<div class="hint">None.</div>`)}).join("")+
+  `<div class="rec"><b>Add a part</b>${u?"":`<label>Unit<select id="ptU">${s.units.map(x=>`<option value="${x.id}">${E(x.name)}</option>`).join("")}</select></label>`}<label>Description<input id="ptD"></label><div class="shRow"><label style="flex:1">Part number<input id="ptN"></label><label style="flex:1">Qty<input id="ptQ" value="1" inputmode="numeric"></label></div><div class="row"><button type="button" class="pri" data-sh="ptadd">Add as Needed</button></div></div></div>`}
+ /* crew */
+ const wkStart=o=>{const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-d.getDay()+7*o);return d};
+ const ymdD=d=>ymd(d);
+ function crewView(){const s=S(),td=today(),T=s.time[td]||{},L=s.crew.filter(c=>(c.shift||"Day")===CS),inN=L.filter(c=>T[c.id]).length;
+  const w0=wkStart(WK),D=[...Array(7)].map((_,i)=>{const d=new Date(w0);d.setDate(d.getDate()+i);return ymdD(d)}),tot=c=>D.reduce((a,d)=>a+(+((s.time[d]||{})[c.id]||{}).h||0),0);
+  MD.innerHTML=head("Crew")+`<div id="shp"><div class="chips" style="padding:6px 0">${["Day","Night"].map(x=>`<button type="button" class="chip${CS===x?" on":""}" data-shcs="${x}">${x} Crew (${s.crew.filter(c=>(c.shift||"Day")===x).length})</button>`).join("")}</div>
+  <h2 class="sec">Today, ${E(fmtD(td))}: ${inN} of ${L.length} in</h2><div class="hint">Tap a name to check them in. A normal day fills in 10 hours; change the hours for anyone who differs.</div>`+
+  (L.map(c=>{const t=T[c.id];return `<div class="shCrew"><div class="nm"><b>${E(c.title)}</b><small style="color:var(--mute)">${E(c.role||"")}${t?" &middot; in "+E(t.in||""):""}${t&&t.out?" &middot; out "+E(t.out):""}</small></div>${t?`<input type="number" step="0.25" min="0" inputmode="decimal" data-shh="${c.id}" value="${E(t.h)}" aria-label="Hours"><span>h</span><button type="button" data-shout="${c.id}">${t.out?"Undo Out":"Out"}</button><button type="button" class="danger" data-shnot="${c.id}" aria-label="Not in">&times;</button>`:`<button type="button" class="pri in" data-shin="${c.id}">Check In</button>`}</div>`}).join("")||`<div class="empty">No ${CS.toLowerCase()} crew yet. Add them below.</div>`)+
+  (L.length&&inN<L.length?`<div class="row"><button type="button" data-sh="allin">Check In Everyone Not In</button></div>`:"")+
+  `<h2 class="sec">Week</h2><div class="row" style="align-items:center"><button type="button" data-shwk="-1">&larr;</button><b style="flex:1;text-align:center">${E(fmtD(D[0]))} to ${E(fmtD(D[6]))}</b><button type="button" data-shwk="1"${WK>=0?" disabled":""}>&rarr;</button></div>
+  <div style="overflow-x:auto"><table class="shWk"><tr><th>Name</th>${D.map(d=>`<th>${new Date(d+"T12:00:00").toLocaleDateString([],{weekday:"short"})}<br><small>${E(fmtD(d))}</small></th>`).join("")}<th>Total</th></tr>${L.map(c=>`<tr><td>${E(c.title)}</td>${D.map(d=>{const t=(s.time[d]||{})[c.id];return `<td>${t?E(t.h):""}</td>`}).join("")}<td><b>${tot(c)}</b></td></tr>`).join("")}</table></div>
+  <div class="row"><button type="button" class="pri" data-sh="payroll">Print Weekly Sheet</button></div>
+  <h2 class="sec">Add Crew</h2><div class="rec"><label>Name<input id="crN"></label><label>Role<select id="crR">${ROLES.map(r=>`<option>${r}</option>`).join("")}</select></label><label>Phone<input id="crP" inputmode="tel"></label>
+  <div class="row"><button type="button" class="pri" data-sh="cradd">Add to ${CS} Crew</button><button type="button" data-sh="crct">From Contacts</button><button type="button" data-sh="crfield">Copy from Field</button></div><div id="crFL"></div></div>
+  ${L.length?`<details><summary>Remove or move people</summary>${L.map(c=>`<div class="shCrew"><div class="nm"><b>${E(c.title)}</b></div><button type="button" data-shmv="${c.id}">Move to ${CS==="Day"?"Night":"Day"}</button><button type="button" class="danger" data-shrm="${c.id}">Remove</button></div>`).join("")}</details>`:""}</div>`}
+ function payrollHTML(){const s=S(),w0=wkStart(WK),D=[...Array(7)].map((_,i)=>{const d=new Date(w0);d.setDate(d.getDate()+i);return ymdD(d)}),th="border:1px solid #000;padding:4px;background:#ede9dc;font-weight:700",td="border:1px solid #000;padding:4px;text-align:center";
+  const tbl=sh=>{const L=s.crew.filter(c=>(c.shift||"Day")===sh);if(!L.length)return "";let gt=0;return `<div style="font:700 14px Arial,sans-serif;margin:12px 0 4px">${sh} Crew</div><table style="width:100%;border-collapse:collapse;font-size:12px"><tr><th style="${th};text-align:left">Name</th>${D.map(d=>`<th style="${th}">${new Date(d+"T12:00:00").toLocaleDateString([],{weekday:"short",month:"numeric",day:"numeric"})}</th>`).join("")}<th style="${th}">Total</th></tr>`+L.map(c=>{let t=0;const cells=D.map(d=>{const x=(s.time[d]||{})[c.id];const h=x?+x.h||0:0;t+=h;return `<td style="${td}">${x?h:""}</td>`}).join("");gt+=t;return `<tr><td style="${td};text-align:left">${E(c.title)}<br><small>${E(c.role||"")}</small></td>${cells}<td style="${td};font-weight:700">${t}</td></tr>`}).join("")+`<tr><td style="${td};text-align:right;font-weight:700" colspan="8">Total hours</td><td style="${td};font-weight:700">${gt}</td></tr></table>`};
+  return `<div class="pg" style="padding:.4in .5in"><div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:6px"><img src="${LOGO}" alt="" style="height:.5in"><div style="text-align:right"><div style="font:700 18px Arial,sans-serif">Weekly Hours</div><div>${E(S().set.site||"Shop")} &middot; Week of ${E(new Date(D[0]+"T12:00:00").toLocaleDateString([],{month:"long",day:"numeric",year:"numeric"}))} (Sun to Sat)</div></div></div>${tbl("Day")}${tbl("Night")}<div style="margin-top:30px">Approved by: ______________________ &nbsp; Date: __________</div></div>`}
+ /* safety & qc */
+ function safeView(){const s=S(),holds=[];s.units.forEach(u=>u.pieces.forEach(p=>{if(holdOn(p))holds.push([u,p])}));const js=(DB.jsas||[]).filter(j=>j.date===today());
+  MD.innerHTML=head("Safety & QC")+`<div id="shp"><div class="rec"><b>Daily JSA</b><small>${js.length?(js[0].final?"Finalized today":"Started today, "+jsaMissing(js[0]).length+" items to answer"):"Not started today"}</small><div class="row"><button type="button" class="pri" data-shgo="jsa">Open Daily JSA</button></div></div>
+  <div class="row"><button type="button" data-shgo="fm_case">HSEQ</button><button type="button" data-shgo="fme">FME</button><button type="button" data-shgo="sh_delay">Delays</button></div>
+  <h2 class="sec">QC holds (${holds.length})</h2>${holds.map(([u,p])=>`<button type="button" class="shPc" data-shu2="${u.id}" data-shp="${p.id}"><span class="nm"><b>${E(p.name)}</b><small>${E(u.name)} &middot; ${STG[p.stage]}</small></span><span class="tg" style="background:#d9534f">QC hold</span></button>`).join("")||`<div class="hint">No QC holds waiting.</div>`}</div>`}
+ /* delays */
+ const DR=["Waiting on parts","Vendor","Customer","Weather","Crane / equipment","Power","Other"];
+ function delayView(){const s=S(),open=s.delays.filter(d=>!d.end),done=s.delays.filter(d=>d.end).slice(-20).reverse(),dur=d=>{const m=Math.round(((d.end||Date.now())-d.start)/6e4);return m>=60*24?(m/1440).toFixed(1)+" days":m>=60?(m/60).toFixed(1)+" h":m+" min"};
+  const card=d=>`<div class="rec"${d.end?"":' style="border-left-color:#d9534f"'}><b style="font-size:17px">${E(d.reason)}: ${E(d.unitId?((unitOf(d.unitId)||{}).name||"Unit"):"Whole shop")}</b><small>${E(d.note||"")}</small><small>Started ${E(new Date(d.start).toLocaleString())}${d.end?" &middot; ended "+E(new Date(d.end).toLocaleString()):""} &middot; ${dur(d)}</small>${d.end?"":`<div class="row"><button type="button" class="pri" data-shde="${d.id}">End Delay</button></div>`}</div>`;
+  MD.innerHTML=head("Delays")+`<div id="shp"><h2 class="sec">Running (${open.length})</h2>${open.map(card).join("")||`<div class="hint">No delays running.</div>`}
+  <div class="rec"><b>Start a delay</b><label>For<select id="dlU"><option value="">Whole shop</option>${s.units.map(u=>`<option value="${u.id}">${E(u.name)}</option>`).join("")}</select></label><label>Reason<select id="dlR">${DR.map(r=>`<option>${r}</option>`).join("")}</select></label><label>Note<input id="dlN"></label><div class="row"><button type="button" class="pri" data-sh="dlgo">Start Delay</button></div></div>
+  ${done.length?`<h2 class="sec">Past delays</h2>${done.map(card).join("")}`:""}</div>`}
+ /* settings */
+ function setView(){MD.innerHTML=head("Shop Settings")+`<div id="shp"><label>Shop name (on the JSA, weekly sheet and status sheet)<input id="ssN" value="${E(S().set.site||"Shop")}"></label><label>Shop address<textarea id="ssA" rows="2">${E(S().set.addr||"")}</textarea></label><div class="row"><button type="button" class="pri" data-sh="ssave">Save</button></div>
+  <div class="hint" style="margin-top:20px">The Shop side keeps its own data on this iPad. It does not use Live Sync and never mixes with Field Services.</div><div class="row"><button type="button" data-tpgo="field">Switch to Field Services</button><button type="button" data-sh="signout">Sign Out</button></div></div>`}
+ /* customer status sheet (built when you open it) */
+ function statusHTML(u){const s=S(),th="border:1px solid #000;padding:4px 6px;background:#ede9dc;font-weight:700;text-align:left",td="border:1px solid #000;padding:4px 6px;vertical-align:top",sends=s.sends.filter(x=>x.unitId===u.id&&!x.back),fnd=[];u.pieces.forEach(p=>p.finds.forEach(f=>fnd.push([p,f])));
+  const ship=u.pieces.length?u.pieces.filter(p=>p.done).length+" of "+u.pieces.length+" pieces shipped":"";
+  return `<div class="pg" style="padding:.4in .5in;font-size:12px"><div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:6px"><img src="${LOGO}" alt="" style="height:.5in"><div style="text-align:right"><div style="font:700 18px Arial,sans-serif">Unit Status</div><div>${E(u.name)} &middot; ${E(new Date().toLocaleDateString([],{month:"long",day:"numeric",year:"numeric"}))}</div></div></div>
+  <div style="font:700 14px Arial,sans-serif;margin:10px 0 4px">Overall: ${unitPct(u)}% complete</div>${u.shipDate?`<div>Planned ship date: <b>${E(fmtD(u.shipDate))}</b> &middot; ${E(ship)}</div>`:`<div>${E(ship)}</div>`}
+  <table style="width:100%;border-collapse:collapse;margin-top:8px"><tr><th style="${th}">Piece</th><th style="${th}">Stage</th><th style="${th}">Notes</th></tr>${u.pieces.map(p=>`<tr><td style="${td}">${E(p.name)}</td><td style="${td}">${p.status==="expected"?"Expected":p.done?"Shipped":STG[p.stage]}</td><td style="${td}">${atVendor(u,p)?"At vendor":""}</td></tr>`).join("")}</table>
+  ${fnd.length?`<div style="font:700 14px Arial,sans-serif;margin:12px 0 4px">Findings</div>${fnd.map(([p,f])=>`<div style="margin:4px 0"><b>${E(p.name)}:</b> ${E(f.note)} <i>(${E(f.action)})</i></div>${(f.photos||[]).slice(0,3).map(id=>`<img data-p="${id}" style="height:1.4in;margin:2px" alt="">`).join("")}`).join("")}`:""}
+  ${sends.length?`<div style="font:700 14px Arial,sans-serif;margin:12px 0 4px">Parts at vendors</div><table style="width:100%;border-collapse:collapse"><tr><th style="${th}">Item</th><th style="${th}">Work</th><th style="${th}">Due back</th></tr>${sends.map(x=>`<tr><td style="${td}">${E(x.what||"")}</td><td style="${td}">${E(x.work||"")}</td><td style="${td}">${E(fmtD(x.due||""))}</td></tr>`).join("")}</table>`:""}
+  <div style="margin-top:14px;color:#555">${E(S().set.site||"Shop")}${S().set.addr?" &middot; "+E(S().set.addr):""}</div></div>`}
+ function statusText(u){const s=S(),L=[u.name+" status, "+new Date().toLocaleDateString(),"Overall: "+unitPct(u)+"% complete"+(u.shipDate?", planned ship "+u.shipDate:""),"",...u.pieces.map(p=>"- "+p.name+": "+(p.status==="expected"?"Expected":p.done?"Shipped":STG[p.stage])+(atVendor(u,p)?" (at vendor)":""))];
+  const f=[];u.pieces.forEach(p=>p.finds.forEach(x=>f.push("- "+p.name+": "+x.note+" ("+x.action+")")));if(f.length)L.push("","Findings:",...f);
+  const sd=s.sends.filter(x=>x.unitId===u.id&&!x.back);if(sd.length)L.push("","At vendors:",...sd.map(x=>"- "+(x.what||"")+", "+(x.work||"")+(x.due?", due back "+x.due:"")));return L.join("\n")}
+ function statusView(){const u=unitOf(UID);if(!u)return;MD.innerHTML=head("Customer Status Sheet","sh_unit")+`<div id="shp"><label>Planned ship date<input type="date" id="stD" value="${E(u.shipDate||"")}"></label><div class="row"><button type="button" class="pri" data-sh="stprint">Print / Save PDF</button><button type="button" data-sh="stmail">Email</button></div><div class="hint">The sheet is built from the unit's pieces, findings and vendor parts each time you open it.</div><div style="background:#fff;color:#000;border-radius:8px;overflow:hidden;margin-top:10px;zoom:${Math.min(1,(MD.clientWidth-40)/816)}">${statusHTML(u)}</div></div>`;setTimeout(()=>MD.querySelectorAll("img[data-p]").forEach(i=>pGet(i.dataset.p).then(x=>{if(x)i.src=x})),30)}
+ /* ---------- routing ---------- */
+ function go(k){if(k==="home")return show("home");show(k)}
+ const RENDER={sh_unit:unitView,sh_piece:pieceView,sh_vend:vendView,sh_crew:crewView,sh_safe:safeView,sh_parts:partsView,sh_delay:delayView,sh_set:setView,sh_status:statusView,sh_send:sendForm};
+ M.sh_status={t:"Status",f:[],sum:()=>""};M.sh_send={t:"Vendor",f:[],sum:()=>""};
+ const ALLOWED=new Set(["home","jsa","fme","fm_case",...Object.keys(RENDER)]);
+ const _mo=mod;mod=function(k){if(RENDER[k])return RENDER[k]();return _mo.apply(this,arguments)};
+ const _sh=show;show=function(v){if(!ALLOWED.has(v))v="home";if(v==="sh_parts"&&cur!=="sh_unit"&&cur!=="sh_parts")UID="";const r=_sh.call(this,v);try{$("#fab").hidden=true;document.querySelector("header").hidden=v==="home"}catch(e){}return r};
+ home=function(){syncU();homeShop()};
+ window.PHONE=()=>false;
+ /* JSA: one per day for the whole shop; signatures list the shop crew */
+ const _nj=newJSA;newJSA=function(c,u,d){const r=_nj.call(this,c,"All units",d);try{const j=jget();if(j){j.unit="All units";if(!nv(j.loc))j.loc=S().set.site||"Shop";sv();jsaEdit(j.id)}}catch(e){}return r};
+ window.JSAPPL=()=>{const T=S().time[today()]||{};return S().crew.slice().sort((a,b)=>(!!T[b.id])-(!!T[a.id])).map(c=>({title:c.title}))};
+ try{const q=QSD();if(!nv(q.site))q.site=S().set.site||"Shop"}catch(e){}
+ /* ---------- events ---------- */
+ const savePh=async files=>{const ids=[];for(const f of [...files]){const d=await shrink(f);if(!d)continue;const id=uidS("p");await pPut(id,d);ids.push(id)}return ids};
+ let FDP=[];
+ document.addEventListener("click",e=>{const t=e.target.closest("[data-tpgo]");if(t&&window.TPGO){e.preventDefault();e.stopPropagation();TPGO(t.dataset.tpgo)}},true);
+ $("#home").addEventListener("click",e=>{const b=e.target.closest("button");if(!b||!$("#shopHome")||!$("#shopHome").contains(b))return;
+  if(b.dataset.shgo){e.stopPropagation();return go(b.dataset.shgo)}
+  if(b.dataset.shu){UID=b.dataset.shu;return go("sh_unit")}
+  const k=b.dataset.sh;if(k==="newu"){NEWU=true;return homeShop()}if(k==="newx"){NEWU=false;return homeShop()}
+  if(k==="newok"){const n=nv($("#nuN").value);if(!n)return alert("Type the unit name (where it shipped from).");const tpl=[];if($("#nuM").checked)tpl.push("major");if($("#nuD").checked)tpl.push("dc");
+   const u={id:uidS("su"),name:n,tpl,created:today(),pieces:[]};tpl.forEach(t=>TPL[t].forEach(([pn,cl])=>u.pieces.push(mkPiece(pn,cl))));S().units.push(u);sv();syncU();NEWU=false;UID=u.id;return go("sh_unit")}},true);
+ MD.addEventListener("click",async e=>{if(!/^sh_/.test(cur))return;const b=e.target.closest("button,[data-shc]");if(!b)return;const s=S(),u=unitOf(UID),p=pieceOf(u,PID);
+  if(b.dataset.shgo){e.stopPropagation();if(b.dataset.shgo==="sh_parts"&&cur==="sh_unit"){}else if(b.dataset.shgo==="home")UID=UID;return go(b.dataset.shgo)}
+  if(b.dataset.shp){if(b.dataset.shu2)UID=b.dataset.shu2;PID=b.dataset.shp;return go("sh_piece")}
+  if(b.dataset.shvt){VT=b.dataset.shvt;return vendView()}
+  if(b.dataset.shback){const x=s.sends.find(y=>y.id===b.dataset.shback);if(x){const d=prompt("Date received back (YYYY-MM-DD)",today());if(d){x.back=d;sv();mod(cur)}}return}
+  if(b.dataset.shedit){SF=JSON.parse(JSON.stringify(s.sends.find(y=>y.id===b.dataset.shedit)));UID=SF.unitId;PID=SF.pieceId;return go("sh_send")}
+  if(b.dataset.shpt){const x=s.parts.find(y=>y.id===b.dataset.shpt);if(x){x.st=b.dataset.v;if(x.st==="Received")x.bo=false;sv();partsView()}return}
+  if(b.dataset.shbo){const x=s.parts.find(y=>y.id===b.dataset.shbo);if(x){x.bo=!x.bo;sv();partsView()}return}
+  if(b.dataset.shpx){if(confirm("Remove this part?")){s.parts=s.parts.filter(y=>y.id!==b.dataset.shpx);sv();partsView()}return}
+  if(b.dataset.shcs){CS=b.dataset.shcs;return crewView()}
+  if(b.dataset.shwk){WK=Math.min(0,WK+(+b.dataset.shwk));return crewView()}
+  if(b.dataset.shin){const T=s.time[today()]||(s.time[today()]={});T[b.dataset.shin]={h:10,in:hm(),out:""};sv();return crewView()}
+  if(b.dataset.shout){const x=(s.time[today()]||{})[b.dataset.shout];if(x){x.out=x.out?"":hm();sv();crewView()}return}
+  if(b.dataset.shnot){const T=s.time[today()]||{};delete T[b.dataset.shnot];sv();return crewView()}
+  if(b.dataset.shmv){const c=s.crew.find(y=>y.id===b.dataset.shmv);if(c){c.shift=(c.shift||"Day")==="Day"?"Night":"Day";sv();crewView()}return}
+  if(b.dataset.shrm){const c=s.crew.find(y=>y.id===b.dataset.shrm);if(c&&confirm("Remove "+c.title+" from the crew? Their past hours stay on the weekly sheets.")){s.crew=s.crew.filter(y=>y!==c);sv();crewView()}return}
+  if(b.dataset.shfa){const c=JSON.parse(b.dataset.shfa);if(!s.crew.some(y=>y.title.toLowerCase()===c.title.toLowerCase())){s.crew.push({id:uidS("cr"),title:c.title,role:/Foreman|Lead/.test(c.role||"")?"Lead / Foreman":ROLES.includes(c.role)?c.role:"Millwright",phone:c.phone||"",shift:CS});sv()}b.disabled=true;b.textContent="Added";return}
+  if(b.dataset.shde){const d=s.delays.find(y=>y.id===b.dataset.shde);if(d){d.end=Date.now();sv();delayView()}return}
+  const k=b.dataset.sh;if(!k)return;
+  if(k==="addp"){const n=nv($("#apN").value);if(!n)return;u.pieces.push(mkPiece(n,[]));sv();return unitView()}
+  if(k==="delu"){if(confirm("Delete "+u.name+" and everything recorded on it? This cannot be undone.")){s.units=s.units.filter(x=>x!==u);s.sends=s.sends.filter(x=>x.unitId!==u.id);s.parts=s.parts.filter(x=>x.unitId!==u.id);const i=U.findIndex(x=>x.id===u.id);if(i>=0)U.splice(i,1);save();sv();go("home")}return}
+  if(k==="urename"){const n=prompt("Unit name",u.name);if(n&&n.trim()){u.name=n.trim();sv();syncU();unitView()}return}
+  if(k==="uparts"){return go("sh_parts")}
+  if(k==="status")return go("sh_status");
+  if(k==="stprint"){u.shipDate=$("#stD").value;sv();fprev(statusHTML(u));setTimeout(()=>document.querySelectorAll("#rptb img[data-p]").forEach(i=>pGet(i.dataset.p).then(x=>{if(x)i.src=x})),30);return}
+  if(k==="stmail"){u.shipDate=$("#stD").value;sv();location.href="mailto:?subject="+encodeURIComponent(u.name+" status")+"&body="+encodeURIComponent(statusText(u));return}
+  if(k==="recv"){p.status="received";p.rec.date=today();sv();return pieceView()}
+  if(k==="snext"){if(holdOn(p))return;if(p.stage>=6){p.done=true}else p.stage++;sv();return pieceView()}
+  if(k==="sback"){if(p.done)p.done=false;else if(p.stage>0)p.stage--;sv();return pieceView()}
+  if(k==="rel"){const h=p.holds[p.stage];if(h){h.rel={by:ME?ME.title:"",at:nowTxt()};sv();pieceView()}return}
+  if(k==="addc"){const t=nv($("#acT").value);if(t){p.check.push({t,done:false});sv();pieceView()}return}
+  if(k==="addf"){const n=nv($("#fdN").value);if(!n)return alert("Describe what was found.");const a=$("#fdA").value,f={id:uidS("fd"),note:n,action:a,at:nowTxt(),photos:FDP.slice()};p.finds.push(f);FDP=[];sv();
+   if(a==="Replace"){s.parts.push({id:uidS("pt"),unitId:u.id,pieceId:p.id,desc:n,pn:"",qty:"1",st:"Needed",bo:false});sv();alert("Added to the parts list as Needed.")}
+   if(a==="Send to vendor"){SF={unitId:u.id,pieceId:p.id,what:p.name,work:n,sent:today(),photos:[]};return go("sh_send")}return pieceView()}
+  if(k==="sendv"){SF={unitId:u.id,pieceId:p.id,what:p.name,work:"",sent:today(),photos:[]};return go("sh_send")}
+  if(k==="vct"||k==="crct"){if(!window.PICKCONTACTS)return;const L=await PICKCONTACTS(k==="crct");if(!L.length)return;
+   if(k==="vct"){const c=L[0];if($("#nvC"))$("#nvC").value=c.name||"";if($("#nvP"))$("#nvP").value=c.tel||"";if($("#nvE"))$("#nvE").value=c.email||"";return}
+   L.forEach(c=>{if(c.name&&!s.crew.some(y=>y.title.toLowerCase()===c.name.toLowerCase()))s.crew.push({id:uidS("cr"),title:c.name,role:$("#crR").value,phone:c.tel||"",shift:CS})});sv();return crewView()}
+  if(k==="vadd"){const n=nv($("#nvN").value);if(!n)return alert("Type the vendor name.");s.vendors.push({id:uidS("vd"),name:n,contact:nv($("#nvC").value),phone:nv($("#nvP").value),email:nv($("#nvE").value)});sv();return vendView()}
+  if(k==="sfsave"){readSF();const x=SF;if(x.vendorId==="new"){const n=nv($("#nvN").value);if(!n)return alert("Type the vendor name.");const v={id:uidS("vd"),name:n,contact:nv($("#nvC").value),phone:nv($("#nvP").value),email:nv($("#nvE").value)};s.vendors.push(v);x.vendorId=v.id}
+   if(!x.vendorId)return alert("Pick the vendor.");if(!x.due&&!confirm("No due-back date. Save anyway? It won't be flagged when late."))return;
+   if(x.id){const i=s.sends.findIndex(y=>y.id===x.id);if(i>=0)s.sends[i]=x}else{x.id=uidS("vs");s.sends.push(x)}sv();SF=null;return go("sh_piece")}
+  if(k==="ptadd"){const d=nv($("#ptD").value);if(!d)return alert("Describe the part.");const uid=UID||($("#ptU")||{}).value;if(!uid)return alert("Create a unit first.");s.parts.push({id:uidS("pt"),unitId:uid,pieceId:"",desc:d,pn:nv($("#ptN").value),qty:nv($("#ptQ").value)||"1",st:"Needed",bo:false});sv();return partsView()}
+  if(k==="cradd"){const n=nv($("#crN").value);if(!n)return alert("Type the name.");if(s.crew.some(y=>y.title.toLowerCase()===n.toLowerCase()))return alert(n+" is already on the crew.");s.crew.push({id:uidS("cr"),title:n,role:$("#crR").value,phone:nv($("#crP").value),shift:CS});sv();return crewView()}
+  if(k==="crfield"){let F=[];try{const d=JSON.parse(window.FIELDGET("tp-db-v1")||"{}");F=(d.people||[]).concat(d.pplOther||[])}catch(x){}const have=new Set(s.crew.map(c=>c.title.toLowerCase())),L=F.filter(p=>p&&p.title&&!have.has(p.title.toLowerCase()));
+   $("#crFL").innerHTML=L.length?`<div class="hint">Tap people to copy them to the ${CS} crew.</div><div class="chips" style="flex-wrap:wrap">${L.map(p=>`<button type="button" class="chip" data-shfa='${E(JSON.stringify({title:p.title,role:p.role||"",phone:p.phone||""}))}'>${E(p.title)}</button>`).join("")}</div><div class="row"><button type="button" data-sh="crdone">Done</button></div>`:`<div class="hint">No one on the Field crew list to copy.</div>`;return}
+  if(k==="crdone")return crewView();
+  if(k==="allin"){const T=s.time[today()]||(s.time[today()]={});s.crew.filter(c=>(c.shift||"Day")===CS&&!T[c.id]).forEach(c=>T[c.id]={h:10,in:hm(),out:""});sv();return crewView()}
+  if(k==="payroll")return fprev(payrollHTML());
+  if(k==="dlgo"){s.delays.push({id:uidS("dl"),unitId:$("#dlU").value,reason:$("#dlR").value,note:nv($("#dlN").value),start:Date.now(),end:0});sv();return delayView()}
+  if(k==="ssave"){s.set.site=nv($("#ssN").value)||"Shop";s.set.addr=nv($("#ssA").value);try{QSD().site=s.set.site}catch(x){}sv();alert("Saved.");return}
+  if(k==="signout"){ME=null;try{sessionStorage.removeItem("tp-me")}catch(x){}lockUI();return go("home")}
+  if(k==="dsig")return sigPad("Driver signature",d=>{p.rec.sig=d;sv();pieceView()});
+  if(k==="pren"){const n=prompt("Piece name",p.name);if(n&&n.trim()){p.name=n.trim();sv();pieceView()}return}
+  if(k==="delp"){if(confirm("Remove "+p.name+" from this unit?")){u.pieces=u.pieces.filter(x=>x!==p);sv();go("sh_unit")}return}},true);
+ MD.addEventListener("change",async e=>{if(!/^sh_/.test(cur))return;const t=e.target,s=S(),u=unitOf(UID),p=pieceOf(u,PID);
+  if(t.dataset.shc!==undefined){p.check[+t.dataset.shc].done=t.checked;sv();return}
+  if(t.dataset.sh==="hold"){const h=p.holds[p.stage]||(p.holds[p.stage]={});h.on=t.checked;if(!t.checked)h.rel=null;sv();return pieceView()}
+  if(t.dataset.shr){p.rec[t.dataset.shr]=t.value;sv();return}
+  if(t.dataset.shh){const x=(s.time[today()]||{})[t.dataset.shh];if(x){x.h=t.value;sv()}return}
+  if(t.id==="sfV"){readSF();SF.vendorId=t.value;$("#sfNew").hidden=t.value!=="new";return}
+  if(t.id==="stD"&&u){u.shipDate=t.value;sv();return}
+  if(t.type==="file"&&t.files.length){const ids=await savePh(t.files);t.value="";
+   if(t.id==="fdP"){FDP=FDP.concat(ids);$("#fdPn").textContent=FDP.length+" photo"+(FDP.length===1?"":"s")+" ready";return}
+   if(t.id==="pcP"){p.photos=p.photos.concat(ids)}else if(t.id==="rcP"){p.rec.photos=(p.rec.photos||[]).concat(ids)}else if(t.id==="rcN"){p.rec.np=(p.rec.np||[]).concat(ids)}else if(t.id==="sfP"){readSF();SF.photos=(SF.photos||[]).concat(ids);sv();return sendForm()}
+   sv();return pieceView()}});
+ setTimeout(()=>{try{syncU();if(cur==="home"||!cur)show("home")}catch(e){}},0);
 })();
 
 /* ===== Installable web app: offline cache + keep storage ===== */
