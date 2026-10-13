@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v50.1)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Release A: Demo Mode switch, one build for live and demo (v51.0)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -462,7 +462,7 @@ $("#tab").onclick=e=>{const b=e.target.closest("button[data-k]");if(b)show(b.dat
 $("#dMore").onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.k){$("#dMore").close();show(b.dataset.k)}else if(b.id==="closeM")$("#dMore").close()};
 let SPRE="",sf="all";
 const thumbs=r=>(r.photos||[]).map(id=>`<img class="th" data-p="${id}" alt="Photo">`).join("");
-const idb=new Promise(r=>{try{const q=indexedDB.open("tp-photos",1);q.onupgradeneeded=()=>q.result.createObjectStore("p");q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)}catch(e){r(null)}});
+const idb=new Promise(r=>{try{const q=indexedDB.open((function(){try{return localStorage.getItem("tp-demo-v1")==="1"}catch(e){return false}})()?"tp-photos-demo":"tp-photos",1);q.onupgradeneeded=()=>q.result.createObjectStore("p");q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)}catch(e){r(null)}});
 let pPut=async(id,v)=>{const d=await idb;if(!d)return;return new Promise(r=>{const t=d.transaction("p","readwrite");t.objectStore("p").put(v,id);t.oncomplete=r;t.onerror=r})};
 let pGet=async id=>{const d=await idb;if(!d)return null;return new Promise(r=>{const q=d.transaction("p").objectStore("p").get(id);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)})};
 let pDel=async id=>{const d=await idb;if(d)d.transaction("p","readwrite").objectStore("p").delete(id)};
@@ -3558,7 +3558,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  /* connect this device: setup code from the first iPad plus the site password */
  window.syncConnect=async function(code,pw,isFirst,fresh){let c;try{c=typeof code==="string"?JSON.parse(code.trim()):code}catch(e){throw new Error("That setup code is not complete. Copy it again from the iPad.")}
   if(!c||!c.fb||!c.site||!c.email)throw new Error("That setup code is missing parts. Copy it again from the iPad.");
-  if(isDemo())throw new Error("Live Sync stays off while the demo is loaded. Use Factory Reset to leave the demo first.");
+  if(isDemo())throw new Error("Live Sync stays off while Demo Mode is on. Turn Demo Mode off (Supervisor Setup) first.");
   T=fbTransport();await T.init(c);await T.signIn(c.email,pw);if(fresh){ready=false;await T.wipe()}cfg=c;origSet.call(LS,CFGK,J(c));
   try{const d=await idb;const keys=await new Promise(r=>{const q=d.transaction("p").objectStore("p").getAllKeys();q.onsuccess=()=>r(q.result||[]);q.onerror=()=>r([])});setBQ(BQ().concat(keys))}catch(e){}
   base={};await saveBase();ready=false;await start();return true};
@@ -3791,7 +3791,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  const parseCfg=t=>{t=String(t||"");const o={};["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId"].forEach(k=>{const m=t.match(new RegExp(k+'\\s*:\\s*["\']([^"\']+)["\']'))||t.match(new RegExp('"'+k+'"\\s*:\\s*"([^"]+)"'));if(m)o[k]=m[1]});return o.apiKey&&o.projectId?o:null};
  function syncView(){const s=SYNCSTATE(),sup=isSup(),lab={off:"Off on this device",on:"Live: up to date",connecting:"Connecting…",offline:"Offline: changes are saved and will send when back online",error:"Problem: "+(s.msg||""),signin:"Signed out: "+(s.msg||""),demo:"Off while the demo is loaded"}[s.status]||s.status;
   $("#mod").innerHTML=`<div class="mh"><h2>Live Sync</h2></div><div class="rec"${s.status==="on"?' style="border-left:5px solid #2f7d4a"':""}><b>${E(lab)}</b>${s.on?`<small>Site: ${E(s.site||"")} &middot; Account: ${E(s.email||"")}</small>`:""}${s.queued?`<small>${s.queued} photo or file upload${s.queued===1?"":"s"} waiting</small>`:""}</div>`+
-  (!sup?`<div class="hint" style="padding:0 16px">Only supervisors change Live Sync.</div>`:s.demo?`<div class="hint" style="padding:0 16px">The demo is loaded on this device, so Live Sync stays off. Demo data never goes to the cloud.</div>`:
+  (!sup?`<div class="hint" style="padding:0 16px">Only supervisors change Live Sync.</div>`:s.demo?`<div class="hint" style="padding:0 16px">Demo Mode is on, so Live Sync is paused. Demo data never goes to the cloud or the phones.</div>`:
   s.on?`<div style="padding:0 16px"><h3>Add another device</h3><div class="hint">Copy this setup code and send it to the phone or iPad (text or AirDrop). On that device, tap Connect to Live Sync on the sign-in screen, paste the code and enter the site password.</div><textarea id="syC" rows="4" readonly>${E(syncCode())}</textarea><div class="row"><button data-sy="copy">Copy Setup Code</button></div><div class="row"><button class="danger" data-sy="off">Turn Off on This Device</button></div></div>`
   :`<div style="padding:0 16px"><h3>Turn on Live Sync (first device)</h3><div class="hint">Follow the Live Sync setup guide to create the free Firebase project, then fill this in. This device's data goes up to the cloud first.</div>
    <label>Firebase config (paste the whole firebaseConfig block)<textarea id="syF" rows="5" placeholder="const firebaseConfig = { apiKey: ..., projectId: ... }"></textarea></label><label>Site name (no spaces)<input id="syS" value="${E(String((window.SITE&&SITE())||"site").toLowerCase().replace(/[^a-z0-9]+/g,"-"))}"></label><label>Site account email<input id="syE" type="email" autocomplete="username"></label><label>Site account password<input id="syP" type="password" autocomplete="current-password"></label><label class="chk" style="color:inherit;font-size:15px"><input type="checkbox" id="syFresh"><span><b>Start this site fresh.</b> Erases everything already stored in the cloud for this site name before this device sends its data up. Use it after a Factory Reset. Turn Live Sync off on the phones first, or they will send the old job back up.</span></label><div class="row"><button class="pri" data-sy="first">Turn On Live Sync</button></div>
@@ -5297,6 +5297,49 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
 })();
 
 /* ===== Installable web app: offline cache + keep storage ===== */
+
+/* ===== v51.0 Release A: Demo Mode. One build; the demo is a separate data set, never the live job. ===== */
+(function(){
+ const LS=localStorage,FLAG="tp-demo-v1",STASH="tp-live-stash",KEEP=new Set(["tp-sync-cfg","tp-sync-dev","tp-sync-bq",STASH]);
+ const on=()=>{try{return LS.getItem(FLAG)==="1"}catch(e){return false}};
+ const keys=()=>{const o=[];for(let i=0;i<LS.length;i++){const k=LS.key(i);if(!KEEP.has(k))o.push(k)}return o};
+ const raw=Storage.prototype.setItem;
+ window.DEMOMODE=on;
+ /* turn on: put the live job away, start the demo from empty */
+ window.demoOn=function(){WIPING=true;const st={};keys().forEach(k=>{st[k]=LS.getItem(k)});delete st[FLAG];
+  try{keys().forEach(k=>LS.removeItem(k));raw.call(LS,STASH,JSON.stringify(st));raw.call(LS,FLAG,"1")}catch(e){alert("Could not switch to Demo Mode: "+(e&&e.message||e));WIPING=false;return}
+  try{sessionStorage.clear()}catch(e){}location.reload()};
+ /* turn off: throw the demo away, bring the live job back exactly as it was */
+ window.demoOff=async function(){WIPING=true;let st={};try{st=JSON.parse(LS.getItem(STASH)||"{}")}catch(e){}delete st[FLAG];
+  try{keys().forEach(k=>LS.removeItem(k));Object.keys(st).forEach(k=>raw.call(LS,k,st[k]));LS.removeItem(STASH);LS.removeItem(FLAG)}catch(e){}
+  try{sessionStorage.clear()}catch(e){}
+  try{const d=await idb;if(d)d.close()}catch(e){}
+  try{await new Promise(r=>{const q=indexedDB.deleteDatabase("tp-photos-demo");q.onsuccess=q.onerror=q.onblocked=()=>r()})}catch(e){}
+  location.reload()};
+ /* reload: rebuild the demo from the bundled seed */
+ window.demoReload=async function(){WIPING=true;try{keys().forEach(k=>LS.removeItem(k));raw.call(LS,FLAG,"1")}catch(e){}
+  try{sessionStorage.clear()}catch(e){}
+  try{const d=await idb;if(d)d.close()}catch(e){}
+  try{await new Promise(r=>{const q=indexedDB.deleteDatabase("tp-photos-demo");q.onsuccess=q.onerror=q.onblocked=()=>r()})}catch(e){}
+  location.reload()};
+ /* banner on every screen */
+ if(on()){document.body.insertAdjacentHTML("afterbegin",'<div id="demoBar" style="position:sticky;top:0;z-index:9999;background:#f5c518;color:#111;font-weight:800;text-align:center;padding:6px 12px;letter-spacing:.04em;border-bottom:2px solid #111">DEMO MODE &middot; fictional data &middot; the live job is untouched</div>');
+  /* fresh demo: build it from the seed */
+  let seeded=false;try{seeded=LS.getItem("tp-seeded")==="1"}catch(e){}
+  if(!seeded){document.body.insertAdjacentHTML("beforeend",'<div id="demoLoad" style="position:fixed;inset:0;z-index:10000;background:#0e1517;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-size:20px"><b>Loading demo data&hellip;</b><small>About 20 seconds. The app reloads when ready.</small></div>');
+   setTimeout(()=>{try{loadDemoData().catch(e=>{alert("Demo load failed: "+(e&&e.message||e));demoOff()})}catch(e){alert("Demo load failed: "+(e&&e.message||e));demoOff()}},300)}}
+ /* Factory Reset screen: demo controls live here */
+ const _rst=rstView;rstView=function(){if(on()){$("#mod").innerHTML=`<div class="mh"><h2>Demo Mode</h2></div><div class="rec hold"><b>Demo Mode is ON</b><small>Everything you see is the fictional Ridgeline Generating Station outage. The live job is put away on this device and comes back untouched when Demo Mode is turned off.</small><small>Live Sync is paused. Factory Reset is not available while Demo Mode is on.</small></div>
+ <div class="row" style="padding:6px 16px"><button class="pri" data-rs="dmOff">Turn Demo Mode Off</button><button data-rs="dmReload">Reload Demo Data</button></div><div class="hint" style="padding:0 16px 30px">You will be asked for your passcode.</div>`;return}
+  _rst.apply(this,arguments);
+  const h=[...document.querySelectorAll("#mod .hint")].pop();if(h)h.textContent="Factory Reset asks for your passcode, then for ERASE typed out. Demo Mode asks for your passcode only.";const d=$("#mod details");if(d)d.outerHTML=`<div class="mh" style="margin-top:14px"><h2>Demo Mode</h2></div><div class="rec"><b>Demo Mode is OFF</b><small>Turning it on puts the live job away on this device and loads a fictional steam turbine outage (Ridgeline Generating Station, day 19 of 40, day and night shifts). Live Sync pauses. Turn it off to bring the live job back exactly as it was.</small></div><div class="row" style="padding:6px 16px"><button data-rs="dmOn">Turn Demo Mode On...</button></div>`};
+ document.addEventListener("click",e=>{const b=e.target.closest("#mod button[data-rs]");if(!b||cur!=="reset")return;const k=b.dataset.rs;if(k!=="dmOn"&&k!=="dmOff"&&k!=="dmReload")return;e.stopPropagation();
+  if(k==="dmOn")return pcGate("Demo Mode","Turn Demo Mode on? The live job is put away on this device, not erased. Enter your 4-digit passcode to continue.",()=>{if(confirm("Switch this device to Demo Mode now? The app will reload."))demoOn()});
+  if(k==="dmOff")return pcGate("Demo Mode","Turn Demo Mode off and bring the live job back? Enter your 4-digit passcode to continue.",()=>demoOff());
+  if(k==="dmReload")return pcGate("Reload Demo Data","Rebuild the demo from scratch? Enter your 4-digit passcode to continue.",()=>demoReload())},true);
+ try{if(cur==="reset")rstView()}catch(e){}
+})();
+
 (function(){if(!/^https?:$/.test(location.protocol))return;
  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
  try{if("serviceWorker" in navigator){var had=!!navigator.serviceWorker.controller,rl=false;
