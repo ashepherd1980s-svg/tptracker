@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Release B: one Needs tile for expendables, parts and damaged tools (v51.1)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Release C: Jobs in Progress on the home screen, one way into jobs (v51.2)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -309,7 +309,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dUnit"><div class="dlg" id="unitBody"></div></dialog>
 
 <script>
-window.TPREMOVED=["fm_brk","fm_ntf","brk_rep"];window.TPRENAME={"tasks": "Task Creator", "crew": "Millwright Task Tracker", "jsa": "Daily JSA", "dsr": "Daily Report", "delay": "Delay Tracker", "qtools": "Camera & Calculator", "fm_media": "Photo Files", "data": "Data Entry", "fm_msg": "Messages", "fm_hand": "Shift Turnover", "fm_eos": "End of Shift", "loto": "LOTO", "fme": "FME", "fm_em": "Site Emergency Contact", "prog": "Unit Progress Tracker", "mcal": "Whiteboard Calendar", "tools": "Damaged Tooling", "qs": "Quick Start Setup", "people": "Employees", "costs": "Time Tracker", "sync": "Live Sync", "reset": "App Data Reset", "safety": "Safety Tools", "fm_case": "HSEQ Link", "fm_tout": "Stop Work", "status": "Live Status", "sstat": "To-Date Status", "fm_req": "Needs", "shop": "Request List", "vend": "Vendor Shipments", "fm_rcv": "Shipping & Receiving", "rent": "Rentals", "fm_hold": "Hold Points"};
+window.TPREMOVED=["fm_brk","fm_ntf","brk_rep"];window.TPRENAME={"tasks": "Task Creator", "crew": "Millwright Task Tracker", "jsa": "Daily JSA", "dsr": "Daily Report", "delay": "Delay Tracker", "qtools": "Camera & Calculator", "fm_media": "Photo Files", "data": "Data Entry", "fm_msg": "Messages", "fm_hand": "Shift Turnover", "fm_eos": "End of Shift", "loto": "LOTO", "fme": "FME", "fm_em": "Site Emergency Contact", "prog": "Unit Stage Checklists", "mcal": "Whiteboard Calendar", "tools": "Damaged Tooling", "qs": "Quick Start Setup", "people": "Employees", "costs": "Time Tracker", "sync": "Live Sync", "reset": "App Data Reset", "safety": "Safety Tools", "fm_case": "HSEQ Link", "fm_tout": "Stop Work", "status": "Live Status", "sstat": "To-Date Status", "fm_req": "Needs", "shop": "Request List", "vend": "Vendor Shipments", "fm_rcv": "Shipping & Receiving", "rent": "Rentals", "fm_hold": "Hold Points"};
 
 const STAGES=[
 {n:"Mobilization",s:"Set up at the plant",c:["Site safety orientation and badging complete","Permits and LOTO signed on with the plant","Laydown, tool conex and FME zone set up","Plant crane inspected and rigging checked","As-found operating data collected from the control room"]},
@@ -4663,7 +4663,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   <div class="row" style="flex-wrap:wrap">${isOpen(j)?`<button class="pri" data-jb="addt" data-id="${j.id}">Add Tasks to This Job</button>`:""}${j.no!==ACTJOB()&&isOpen(j)?`<button data-jb="act" data-id="${j.id}">Make Working Job</button>`:""}<button data-jb="print" data-id="${j.id}">Print Job Report</button></div>
   ${sup?`<div class="row" style="flex-wrap:wrap">${isE(j)&&j.appr!=="Yes"?`<button class="pri" data-jb="appr" data-id="${j.id}">Approve EWA</button>`:""}<button data-jb="edit" data-id="${j.id}">Edit</button><button data-jb="close" data-id="${j.id}">${j.closed?"Reopen Job":"Close Job"}</button>${!s.T.length&&!u.length&&!hoursOf(j.no).length&&!j.main?`<button class="danger" data-jb="del" data-id="${j.id}">Delete</button>`:""}</div>`:""}</div>
   <h2 class="sec">Hours</h2><div class="stats"><span><b>${f2(s.s.Day)}</b>day shift</span><span><b>${f2(s.s.Night)}</b>night shift</span><span><b>${f2(s.tot)}</b>combined</span><span><b>${f2(s.exp)}</b>expected</span>${isE(j)?`<span><b>${f2(s.auth)}</b>authorized</span>`:""}</div>
-  ${u.length?`<h2 class="sec">Units</h2>`+u.map(x=>`<div class="rec"><b>${E(x.name)}</b><small>${E(x.done?"Complete":(STAGES[x.stage]||{}).n||"")}${x.hold?" &middot; On hold: "+E(x.hold):""}</small></div>`).join(""):""}
+  ${u.length?`<h2 class="sec">Units</h2>`+u.map(x=>`<div class="rec"><b>${E(x.name)}</b><small>${E(x.done?"Complete":(STAGES[x.stage]||{}).n||"")}${x.hold?" &middot; On hold: "+E(x.hold):""}</small></div>`).join("")+`<div class="row"><button data-jstg="1">Open Unit Stage Checklists</button></div>`:""}
   ${ks.length?`<h2 class="sec">EWAs under this job</h2>`+ks.map(k=>card(k,true)).join(""):""}
   <h2 class="sec">Tasks (${s.open} open, ${s.done} done)</h2>`+
   (T.map(t=>{const a=+sumH(t.id),x=+t.exp||0;return `<div class="rec${x&&a>x&&t.st!=="Done"?" hold":""}"><b>${E(t.title)}</b><small>${E(t.unit||"No unit")}${t.comp?" &middot; "+E(t.comp):""}</small><small>${E(t.who||"No one assigned")}${t.due?" &middot; "+E(t.due):""}</small><small>Status: <strong style="color:var(--ink)">${t.st==="Done"?"Completed":E(t.st==="In progress"?"Running":t.st||"Open")}</strong> &middot; ${f2(a)} h${x?" of "+f2(x)+" expected":""}</small><div class="row"><button data-jb="task" data-tid="${t.id}">Open Task</button>${sup?`<button data-jb="move" data-tid="${t.id}">Move to Another Job</button>`:""}</div></div>`}).join("")||`<div class="empty">No tasks on this job yet.</div>`)+`<div style="height:40px"></div>`}
@@ -5299,6 +5299,32 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
 })();
 
 /* ===== Installable web app: offline cache + keep storage ===== */
+
+
+/* ===== v51.2 Release C: job numbers are the way in. Home counts jobs; unit stage checklists open from inside a job. ===== */
+(function(){
+ const E=esc,CLS=s=>/complet|closed|paid|denied|reject/i.test(s||"");
+ const JB=()=>(window.JOBS?JOBS():[])||[];
+ const isE=j=>j&&j.kind==="EWA",open=j=>j&&!j.closed&&!(isE(j)&&CLS(j.status));
+ /* home: Jobs in Progress */
+ const _h=home;home=function(){const r=_h.apply(this,arguments);try{const L=JB().filter(open);if(!L.length)return r;
+  const nos=new Set(L.map(j=>j.no)),T=(DB.tasks||[]).filter(t=>nos.has(t.job)),dn=T.filter(t=>t.st==="Done").length,pc=T.length?Math.round(100*dn/T.length):0;
+  const wait=L.filter(j=>isE(j)&&j.appr!=="Yes").length;
+  const S=$("#sum");if(!S)return r;
+  S.innerHTML=`<button type="button" id="sumJobs" style="all:unset;display:block;cursor:pointer;width:100%"><div class="big">${L.length}<span> ${L.length===1?"Job":"Jobs"} in Progress</span></div><div class="prg"><i style="width:${pc}%"></i></div><small>${pc}% of tasks done (${dn} of ${T.length})${wait?" &middot; "+wait+" EWA"+(wait===1?"":"s")+" waiting on approval":""}</small></button>`;
+  const b=$("#sumJobs");if(b)b.onclick=()=>show("jobs")}catch(e){}return r};
+ /* the old unit tracker tile goes; jobs take its place */
+ const _is=hmIs;hmIs=function(k){if(k==="prog")return false;return _is.apply(this,arguments)};
+ try{FAV_DEF=FAV_DEF.map(k=>k==="prog"?"jobs":k);FAV_SHORT.jobs="Jobs"}catch(e){}
+ try{if(!DB.homeV12){const fx=h=>{if(!h)return;Object.values(h.folders||{}).forEach(f=>{if(Array.isArray(f.items)){f.items=f.items.filter(k=>k!=="prog");if(f.items.includes("jobs")&&/unit/i.test(f.name||""))f.name="Jobs & Schedule"}});if(Array.isArray(h.order))h.order=h.order.filter(k=>k!=="prog")};
+  fx(DB.home);Object.values(DB.homeBy||{}).forEach(fx);
+  Object.keys(DB.favs||{}).forEach(k=>{const L=DB.favs[k];if(Array.isArray(L)){const i=L.indexOf("prog");if(i>=0){if(L.includes("jobs"))L.splice(i,1);else L[i]="jobs"}}});
+  DB.homeV12=1;sv()}}catch(e){}
+ /* from a job: open the unit stage checklists */
+ document.addEventListener("click",e=>{const b=e.target.closest("button[data-jstg]");if(!b)return;e.preventDefault();e.stopPropagation();show("prog")},true);
+ try{if(typeof favRender==="function")favRender()}catch(e){}
+ setTimeout(()=>{try{if(cur==="home")home()}catch(e){}},0);
+})();
 
 /* ===== v51.0 Release A: Demo Mode. One build; the demo is a separate data set, never the live job. ===== */
 (function(){
