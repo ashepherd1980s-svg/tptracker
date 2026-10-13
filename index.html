@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Release C: Jobs in Progress on the home screen, one way into jobs (v51.2)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; LOTO safety gate: no JSA finalize while the crew is not covered by LOTO (v51.3)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -5323,6 +5323,51 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  /* from a job: open the unit stage checklists */
  document.addEventListener("click",e=>{const b=e.target.closest("button[data-jstg]");if(!b)return;e.preventDefault();e.stopPropagation();show("prog")},true);
  try{if(typeof favRender==="function")favRender()}catch(e){}
+ setTimeout(()=>{try{if(cur==="home")home()}catch(e){}},0);
+})();
+
+
+/* ===== v51.3 LOTO safety gate: the JSA cannot be finalized while the crew is not covered by LOTO ===== */
+(function(){
+ const E=esc;
+ const LO=()=>DB.loto||{};
+ const exp=d=>d.status==="Active"&&d.expires&&d.expires<tdy();
+ /* every reason the crew is not covered right now */
+ window.LOTOGAP=function(){const g=[];try{
+  const st=((ds()||{}).comp||{}).lotoSt||"";
+  if(st==="Signed Off")g.push("LOTO status is SIGNED OFF. The crew is not under the plant LOTO.");
+  const docs=LO().docs||[],act=docs.filter(d=>(d.status||"Active")==="Active"&&!exp(d));
+  if(!act.length)g.push(docs.length?"No active LOTO permit. Every permit on file is released or expired.":"No LOTO permit is on file.");
+  docs.filter(exp).forEach(d=>g.push("Permit "+(d.permitNo||d.title||"")+" expired "+d.expires+"."));
+  if(docs.length&&window.LOTOAPPROVED&&!LOTOAPPROVED())g.push("LOTO is not approved by the supervisor since the last change.");
+  if(!(LO().locks||[]).some(l=>!l.off))g.push("No crew locks are on.")}catch(e){}return g};
+ const css=document.createElement("style");css.textContent=`.lgap{margin:10px 16px;padding:14px 16px;border-radius:10px;background:#b3342b;color:#fff}.lgap b{display:block;font-size:22px;line-height:1.15;color:#fff}.lgap li{margin:4px 0;font-size:15px}.lgap ul{margin:6px 0 10px;padding-left:20px}.lgap button{background:#fff;color:#b3342b;border-color:#fff;font-weight:800}`;document.head.appendChild(css);
+ const box=(g,extra)=>`<div class="lgap" role="alert"><b>STOP: CREW NOT COVERED BY LOTO</b><ul>${g.map(x=>`<li>${E(x)}</li>`).join("")}</ul><div class="row" style="padding:0"><button type="button" data-lgo="1">Go to LOTO</button>${extra||""}</div></div>`;
+ /* red banner on the JSA while there is a gap */
+ const MD=$("#mod");
+ const paint=()=>{if(cur!=="jsa")return;const g=LOTOGAP(),old=document.getElementById("lgapJ");if(!g.length){if(old)old.remove();return}
+  const r=typeof jget==="function"&&jget();const ov=r&&r.lotoOv?`<small style="display:block;margin-top:8px;color:#fff">Finalized without LOTO by ${E(r.lotoOv.by)} ${E(r.lotoOv.at)}. Reason: ${E(r.lotoOv.reason)}</small>`:"";
+  const h=box(g)+"";if(old){return}const d=document.createElement("div");d.id="lgapJ";d.innerHTML=h;if(ov)d.firstChild.insertAdjacentHTML("beforeend",ov);const mh=MD.querySelector(".mh");if(mh)mh.after(d);else MD.prepend(d)};
+ new MutationObserver(()=>{try{paint()}catch(e){}}).observe(MD,{childList:true});
+ document.addEventListener("click",e=>{const b=e.target.closest("button[data-lgo]");if(!b)return;e.preventDefault();e.stopPropagation();const dl=document.querySelectorAll("dialog[open]");dl.forEach(x=>x.close());show("loto")},true);
+ /* finalize: blocked until the gap is fixed, or a supervisor records why no LOTO is needed */
+ let PASS=false;
+ document.addEventListener("click",e=>{const b=e.target.closest('#mod button[data-j="final"]');if(!b||cur!=="jsa")return;if(PASS){PASS=false;return}
+  const g=LOTOGAP();if(!g.length)return;e.preventDefault();e.stopPropagation();const r=jget();if(!r)return;
+  const F=$("#dDatF");F.innerHTML=`<h2 style="color:#b3342b">This JSA cannot be finalized</h2>${box(g)}<div class="hint">Fix the LOTO first: get the permit active, the crew locked on and the LOTO approved. Then finalize.</div>`+
+   (isSup()?`<details style="margin-top:10px"><summary>No LOTO needed for today's work (supervisor)</summary><div class="hint">Only when none of today's tasks touch isolated equipment. This is recorded on the JSA with your name.</div><label>Reason<textarea id="lgR" rows="3" placeholder="e.g. Demob only: loading conex, no work on the unit"></textarea></label><div class="row"><button type="button" class="danger" id="lgOv">Finalize Without LOTO...</button></div></details>`:`<div class="hint" style="font-weight:700">Get your supervisor.</div>`)+
+   `<div class="row"><button type="button" id="lgX">Close</button></div>`;
+  F.oninput=F.onchange=null;F.onclick=ev=>{const x=ev.target.closest("button");if(!x)return;if(x.id==="lgX")return $("#dDat").close();
+   if(x.id==="lgOv"){const why=String(($("#lgR")||{}).value||"").trim();if(why.length<10)return alert("Write the reason no LOTO is needed (at least a few words).");
+    $("#dDat").close();pcGate("Finalize Without LOTO","You are finalizing this JSA while the crew is not covered by LOTO. Enter your 4-digit passcode to record that.",()=>{r.lotoOv={by:ME?ME.title:"",at:new Date().toLocaleString(),reason:why,gaps:g};sv();PASS=true;const fb=document.querySelector('#mod button[data-j="final"]');if(fb)fb.click();else PASS=false})}};
+  if(!$("#dDat").open)$("#dDat").showModal()},true);
+ /* warn the moment someone signs the crew off the LOTO */
+ document.addEventListener("change",e=>{const t=e.target;if(!t||t.tagName!=="SELECT"||t.value!=="Signed Off")return;if(![...t.options].some(o=>o.value==="Signed On"||o.text==="Signed On"))return;
+  setTimeout(()=>alert("LOTO SIGNED OFF\n\nThe crew is no longer covered by the plant LOTO. Stop all work on isolated equipment. Today's JSA cannot be finalized until the crew is signed back on, or a supervisor records why no LOTO is needed."),50)},true);
+ /* phones and home screen show the stop too */
+ const _pb=window.PBADGE;window.PBADGE=function(k){if(k==="loto"&&LOTOGAP().length)return "STOP: not covered";return _pb?_pb.apply(this,arguments):""};
+ const _hb=hmBadge;hmBadge=function(k){if(k==="loto"&&LOTOGAP().length)return "STOP: not covered";return _hb.apply(this,arguments)};
+ const _h=home;home=function(){const r=_h.apply(this,arguments);try{const g=LOTOGAP();const S=$("#sum");const o=document.getElementById("lgapH");if(o)o.remove();if(g.length&&S&&(DB.tasks||[]).length){const d=document.createElement("div");d.id="lgapH";d.innerHTML=box(g);d.firstChild.style.margin="10px 0";S.after(d)}}catch(e){}return r};
  setTimeout(()=>{try{if(cur==="home")home()}catch(e){}},0);
 })();
 
