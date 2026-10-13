@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; LOTO safety gate: no JSA finalize while the crew is not covered by LOTO (v51.3)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v50.2)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -309,7 +309,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dUnit"><div class="dlg" id="unitBody"></div></dialog>
 
 <script>
-window.TPREMOVED=["fm_brk","fm_ntf","brk_rep"];window.TPRENAME={"tasks": "Task Creator", "crew": "Millwright Task Tracker", "jsa": "Daily JSA", "dsr": "Daily Report", "delay": "Delay Tracker", "qtools": "Camera & Calculator", "fm_media": "Photo Files", "data": "Data Entry", "fm_msg": "Messages", "fm_hand": "Shift Turnover", "fm_eos": "End of Shift", "loto": "LOTO", "fme": "FME", "fm_em": "Site Emergency Contact", "prog": "Unit Stage Checklists", "mcal": "Whiteboard Calendar", "tools": "Damaged Tooling", "qs": "Quick Start Setup", "people": "Employees", "costs": "Time Tracker", "sync": "Live Sync", "reset": "App Data Reset", "safety": "Safety Tools", "fm_case": "HSEQ Link", "fm_tout": "Stop Work", "status": "Live Status", "sstat": "To-Date Status", "fm_req": "Needs", "shop": "Request List", "vend": "Vendor Shipments", "fm_rcv": "Shipping & Receiving", "rent": "Rentals", "fm_hold": "Hold Points"};
+window.TPREMOVED=["fm_brk","fm_ntf","brk_rep"];window.TPRENAME={"tasks": "Task Creator", "crew": "Millwright Task Tracker", "jsa": "Daily JSA", "dsr": "Daily Report", "delay": "Delay Tracker", "qtools": "Camera & Calculator", "fm_media": "Photo Files", "data": "Data Entry", "fm_msg": "Messages", "fm_hand": "Shift Turnover", "fm_eos": "End of Shift", "loto": "LOTO", "fme": "FME", "fm_em": "Site Emergency Contact", "prog": "Unit Progress Tracker", "mcal": "Whiteboard Calendar", "tools": "Damaged Tooling", "qs": "Quick Start Setup", "people": "Employees", "costs": "Time Tracker", "sync": "Live Sync", "reset": "App Data Reset", "safety": "Safety Tools", "fm_case": "HSEQ Link", "fm_tout": "Stop Work", "status": "Live Status", "sstat": "To-Date Status", "fm_req": "New Request", "shop": "Request List", "vend": "Vendor Shipments", "fm_rcv": "Shipping & Receiving", "rent": "Rentals", "fm_hold": "Hold Points"};
 
 const STAGES=[
 {n:"Mobilization",s:"Set up at the plant",c:["Site safety orientation and badging complete","Permits and LOTO signed on with the plant","Laydown, tool conex and FME zone set up","Plant crane inspected and rigging checked","As-found operating data collected from the control room"]},
@@ -462,7 +462,7 @@ $("#tab").onclick=e=>{const b=e.target.closest("button[data-k]");if(b)show(b.dat
 $("#dMore").onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.k){$("#dMore").close();show(b.dataset.k)}else if(b.id==="closeM")$("#dMore").close()};
 let SPRE="",sf="all";
 const thumbs=r=>(r.photos||[]).map(id=>`<img class="th" data-p="${id}" alt="Photo">`).join("");
-const idb=new Promise(r=>{try{const q=indexedDB.open((function(){try{return localStorage.getItem("tp-demo-v1")==="1"}catch(e){return false}})()?"tp-photos-demo":"tp-photos",1);q.onupgradeneeded=()=>q.result.createObjectStore("p");q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)}catch(e){r(null)}});
+const idb=new Promise(r=>{try{const q=indexedDB.open("tp-photos",1);q.onupgradeneeded=()=>q.result.createObjectStore("p");q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)}catch(e){r(null)}});
 let pPut=async(id,v)=>{const d=await idb;if(!d)return;return new Promise(r=>{const t=d.transaction("p","readwrite");t.objectStore("p").put(v,id);t.oncomplete=r;t.onerror=r})};
 let pGet=async id=>{const d=await idb;if(!d)return null;return new Promise(r=>{const q=d.transaction("p").objectStore("p").get(id);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)})};
 let pDel=async id=>{const d=await idb;if(d)d.transaction("p","readwrite").objectStore("p").delete(id)};
@@ -1894,7 +1894,7 @@ function jsaEdit(id){JID=id;const r=jget();if(!r)return;jsaPad(r);cur="jsa";cons
  ${sec("Permits and Contractors")}${inp("permits","Required Permits (type N/A if none)")}${inp("affOut","How do our activities affect contractors around us?")}${inp("affIn","How do other contractors around us affect our activities?")}${sel("comm","Have we communicated with these other contractors?",["Yes","No"])}${inp("who","Who")}${sel("appr","Are apprentices / newly hired personnel paired with Key / Experience personnel?",["Yes","No"])}
  ${sec("Crew Signatures")}<div class="hint">This Pre-Task Plan must be reviewed by the foreman and signed by all workers involved prior to starting any work.</div>
  ${r.crew.map((x,i)=>`<div class="rec" style="margin:8px 0"><b style="font-size:17px">${esc(x.name)}</b><img class="sgp" src="${x.sig}" alt="Signature"><small>${esc(x.t||"")}</small>${(!r.final||isSup())?`<div class="row"><button class="danger" data-j="rmsig" data-i="${i}">Remove</button></div>`:""}</div>`).join("")}
- <label>Print Name<input id="jcn" list="jpl" placeholder="Type or pick your name" autocomplete="off"></label><datalist id="jpl">${DB.people.map(p=>`<option value="${esc(p.title)}">`).join("")}</datalist><button class="pri" data-j="sign" style="width:100%;margin-top:8px">Sign</button>
+ ${r.final?"":(()=>{const sg=new Set(r.crew.map(x=>String(x.name).toLowerCase())),onT=new Set(DB.tasks.filter(t=>t.unit===r.unit&&t.due===r.date).flatMap(t=>String(t.who||"").split(/,\s*/).filter(Boolean))),L=(DB.people||[]).filter(p=>!sg.has(p.title.toLowerCase())).sort((a,b)=>(onT.has(b.title)-onT.has(a.title))||((b.title===r.foreman)-(a.title===r.foreman)));return L.length?`<div class="label" style="font-size:14px;font-weight:700;margin-top:10px">Tap your name to sign (${L.length} still to sign)</div><div class="jsaNames">${L.map(p=>`<button type="button" class="chip${onT.has(p.title)?" on":""}" data-jcn="${esc(p.title)}">${esc(p.title)}</button>`).join("")}</div>`:`<div class="hint">Everyone on this shift has signed.</div>`})()}<label>Name not listed? Type it<input id="jcn" list="jpl" placeholder="Type your name" autocomplete="off"></label><datalist id="jpl">${(DB.people||[]).concat(DB.pplOther||[]).map(p=>`<option value="${esc(p.title)}">`).join("")}</datalist><button class="pri" data-j="sign" style="width:100%;margin-top:8px">Sign</button>
  <div class="rec" id="jBan2" style="margin:16px 0">${r.final?"":mk()}</div>
  <div class="row">${r.final?(isSup()?`<button data-j="reopen">Reopen</button>`:""):`<button class="pri" data-j="final" id="jFin">Finalize JSA</button>`}<button data-j="prev" data-id="${r.id}">Preview &amp; Print</button></div></div>`;
  const fz=$("#jFin");if(fz)fz.disabled=jsaMissing(r).length>0}
@@ -2409,7 +2409,7 @@ function hmClick(e){if(HMSKIP){HMSKIP=false;e.preventDefault();return true}
   if(a==="edit"){HMED=true;HMSEL.clear();hmRender()}
   else if(a==="done"){HMED=false;HMSEL.clear();home()}
   else if(a==="nf"){const o=HM().order,s=o.filter(k=>HMSEL.has(k));if(s.length)hmNewFolder(s,o.indexOf(s[0]))}
-  else if(a==="def"&&isSup()){if(confirm("Put the default layout back to the standard folders (Daily Work, Safety, Jobs, Units & Schedule, Needs & Orders, Supervisor Setup) with original names? Your own layout also goes back to it.")){DB.home=window.HMDEF?HMDEF():{order:[],folders:{},names:{}};if(DB.homeBy&&ME)delete DB.homeBy[ME.title];HMSEL.clear();sv();hmRender()}}
+  else if(a==="def"&&isSup()){if(confirm("Put the default layout back to the standard folders (Daily Work, Safety, Jobs, Units & Schedule, Supply & Tooling, Supervisor Setup) with original names? Your own layout also goes back to it.")){DB.home=window.HMDEF?HMDEF():{order:[],folders:{},names:{}};if(DB.homeBy&&ME)delete DB.homeBy[ME.title];HMSEL.clear();sv();hmRender()}}
  if(a==="mine0"){if(confirm("Drop your own layout and use the default layout?")){if(DB.homeBy&&ME)delete DB.homeBy[ME.title];HMED=false;HMSEL.clear();sv();home()}}
  if(a==="mkdef"&&isSup()){if(confirm("Make your layout the default for everyone? People who already arranged their own keep theirs.")){hmMine();DB.home=JSON.parse(JSON.stringify(DB.homeBy[ME.title]));delete DB.homeBy[ME.title];HMED=false;HMSEL.clear();sv();home();alert("Done. This is now the default layout.")}}
   else if(a==="l"||a==="r")hmMove(x.k,a==="l"?-1:1);
@@ -3558,7 +3558,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  /* connect this device: setup code from the first iPad plus the site password */
  window.syncConnect=async function(code,pw,isFirst,fresh){let c;try{c=typeof code==="string"?JSON.parse(code.trim()):code}catch(e){throw new Error("That setup code is not complete. Copy it again from the iPad.")}
   if(!c||!c.fb||!c.site||!c.email)throw new Error("That setup code is missing parts. Copy it again from the iPad.");
-  if(isDemo())throw new Error("Live Sync stays off while Demo Mode is on. Turn Demo Mode off (Supervisor Setup) first.");
+  if(isDemo())throw new Error("Live Sync stays off while the demo is loaded. Use Factory Reset to leave the demo first.");
   T=fbTransport();await T.init(c);await T.signIn(c.email,pw);if(fresh){ready=false;await T.wipe()}cfg=c;origSet.call(LS,CFGK,J(c));
   try{const d=await idb;const keys=await new Promise(r=>{const q=d.transaction("p").objectStore("p").getAllKeys();q.onsuccess=()=>r(q.result||[]);q.onerror=()=>r([])});setBQ(BQ().concat(keys))}catch(e){}
   base={};await saveBase();ready=false;await start();return true};
@@ -3791,7 +3791,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  const parseCfg=t=>{t=String(t||"");const o={};["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId"].forEach(k=>{const m=t.match(new RegExp(k+'\\s*:\\s*["\']([^"\']+)["\']'))||t.match(new RegExp('"'+k+'"\\s*:\\s*"([^"]+)"'));if(m)o[k]=m[1]});return o.apiKey&&o.projectId?o:null};
  function syncView(){const s=SYNCSTATE(),sup=isSup(),lab={off:"Off on this device",on:"Live: up to date",connecting:"Connecting…",offline:"Offline: changes are saved and will send when back online",error:"Problem: "+(s.msg||""),signin:"Signed out: "+(s.msg||""),demo:"Off while the demo is loaded"}[s.status]||s.status;
   $("#mod").innerHTML=`<div class="mh"><h2>Live Sync</h2></div><div class="rec"${s.status==="on"?' style="border-left:5px solid #2f7d4a"':""}><b>${E(lab)}</b>${s.on?`<small>Site: ${E(s.site||"")} &middot; Account: ${E(s.email||"")}</small>`:""}${s.queued?`<small>${s.queued} photo or file upload${s.queued===1?"":"s"} waiting</small>`:""}</div>`+
-  (!sup?`<div class="hint" style="padding:0 16px">Only supervisors change Live Sync.</div>`:s.demo?`<div class="hint" style="padding:0 16px">Demo Mode is on, so Live Sync is paused. Demo data never goes to the cloud or the phones.</div>`:
+  (!sup?`<div class="hint" style="padding:0 16px">Only supervisors change Live Sync.</div>`:s.demo?`<div class="hint" style="padding:0 16px">The demo is loaded on this device, so Live Sync stays off. Demo data never goes to the cloud.</div>`:
   s.on?`<div style="padding:0 16px"><h3>Add another device</h3><div class="hint">Copy this setup code and send it to the phone or iPad (text or AirDrop). On that device, tap Connect to Live Sync on the sign-in screen, paste the code and enter the site password.</div><textarea id="syC" rows="4" readonly>${E(syncCode())}</textarea><div class="row"><button data-sy="copy">Copy Setup Code</button></div><div class="row"><button class="danger" data-sy="off">Turn Off on This Device</button></div></div>`
   :`<div style="padding:0 16px"><h3>Turn on Live Sync (first device)</h3><div class="hint">Follow the Live Sync setup guide to create the free Firebase project, then fill this in. This device's data goes up to the cloud first.</div>
    <label>Firebase config (paste the whole firebaseConfig block)<textarea id="syF" rows="5" placeholder="const firebaseConfig = { apiKey: ..., projectId: ... }"></textarea></label><label>Site name (no spaces)<input id="syS" value="${E(String((window.SITE&&SITE())||"site").toLowerCase().replace(/[^a-z0-9]+/g,"-"))}"></label><label>Site account email<input id="syE" type="email" autocomplete="username"></label><label>Site account password<input id="syP" type="password" autocomplete="current-password"></label><label class="chk" style="color:inherit;font-size:15px"><input type="checkbox" id="syFresh"><span><b>Start this site fresh.</b> Erases everything already stored in the cloud for this site name before this device sends its data up. Use it after a Factory Reset. Turn Live Sync off on the phones first, or they will send the old job back up.</span></label><div class="row"><button class="pri" data-sy="first">Turn On Live Sync</button></div>
@@ -3910,14 +3910,13 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  const stCol=s=>({Requested:"#5d686b",Approved:"#3b82c4",Ordered:"#c47a00",Shipped:"#7a5ac4","Partially Received":"#e0a04e",Received:"#2f7d4a",Cancelled:"#999"})[s]||"#5d686b";
  function reqView(){const chip=(v,l)=>`<button class="chip${RQ===v?" on":""}" data-rq="tab" data-v="${v}">${l}</button>`;
   const mine=ORD().filter(o=>o.kind==="shop"&&o.req&&(RQF==="all"||o.by===me())).sort((a,b)=>(b.ts||0)-(a.ts||0));
-  const dmg=(DB.dmgTools||[]).filter(r=>RQF==="all"||r.by===me()).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));const dOpen=dmg.filter(r=>r.st!=="Closed").length;
-  let h=`<div class="mh"><h2>Needs</h2></div><div class="chips">${chip("exp","Expendables")}${chip("part","Parts")}<button class="chip" data-rq="dmg">Damaged Tool</button>${chip("mine","My Needs ("+(mine.filter(isOpen).length+dOpen)+" open)")}</div>`;
+  let h=`<div class="mh"><h2>Parts &amp; Expendables</h2></div><div class="chips">${chip("exp","Expendables")}${chip("part","Parts")}${chip("mine","Requests ("+mine.filter(isOpen).length+" open)")}</div>`;
   if(RQ==="exp"){const L=EXL();h+=`<div style="padding:0 16px"><div class="hint">Tap + for what the crew needs. Requests go to Expendable Requests.</div>`+L.map(x=>{const q=EXQ[x.id]||0;return `<div style="display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:6px 0"><div style="flex:1"><b style="font-size:16px">${E(x.name)}</b><small style="display:block;color:var(--mute)">${E(x.uom||"")}</small></div><button data-rq="m" data-id="${x.id}" style="min-width:48px;min-height:44px">-</button><b style="min-width:30px;text-align:center;font-size:18px">${q}</b><button data-rq="p" data-id="${x.id}" class="${q?"pri":""}" style="min-width:48px;min-height:44px">+</button></div>`}).join("")+
    `<label>Unit (optional)<select id="rqU">${unitOpts(LAST.unit||"")}</select></label><label>Needed by<input type="date" id="rqD" value="${tdy()}"></label><label>Note<input id="rqN" placeholder="Where to drop it, size, brand"></label><div class="row"><button class="pri" data-rq="sendx">Send Request (${Object.values(EXQ).filter(Boolean).length} item${Object.values(EXQ).filter(Boolean).length===1?"":"s"})</button></div>${isSup()?`<div class="row"><button data-rq="editx">Edit Pick List</button></div>`:""}</div>`}
   else if(RQ==="part"){h+=`<div style="padding:0 16px"><label>Part number<input id="ppN" autocapitalize="characters" placeholder="e.g. 351A4720P001"></label><label>Description<input id="ppD" placeholder="What it is"></label><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><label>Quantity<input id="ppQ" type="number" min="1" step="any" value="1"></label><label>Needed by<input id="ppB" type="date" value="${tdy()}"></label></div>
    <label>Unit<select id="ppU">${unitOpts(LAST.unit||"")}</select></label><label>Task<select id="ppT">${taskOpts("",t=>!LAST.unit||t.unit===LAST.unit)}</select></label><label>Priority<select id="ppR"><option>Normal</option><option>Urgent</option><option>Low</option></select></label><label>Note<textarea id="ppO" rows="2"></textarea></label>
    ${phIn("ppP","Photo of the part or tag")}<div id="ppTh">${thumbs(PPH)}</div><div class="row"><button class="pri" data-rq="sendp">Send Part Request</button></div></div>`}
-  else{h+=`<div class="chips"><button class="chip${RQF==="mine"?" on":""}" data-rq="f" data-v="mine">Mine</button><button class="chip${RQF==="all"?" on":""}" data-rq="f" data-v="all">Everyone</button></div>`+(mine.map(o=>{const rc=(o.rec||[]).reduce((a,r)=>a+(+r.qty||0),0);return `<div class="rec"><b>${E(o.desc)}</b><span class="tag" style="background:${stCol(o.st)}">${E(o.st)}</span><small>Qty ${E(o.qty||"")}${o.uom?" "+E(o.uom):""}${rc&&o.st!=="Received"?" &middot; "+rc+" received":""}${o.unit?" &middot; "+E(o.unit):""}${o.ttl?" &middot; "+E(o.ttl):""}</small><small>${E(o.req==="part"?"Part":"Expendable")} &middot; asked ${E(o.ordered||"")} by ${E(o.by||"")}${o.due?" &middot; needed by "+E(o.due):""}${o.recvd?" &middot; received "+E(o.recvd):""}</small>${o.vendor?`<small>Source: ${E(o.vendor)}</small>`:""}${thumbs(o.photos)}${o.st==="Requested"&&(o.by===me()||isSup())?`<div class="row"><button data-rq="cx" data-id="${o.id}">Cancel Request</button>${isSup()?`<button class="pri" data-rq="ap" data-id="${o.id}">Approve</button>`:""}</div>`:""}</div>`}).join("")+dmg.map(r=>`<div class="rec${r.st!=="Closed"&&/Out of service|Destroyed/.test(r.sev||"")?" hold":""}"><b>${E(r.desc||"Tool")}</b><span class="tag" style="background:${r.st==="Closed"?"#5d686b":/Repaired|Returned/.test(r.st)?"#2f7d4a":"#c47a00"}">${E(r.st||"Reported")}</span><small>Damaged tool &middot; reported ${E(r.date||"")} by ${E(r.by||"")}${r.unit?" &middot; "+E(r.unit):""}</small><small>${E(r.own||"")}${r.repl==="Yes"?" &middot; replacement needed now":""}</small><div class="row"><button data-rq="dmgOpen">Open in Damaged Tools</button></div></div>`).join("")||`<div class="empty" style="padding:6px 16px">No needs yet.</div>`)}
+  else{h+=`<div class="chips"><button class="chip${RQF==="mine"?" on":""}" data-rq="f" data-v="mine">Mine</button><button class="chip${RQF==="all"?" on":""}" data-rq="f" data-v="all">Everyone</button></div>`+(mine.map(o=>{const rc=(o.rec||[]).reduce((a,r)=>a+(+r.qty||0),0);return `<div class="rec"><b>${E(o.desc)}</b><span class="tag" style="background:${stCol(o.st)}">${E(o.st)}</span><small>Qty ${E(o.qty||"")}${o.uom?" "+E(o.uom):""}${rc&&o.st!=="Received"?" &middot; "+rc+" received":""}${o.unit?" &middot; "+E(o.unit):""}${o.ttl?" &middot; "+E(o.ttl):""}</small><small>${E(o.req==="part"?"Part":"Expendable")} &middot; asked ${E(o.ordered||"")} by ${E(o.by||"")}${o.due?" &middot; needed by "+E(o.due):""}${o.recvd?" &middot; received "+E(o.recvd):""}</small>${o.vendor?`<small>Source: ${E(o.vendor)}</small>`:""}${thumbs(o.photos)}${o.st==="Requested"&&(o.by===me()||isSup())?`<div class="row"><button data-rq="cx" data-id="${o.id}">Cancel Request</button>${isSup()?`<button class="pri" data-rq="ap" data-id="${o.id}">Approve</button>`:""}</div>`:""}</div>`}).join("")||`<div class="empty" style="padding:6px 16px">No requests yet.</div>`)}
   MD.innerHTML=h+`<div style="height:40px"></div>`;loadTh()}
  function newReq(o){const n=Object.assign({id:"o"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),kind:"shop",vendor:"",ordered:tdy(),st:"Requested",rec:[],fu:[],log:[],by:me(),ts:Date.now(),shift:curSh(),pri:"Normal"},o);olog(n,"Requested from the field app");ORD().push(n);return n}
  function editExp(){const F=$("#dDatF");F.innerHTML=`<h2>Expendables Pick List</h2><div class="hint">One item per line. Put the unit after a comma, like: Shop rags, bag</div><textarea id="exT" rows="14" style="font-size:15px">${E(EXL().map(x=>x.name+(x.uom?", "+x.uom:"")).join("\n"))}</textarea><div class="row"><button type="button" id="exX">Cancel</button><button type="button" class="pri" id="exOk">Save List</button></div>`;
@@ -4157,7 +4156,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   if(cur==="crew"&&d.cb){if(!ISFORE())return;const k=d.cb;
    if(k==="p"){e.stopPropagation();CSEL=CSEL===d.nm?"":d.nm;return crewView()}if(k==="cancel"){CSEL="";return crewView()}if(k==="other")return otherTask(CSEL);
    if(!CSEL)return;if(k==="t"){moveTo(CSEL,d.id);CSEL="";return crewView()}if(k==="idle"){if(RUN()[CSEL]){bank(CSEL);sv()}CSEL="";return crewView()}}
-  if(cur==="fm_req"&&d.rq){const k=d.rq;if(k==="dmg"){show("tools");return setTimeout(()=>{const n=document.querySelector('#mod [data-tl="new"]');if(n)n.click()},60)}if(k==="dmgOpen")return show("tools");
+  if(cur==="fm_req"&&d.rq){const k=d.rq;
    if(k==="tab"){RQ=d.v;return reqView()}if(k==="f"){RQF=d.v;return reqView()}if(k==="p"||k==="m"){EXQ[d.id]=Math.max(0,(EXQ[d.id]||0)+(k==="p"?1:-1));return reqView()}if(k==="editx")return editExp();
    if(k==="sendx"){const it=EXL().filter(x=>EXQ[x.id]>0);if(!it.length)return alert("Tap + on what you need first.");const u=$("#rqU").value,du=$("#rqD").value,no=$("#rqN").value.trim(),g=uidm("g");
     it.forEach(x=>newReq({req:"exp",grp:g,desc:"Expendable: "+x.name,qty:EXQ[x.id],uom:x.uom,unit:u,due:du,note:no}));EXQ={};sv();alert("Sent to Expendable Requests.");RQ="mine";RQF="mine";return reqView()}
@@ -4423,7 +4422,7 @@ window.QRSVG=(function(){
  const HUBS={
   g_safe:["Safety","Safety tools, HSEQ cases and Stop Work",[["safety","Safety Tools"],["fm_case","HSEQ Link"],["fm_tout","Stop Work"]],"safety"],
   g_stat:["Project Status","Live status and to-date status",[["status","Live Status"],["sstat","To-Date Status"]],"status"],
-  g_req:["Needs","Expendables, parts and damaged tools",[["fm_req","New Need"],["shop","Request List"],["tools","Damaged Tools"]],"fm_req"],
+  g_req:["Requests","Expendable and part requests",[["fm_req","New Request"],["shop","Request List"]],"fm_req"],
   g_ord:["Orders & Deliveries","Vendor shipments, receiving and rentals",[["vend","Vendor Shipments"],["fm_rcv","Shipping & Receiving"],["rent","Rentals"]],"fm_rcv"]};
  const MEM={};Object.entries(HUBS).forEach(([h,v])=>v[2].forEach(([k])=>MEM[k]=h));
  window.TPHUBS=HUBS;window.TPHUBOF=k=>MEM[k]||"";
@@ -4440,18 +4439,17 @@ window.QRSVG=(function(){
  const num=x=>{const n=parseInt(x,10);return isNaN(n)?0:n};
  const _hb=hmBadge;hmBadge=function(k){if(!HUBS[k])return _hb.apply(this,arguments);try{
   if(k==="g_safe"){const n=(DB.cases||[]).filter(c=>c.st!=="Closed").length+(DB.timeouts||[]).filter(x=>!x.cleared).length;return n?n+" open":""}
-  if(k==="g_req"){const n=(DB.orders||[]).filter(o=>o.req&&o.st==="Requested").length+(DB.dmgTools||[]).filter(r=>r.st==="Reported").length;return n?n+" waiting":""}
+  if(k==="g_req"){const n=(DB.orders||[]).filter(o=>o.req&&o.st==="Requested").length;return n?n+" waiting":""}
   if(k==="g_ord"){const n=num(_hb("vend"))+num(_hb("rent"));return n||""}
   if(k==="g_stat")return _hb("status")||""}catch(e){}return ""};
  const _pb=window.PBADGE;window.PBADGE=function(k){if(k==="g_req")return _pb?_pb("fm_req"):"";if(k==="g_ord")return _pb?_pb("fm_rcv"):"";
   if(k==="g_safe"){const n=(DB.cases||[]).filter(c=>c.st!=="Closed").length+(DB.timeouts||[]).filter(x=>!x.cleared).length;return n?n+" open":""}return _pb?_pb.apply(this,arguments):""};
  /* favorites side bar */
- try{FAV_DEF=["tasks","jsa","g_safe","delay","prog","dsr"];Object.assign(FAV_SHORT,{g_safe:"Safety",g_req:"Needs",g_ord:"Orders",g_stat:"Status",tasks:"Tasks",qtools:"Camera",people:"Employees",dsr:"Daily Report",costs:"Time Tracker",reset:"Reset",crew:"Crew",fm_media:"Photos",tools:"Damaged Tools",mcal:"Calendar",delay:"Delays"})}catch(e){}
+ try{FAV_DEF=["tasks","jsa","g_safe","delay","prog","dsr"];Object.assign(FAV_SHORT,{g_safe:"Safety",g_req:"Requests",g_ord:"Orders",g_stat:"Status",tasks:"Tasks",qtools:"Camera",people:"Employees",dsr:"Daily Report",costs:"Time Tracker",reset:"Reset",crew:"Crew",fm_media:"Photos",tools:"Damaged Tools",mcal:"Calendar",delay:"Delays"})}catch(e){}
  /* the five folders */
- const DEF=[["Daily Work",["tasks","crew","jsa","dsr","delay","qtools","fm_media","data","fm_msg","fm_hand","fm_eos"]],["Safety",["g_safe","loto","fme","fm_em"]],["Units & Schedule",["prog","mcal","g_stat"]],["Needs & Orders",["g_req","g_ord"]],["Supervisor Setup",["qs","people","costs","sync","reset"]]];
+ const DEF=[["Daily Work",["tasks","crew","jsa","dsr","delay","qtools","fm_media","data","fm_msg","fm_hand","fm_eos"]],["Safety",["g_safe","loto","fme","fm_em"]],["Units & Schedule",["prog","mcal","g_stat"]],["Supply & Tooling",["g_req","g_ord","tools"]],["Supervisor Setup",["qs","people","costs","sync","reset"]]];
  window.HMDEF=function(){const h={order:[],folders:{},names:{}};DEF.forEach(([n,items],i)=>{const id="d"+i;h.folders[id]={name:n,items:items.filter(k=>hmIs(k))};h.order.push("f:"+id)});return h};
  const mig=()=>{try{if(!DB.homeV9){DB.home=HMDEF();DB.homeBy={};DB.phoneLay={};DB.homeV9=1;sv()}}catch(e){}};mig();
- try{if(!DB.homeV11){const fx=h=>Object.values((h||{}).folders||{}).forEach(f=>{if(/^(Supply|Shop)/i.test(f.name||""))f.name="Needs & Orders";if(Array.isArray(f.items))f.items=f.items.filter(k=>k!=="tools")});fx(DB.home);Object.values(DB.homeBy||{}).forEach(fx);DB.homeV11=1;sv()}}catch(e){}
  try{if(!DB.homeV10){const fix=h=>Object.values((h||{}).folders||{}).forEach(f=>{if(/^Shop/i.test(f.name||""))f.name="Supply & Tooling"});fix(DB.home);Object.values(DB.homeBy||{}).forEach(fix);DB.homeV10=1;sv()}}catch(e){}
  const _HM=HM;HM=function(){if(!DB.homeV9)mig();return _HM.apply(this,arguments)};
  /* tabs across the top of a merged screen */
@@ -4461,7 +4459,7 @@ window.QRSVG=(function(){
   d.innerHTML=m.map(([k,l])=>`<button type="button" role="tab" data-gtab="${k}" class="${k===cur?"on":""}" aria-selected="${k===cur}">${E(l)}</button>`).join("");
   const mh=MD.querySelector(".mh");if(mh)mh.after(d);else MD.prepend(d)}
  /* screen titles that match the new names */
- const TITLE={fm_media:"Photo Files",crew:"Millwright Task Tracker",fm_em:"Site Emergency Contact",fm_case:"HSEQ Link",fm_tout:"Stop Work",fm_rcv:"Shipping & Receiving",fm_req:"Needs"};
+ const TITLE={fm_media:"Photo Files",crew:"Millwright Task Tracker",fm_em:"Site Emergency Contact",fm_case:"HSEQ Link",fm_tout:"Stop Work",fm_rcv:"Shipping & Receiving",fm_req:"New Request"};
  function title(){const t=TITLE[cur];if(!t)return;const h=MD.querySelector(".mh h2");if(h&&!h.children.length&&h.textContent!==t)h.textContent=t}
  new MutationObserver(()=>{try{bar();title()}catch(e){}}).observe(MD,{childList:true});
  MD.addEventListener("click",e=>{const b=e.target.closest("button[data-gtab]");if(!b)return;e.preventDefault();e.stopPropagation();show(b.dataset.gtab)},true);
@@ -4663,7 +4661,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   <div class="row" style="flex-wrap:wrap">${isOpen(j)?`<button class="pri" data-jb="addt" data-id="${j.id}">Add Tasks to This Job</button>`:""}${j.no!==ACTJOB()&&isOpen(j)?`<button data-jb="act" data-id="${j.id}">Make Working Job</button>`:""}<button data-jb="print" data-id="${j.id}">Print Job Report</button></div>
   ${sup?`<div class="row" style="flex-wrap:wrap">${isE(j)&&j.appr!=="Yes"?`<button class="pri" data-jb="appr" data-id="${j.id}">Approve EWA</button>`:""}<button data-jb="edit" data-id="${j.id}">Edit</button><button data-jb="close" data-id="${j.id}">${j.closed?"Reopen Job":"Close Job"}</button>${!s.T.length&&!u.length&&!hoursOf(j.no).length&&!j.main?`<button class="danger" data-jb="del" data-id="${j.id}">Delete</button>`:""}</div>`:""}</div>
   <h2 class="sec">Hours</h2><div class="stats"><span><b>${f2(s.s.Day)}</b>day shift</span><span><b>${f2(s.s.Night)}</b>night shift</span><span><b>${f2(s.tot)}</b>combined</span><span><b>${f2(s.exp)}</b>expected</span>${isE(j)?`<span><b>${f2(s.auth)}</b>authorized</span>`:""}</div>
-  ${u.length?`<h2 class="sec">Units</h2>`+u.map(x=>`<div class="rec"><b>${E(x.name)}</b><small>${E(x.done?"Complete":(STAGES[x.stage]||{}).n||"")}${x.hold?" &middot; On hold: "+E(x.hold):""}</small></div>`).join("")+`<div class="row"><button data-jstg="1">Open Unit Stage Checklists</button></div>`:""}
+  ${u.length?`<h2 class="sec">Units</h2>`+u.map(x=>`<div class="rec"><b>${E(x.name)}</b><small>${E(x.done?"Complete":(STAGES[x.stage]||{}).n||"")}${x.hold?" &middot; On hold: "+E(x.hold):""}</small></div>`).join(""):""}
   ${ks.length?`<h2 class="sec">EWAs under this job</h2>`+ks.map(k=>card(k,true)).join(""):""}
   <h2 class="sec">Tasks (${s.open} open, ${s.done} done)</h2>`+
   (T.map(t=>{const a=+sumH(t.id),x=+t.exp||0;return `<div class="rec${x&&a>x&&t.st!=="Done"?" hold":""}"><b>${E(t.title)}</b><small>${E(t.unit||"No unit")}${t.comp?" &middot; "+E(t.comp):""}</small><small>${E(t.who||"No one assigned")}${t.due?" &middot; "+E(t.due):""}</small><small>Status: <strong style="color:var(--ink)">${t.st==="Done"?"Completed":E(t.st==="In progress"?"Running":t.st||"Open")}</strong> &middot; ${f2(a)} h${x?" of "+f2(x)+" expected":""}</small><div class="row"><button data-jb="task" data-tid="${t.id}">Open Task</button>${sup?`<button data-jb="move" data-tid="${t.id}">Move to Another Job</button>`:""}</div></div>`}).join("")||`<div class="empty">No tasks on this job yet.</div>`)+`<div style="height:40px"></div>`}
@@ -5298,121 +5296,12 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  new MutationObserver(()=>{document.querySelectorAll(Object.keys(F).map(k=>`[data-jw="${k}"],[data-q="${k}"]`).join(",")).forEach(x=>{if(x.getAttribute("autocomplete")!=="off"){x.setAttribute("autocomplete","off");x.setAttribute("placeholder",x.getAttribute("placeholder")||(F[keyOf(x)]==="place"?"Type the plant name to search, e.g. W.A. Parish":"Type to search"))}})}).observe(document.getElementById("mod"),{childList:true,subtree:true});
 })();
 
+/* ===== v50.2: JSA sign-in names are tap buttons (the iPad name list did not open) ===== */
+(function(){const st=document.createElement("style");st.textContent=`.jsaNames{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}.jsaNames .chip{min-height:48px;font-size:16px;padding:6px 16px}`;document.head.appendChild(st);
+ document.getElementById("mod").addEventListener("click",e=>{const b=e.target.closest("button[data-jcn]");if(!b||cur!=="jsa")return;e.preventDefault();e.stopPropagation();const i=document.getElementById("jcn"),s=document.querySelector('#mod [data-j="sign"]');if(!i||!s)return;i.value=b.dataset.jcn;s.click()},true);
+})();
+
 /* ===== Installable web app: offline cache + keep storage ===== */
-
-
-/* ===== v51.2 Release C: job numbers are the way in. Home counts jobs; unit stage checklists open from inside a job. ===== */
-(function(){
- const E=esc,CLS=s=>/complet|closed|paid|denied|reject/i.test(s||"");
- const JB=()=>(window.JOBS?JOBS():[])||[];
- const isE=j=>j&&j.kind==="EWA",open=j=>j&&!j.closed&&!(isE(j)&&CLS(j.status));
- /* home: Jobs in Progress */
- const _h=home;home=function(){const r=_h.apply(this,arguments);try{const L=JB().filter(open);if(!L.length)return r;
-  const nos=new Set(L.map(j=>j.no)),T=(DB.tasks||[]).filter(t=>nos.has(t.job)),dn=T.filter(t=>t.st==="Done").length,pc=T.length?Math.round(100*dn/T.length):0;
-  const wait=L.filter(j=>isE(j)&&j.appr!=="Yes").length;
-  const S=$("#sum");if(!S)return r;
-  S.innerHTML=`<button type="button" id="sumJobs" style="all:unset;display:block;cursor:pointer;width:100%"><div class="big">${L.length}<span> ${L.length===1?"Job":"Jobs"} in Progress</span></div><div class="prg"><i style="width:${pc}%"></i></div><small>${pc}% of tasks done (${dn} of ${T.length})${wait?" &middot; "+wait+" EWA"+(wait===1?"":"s")+" waiting on approval":""}</small></button>`;
-  const b=$("#sumJobs");if(b)b.onclick=()=>show("jobs")}catch(e){}return r};
- /* the old unit tracker tile goes; jobs take its place */
- const _is=hmIs;hmIs=function(k){if(k==="prog")return false;return _is.apply(this,arguments)};
- try{FAV_DEF=FAV_DEF.map(k=>k==="prog"?"jobs":k);FAV_SHORT.jobs="Jobs"}catch(e){}
- try{if(!DB.homeV12){const fx=h=>{if(!h)return;Object.values(h.folders||{}).forEach(f=>{if(Array.isArray(f.items)){f.items=f.items.filter(k=>k!=="prog");if(f.items.includes("jobs")&&/unit/i.test(f.name||""))f.name="Jobs & Schedule"}});if(Array.isArray(h.order))h.order=h.order.filter(k=>k!=="prog")};
-  fx(DB.home);Object.values(DB.homeBy||{}).forEach(fx);
-  Object.keys(DB.favs||{}).forEach(k=>{const L=DB.favs[k];if(Array.isArray(L)){const i=L.indexOf("prog");if(i>=0){if(L.includes("jobs"))L.splice(i,1);else L[i]="jobs"}}});
-  DB.homeV12=1;sv()}}catch(e){}
- /* from a job: open the unit stage checklists */
- document.addEventListener("click",e=>{const b=e.target.closest("button[data-jstg]");if(!b)return;e.preventDefault();e.stopPropagation();show("prog")},true);
- try{if(typeof favRender==="function")favRender()}catch(e){}
- setTimeout(()=>{try{if(cur==="home")home()}catch(e){}},0);
-})();
-
-
-/* ===== v51.3 LOTO safety gate: the JSA cannot be finalized while the crew is not covered by LOTO ===== */
-(function(){
- const E=esc;
- const LO=()=>DB.loto||{};
- const exp=d=>d.status==="Active"&&d.expires&&d.expires<tdy();
- /* every reason the crew is not covered right now */
- window.LOTOGAP=function(){const g=[];try{
-  const st=((ds()||{}).comp||{}).lotoSt||"";
-  if(st==="Signed Off")g.push("LOTO status is SIGNED OFF. The crew is not under the plant LOTO.");
-  const docs=LO().docs||[],act=docs.filter(d=>(d.status||"Active")==="Active"&&!exp(d));
-  if(!act.length)g.push(docs.length?"No active LOTO permit. Every permit on file is released or expired.":"No LOTO permit is on file.");
-  docs.filter(exp).forEach(d=>g.push("Permit "+(d.permitNo||d.title||"")+" expired "+d.expires+"."));
-  if(docs.length&&window.LOTOAPPROVED&&!LOTOAPPROVED())g.push("LOTO is not approved by the supervisor since the last change.");
-  if(!(LO().locks||[]).some(l=>!l.off))g.push("No crew locks are on.")}catch(e){}return g};
- const css=document.createElement("style");css.textContent=`.lgap{margin:10px 16px;padding:14px 16px;border-radius:10px;background:#b3342b;color:#fff}.lgap b{display:block;font-size:22px;line-height:1.15;color:#fff}.lgap li{margin:4px 0;font-size:15px}.lgap ul{margin:6px 0 10px;padding-left:20px}.lgap button{background:#fff;color:#b3342b;border-color:#fff;font-weight:800}`;document.head.appendChild(css);
- const box=(g,extra)=>`<div class="lgap" role="alert"><b>STOP: CREW NOT COVERED BY LOTO</b><ul>${g.map(x=>`<li>${E(x)}</li>`).join("")}</ul><div class="row" style="padding:0"><button type="button" data-lgo="1">Go to LOTO</button>${extra||""}</div></div>`;
- /* red banner on the JSA while there is a gap */
- const MD=$("#mod");
- const paint=()=>{if(cur!=="jsa")return;const g=LOTOGAP(),old=document.getElementById("lgapJ");if(!g.length){if(old)old.remove();return}
-  const r=typeof jget==="function"&&jget();const ov=r&&r.lotoOv?`<small style="display:block;margin-top:8px;color:#fff">Finalized without LOTO by ${E(r.lotoOv.by)} ${E(r.lotoOv.at)}. Reason: ${E(r.lotoOv.reason)}</small>`:"";
-  const h=box(g)+"";if(old){return}const d=document.createElement("div");d.id="lgapJ";d.innerHTML=h;if(ov)d.firstChild.insertAdjacentHTML("beforeend",ov);const mh=MD.querySelector(".mh");if(mh)mh.after(d);else MD.prepend(d)};
- new MutationObserver(()=>{try{paint()}catch(e){}}).observe(MD,{childList:true});
- document.addEventListener("click",e=>{const b=e.target.closest("button[data-lgo]");if(!b)return;e.preventDefault();e.stopPropagation();const dl=document.querySelectorAll("dialog[open]");dl.forEach(x=>x.close());show("loto")},true);
- /* finalize: blocked until the gap is fixed, or a supervisor records why no LOTO is needed */
- let PASS=false;
- document.addEventListener("click",e=>{const b=e.target.closest('#mod button[data-j="final"]');if(!b||cur!=="jsa")return;if(PASS){PASS=false;return}
-  const g=LOTOGAP();if(!g.length)return;e.preventDefault();e.stopPropagation();const r=jget();if(!r)return;
-  const F=$("#dDatF");F.innerHTML=`<h2 style="color:#b3342b">This JSA cannot be finalized</h2>${box(g)}<div class="hint">Fix the LOTO first: get the permit active, the crew locked on and the LOTO approved. Then finalize.</div>`+
-   (isSup()?`<details style="margin-top:10px"><summary>No LOTO needed for today's work (supervisor)</summary><div class="hint">Only when none of today's tasks touch isolated equipment. This is recorded on the JSA with your name.</div><label>Reason<textarea id="lgR" rows="3" placeholder="e.g. Demob only: loading conex, no work on the unit"></textarea></label><div class="row"><button type="button" class="danger" id="lgOv">Finalize Without LOTO...</button></div></details>`:`<div class="hint" style="font-weight:700">Get your supervisor.</div>`)+
-   `<div class="row"><button type="button" id="lgX">Close</button></div>`;
-  F.oninput=F.onchange=null;F.onclick=ev=>{const x=ev.target.closest("button");if(!x)return;if(x.id==="lgX")return $("#dDat").close();
-   if(x.id==="lgOv"){const why=String(($("#lgR")||{}).value||"").trim();if(why.length<10)return alert("Write the reason no LOTO is needed (at least a few words).");
-    $("#dDat").close();pcGate("Finalize Without LOTO","You are finalizing this JSA while the crew is not covered by LOTO. Enter your 4-digit passcode to record that.",()=>{r.lotoOv={by:ME?ME.title:"",at:new Date().toLocaleString(),reason:why,gaps:g};sv();PASS=true;const fb=document.querySelector('#mod button[data-j="final"]');if(fb)fb.click();else PASS=false})}};
-  if(!$("#dDat").open)$("#dDat").showModal()},true);
- /* warn the moment someone signs the crew off the LOTO */
- document.addEventListener("change",e=>{const t=e.target;if(!t||t.tagName!=="SELECT"||t.value!=="Signed Off")return;if(![...t.options].some(o=>o.value==="Signed On"||o.text==="Signed On"))return;
-  setTimeout(()=>alert("LOTO SIGNED OFF\n\nThe crew is no longer covered by the plant LOTO. Stop all work on isolated equipment. Today's JSA cannot be finalized until the crew is signed back on, or a supervisor records why no LOTO is needed."),50)},true);
- /* phones and home screen show the stop too */
- const _pb=window.PBADGE;window.PBADGE=function(k){if(k==="loto"&&LOTOGAP().length)return "STOP: not covered";return _pb?_pb.apply(this,arguments):""};
- const _hb=hmBadge;hmBadge=function(k){if(k==="loto"&&LOTOGAP().length)return "STOP: not covered";return _hb.apply(this,arguments)};
- const _h=home;home=function(){const r=_h.apply(this,arguments);try{const g=LOTOGAP();const S=$("#sum");const o=document.getElementById("lgapH");if(o)o.remove();if(g.length&&S&&(DB.tasks||[]).length){const d=document.createElement("div");d.id="lgapH";d.innerHTML=box(g);d.firstChild.style.margin="10px 0";S.after(d)}}catch(e){}return r};
- setTimeout(()=>{try{if(cur==="home")home()}catch(e){}},0);
-})();
-
-/* ===== v51.0 Release A: Demo Mode. One build; the demo is a separate data set, never the live job. ===== */
-(function(){
- const LS=localStorage,FLAG="tp-demo-v1",STASH="tp-live-stash",KEEP=new Set(["tp-sync-cfg","tp-sync-dev","tp-sync-bq",STASH]);
- const on=()=>{try{return LS.getItem(FLAG)==="1"}catch(e){return false}};
- const keys=()=>{const o=[];for(let i=0;i<LS.length;i++){const k=LS.key(i);if(!KEEP.has(k))o.push(k)}return o};
- const raw=Storage.prototype.setItem;
- window.DEMOMODE=on;
- /* turn on: put the live job away, start the demo from empty */
- window.demoOn=function(){WIPING=true;const st={};keys().forEach(k=>{st[k]=LS.getItem(k)});delete st[FLAG];
-  try{keys().forEach(k=>LS.removeItem(k));raw.call(LS,STASH,JSON.stringify(st));raw.call(LS,FLAG,"1")}catch(e){alert("Could not switch to Demo Mode: "+(e&&e.message||e));WIPING=false;return}
-  try{sessionStorage.clear()}catch(e){}location.reload()};
- /* turn off: throw the demo away, bring the live job back exactly as it was */
- window.demoOff=async function(){WIPING=true;let st={};try{st=JSON.parse(LS.getItem(STASH)||"{}")}catch(e){}delete st[FLAG];
-  try{keys().forEach(k=>LS.removeItem(k));Object.keys(st).forEach(k=>raw.call(LS,k,st[k]));LS.removeItem(STASH);LS.removeItem(FLAG)}catch(e){}
-  try{sessionStorage.clear()}catch(e){}
-  try{const d=await idb;if(d)d.close()}catch(e){}
-  try{await new Promise(r=>{const q=indexedDB.deleteDatabase("tp-photos-demo");q.onsuccess=q.onerror=q.onblocked=()=>r()})}catch(e){}
-  location.reload()};
- /* reload: rebuild the demo from the bundled seed */
- window.demoReload=async function(){WIPING=true;try{keys().forEach(k=>LS.removeItem(k));raw.call(LS,FLAG,"1")}catch(e){}
-  try{sessionStorage.clear()}catch(e){}
-  try{const d=await idb;if(d)d.close()}catch(e){}
-  try{await new Promise(r=>{const q=indexedDB.deleteDatabase("tp-photos-demo");q.onsuccess=q.onerror=q.onblocked=()=>r()})}catch(e){}
-  location.reload()};
- /* banner on every screen */
- if(on()){document.body.insertAdjacentHTML("afterbegin",'<div id="demoBar" style="position:sticky;top:0;z-index:9999;background:#f5c518;color:#111;font-weight:800;text-align:center;padding:6px 12px;letter-spacing:.04em;border-bottom:2px solid #111">DEMO MODE &middot; fictional data &middot; the live job is untouched</div>');
-  /* fresh demo: build it from the seed */
-  let seeded=false;try{seeded=LS.getItem("tp-seeded")==="1"}catch(e){}
-  if(!seeded){document.body.insertAdjacentHTML("beforeend",'<div id="demoLoad" style="position:fixed;inset:0;z-index:10000;background:#0e1517;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-size:20px"><b>Loading demo data&hellip;</b><small>About 20 seconds. The app reloads when ready.</small></div>');
-   setTimeout(()=>{try{loadDemoData().catch(e=>{alert("Demo load failed: "+(e&&e.message||e));demoOff()})}catch(e){alert("Demo load failed: "+(e&&e.message||e));demoOff()}},300)}}
- /* Factory Reset screen: demo controls live here */
- const _rst=rstView;rstView=function(){if(on()){$("#mod").innerHTML=`<div class="mh"><h2>Demo Mode</h2></div><div class="rec hold"><b>Demo Mode is ON</b><small>Everything you see is the fictional Ridgeline Generating Station outage. The live job is put away on this device and comes back untouched when Demo Mode is turned off.</small><small>Live Sync is paused. Factory Reset is not available while Demo Mode is on.</small></div>
- <div class="row" style="padding:6px 16px"><button class="pri" data-rs="dmOff">Turn Demo Mode Off</button><button data-rs="dmReload">Reload Demo Data</button></div><div class="hint" style="padding:0 16px 30px">You will be asked for your passcode.</div>`;return}
-  _rst.apply(this,arguments);
-  const h=[...document.querySelectorAll("#mod .hint")].pop();if(h)h.textContent="Factory Reset asks for your passcode, then for ERASE typed out. Demo Mode asks for your passcode only.";const d=$("#mod details");if(d)d.outerHTML=`<div class="mh" style="margin-top:14px"><h2>Demo Mode</h2></div><div class="rec"><b>Demo Mode is OFF</b><small>Turning it on puts the live job away on this device and loads a fictional steam turbine outage (Ridgeline Generating Station, day 19 of 40, day and night shifts). Live Sync pauses. Turn it off to bring the live job back exactly as it was.</small></div><div class="row" style="padding:6px 16px"><button data-rs="dmOn">Turn Demo Mode On...</button></div>`};
- document.addEventListener("click",e=>{const b=e.target.closest("#mod button[data-rs]");if(!b||cur!=="reset")return;const k=b.dataset.rs;if(k!=="dmOn"&&k!=="dmOff"&&k!=="dmReload")return;e.stopPropagation();
-  if(k==="dmOn")return pcGate("Demo Mode","Turn Demo Mode on? The live job is put away on this device, not erased. Enter your 4-digit passcode to continue.",()=>{if(confirm("Switch this device to Demo Mode now? The app will reload."))demoOn()});
-  if(k==="dmOff")return pcGate("Demo Mode","Turn Demo Mode off and bring the live job back? Enter your 4-digit passcode to continue.",()=>demoOff());
-  if(k==="dmReload")return pcGate("Reload Demo Data","Rebuild the demo from scratch? Enter your 4-digit passcode to continue.",()=>demoReload())},true);
- try{if(cur==="reset")rstView()}catch(e){}
-})();
-
 (function(){if(!/^https?:$/.test(location.protocol))return;
  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
  try{if("serviceWorker" in navigator){var had=!!navigator.serviceWorker.controller,rl=false;
