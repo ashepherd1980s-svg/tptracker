@@ -6299,6 +6299,217 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  try{new MutationObserver(()=>{try{if(typeof cur!=="undefined"&&cur==="reset")document.querySelectorAll("#mod details").forEach(d=>{if(/demo/i.test((d.querySelector("summary")||{}).textContent||""))d.remove()})}catch(e){}}).observe($("#mod"),{childList:true})}catch(e){}
 })();
 
+/* ===== v53: top bar on every screen (Home and Log Out), no side-switch buttons, and the Field side laid out like the Shop: Start My Day, Wrap Up, job folders with links in a left menu ===== */
+(function(){
+ const E=esc;
+ /* ---------- Log Out: back to the Shop / Field choice. Data is kept. ---------- */
+ window.TPLOGOUT=function(){if(window.TPDEMO){if(confirm("Exit the demo? Demo data is cleared. Your real data is not touched."))TPEXITDEMO();return}
+  try{sessionStorage.removeItem("tp-side");sessionStorage.removeItem("tp-me");sessionStorage.removeItem("tp-shift")}catch(e){}location.reload()};
+ /* ---------- no "Switch to Field" / "Switch to Shop" buttons anywhere ---------- */
+ const st0=document.createElement("style");st0.textContent=`[data-tpgo]{display:none!important}
+#tpTop{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 10px;background:rgba(14,21,23,.97);border-bottom:1px solid rgba(255,255,255,.12);color:#e6eded}
+#tpTop img{height:26px;background:#fff;padding:2px 6px;border-radius:4px}#tpTop .sp{flex:1}#tpTop .who{font-size:13px;color:#8fa3a5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%}
+#tpTop button{min-height:36px;padding:0 14px;border-radius:18px;border:1px solid #3a4a4c;background:transparent;color:#e6eded;font:700 14px system-ui,sans-serif;display:flex;align-items:center;gap:6px}
+#tpTop button.hm{background:linear-gradient(135deg,#1f6f6b,#14504d);border-color:transparent}#tpTop button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#tpTop button{white-space:nowrap}@media(max-width:600px){#tpTop .who{display:none}#tpTop img{height:22px}#tpTop{gap:6px;padding:4px 8px}#tpTop button{padding:0 10px;font-size:13px;min-height:34px}#tpTop #tpTopAI span,#tpTop #tpTopHome span{display:none}}#wxBar{top:44px!important}header{top:84px!important}@media print{#tpTop{display:none}}`;document.head.appendChild(st0);
+ const top=document.createElement("div");top.id="tpTop";
+ top.innerHTML=`<img id="tpTopLogo" alt="TurbinePros" hidden><span class="who" id="tpTopWho"></span><span class="sp"></span><button type="button" class="hm" id="tpTopHome"><svg viewBox="0 0 24 24"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg><span>Home</span></button><button type="button" id="tpTopOut"><svg viewBox="0 0 24 24"><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></svg>Log Out</button>`;
+ document.body.insertBefore(top,document.body.firstChild);
+ const setLogo=()=>{const L=document.querySelector("img.logo");const t=$("#tpTopLogo");if(L&&L.src&&t){t.src=L.src;t.hidden=false}};setLogo();setTimeout(setLogo,800);
+ function topWho(){const w=$("#tpTopWho");if(!w)return;const side=window.TPDEMO?"Demo":window.SHOPMODE?"Shop":"Field Service";const me=(typeof ME!=="undefined"&&ME&&ME.title)||"";const sh=(!window.SHOPMODE&&window.CURSHIFT&&CURSHIFT())||"";const t=side+(me?" · "+me:"")+(sh?" · "+sh+" Shift":"");if(w.textContent!==t)w.textContent=t}
+ $("#tpTopHome").onclick=()=>{try{if(window.SHOPMODE&&typeof go==="function")return go("home")}catch(e){}show("home")};
+ $("#tpTopOut").onclick=()=>{if(confirm("Log out and go back to the Shop / Field choice?"))TPLOGOUT()};
+ document.querySelectorAll("[data-tpgo]").forEach(x=>x.remove());
+ new MutationObserver(()=>{document.querySelectorAll("[data-tpgo]").forEach(x=>x.remove());topWho()}).observe(document.body,{childList:true,subtree:true});
+ topWho();
+ if(window.SHOPMODE)return;
+ /* ================= FIELD SIDE: same layout as the Shop ================= */
+ const nv=v=>String(v==null?"":v).trim(),MD=$("#mod");
+ const FOCUS={unit:"",job:""};window.FIELDFOCUS=FOCUS;
+ const FLINKS=[["info","Unit info"],["prog","Progress & task cards"],["crew","Crew"],["plan","Daily plan"],["jsa","JSAs"],["loto","LOTO"],["dsr","Daily Status Report"],["time","Timesheets"],["vend","Vendors"],["parts","Parts"],["photos","Photos"],["finds","Findings"],["delay","Delays"],["hseq","HSEQ & FME"],["status","Customer status"]];
+ const FROUTE={info:"prog",prog:"tasks",crew:"people",plan:"crew",jsa:"jsa",loto:"loto",dsr:"dsr",time:"costs",vend:"vend",parts:"g_req",photos:"fm_media",finds:"data",delay:"delay",hseq:"fme",status:"g_stat"};
+ const ELINKS=[["prog","Task cards"],["time","Timesheets"],["dsr","Daily Status Report"]];
+ const SUPK=new Set(["dsr","costs"]);
+ const have=k=>!!(M[k]||(window.TPHUBS&&TPHUBS[k]));
+ const route=k=>{const r=FROUTE[k];return have(r)?r:(k==="parts"?"shop":k==="status"?"status":r)};
+ const SET=()=>{const o=DB.fset&&typeof DB.fset==="object"?DB.fset:(DB.fset={});return o};
+ const jobNo=u=>nv(u.job)||(window.ACTJOB?nv(ACTJOB()):"")||(window.JOBNO?nv(JOBNO()):"");
+ const uLabel=u=>[jobNo(u),nv(u.name)].filter(Boolean).join(" ")||"Unit";
+ const uStage=u=>{if(u.done)return "Done";const s=STAGES[u.stage]||STAGES[0];return s&&typeof s==="object"?(s.n||s.name||"Stage "+(u.stage+1)):String(s||"")};
+ const UNITS=()=>{const o=SET().uord||[];return U.slice().sort((a,b)=>{const ia=o.indexOf(a.id),ib=o.indexOf(b.id);return (ia<0?1e6:ia)-(ib<0?1e6:ib)})};
+ const EWAS=()=>{try{return (window.JOBS?JOBS():[]).filter(j=>j&&j.kind==="EWA"&&!j.closed&&!/complet|closed|paid|denied|reject/i.test(j.status||""))}catch(e){return []}};
+ const LORD=()=>{const o=SET().lord||[];return FLINKS.slice().sort((a,b)=>{const ia=o.indexOf(a[0]),ib=o.indexOf(b[0]);return (ia<0?99:ia)-(ib<0?99:ib)})};
+ const openN=u=>DB.tasks.filter(t=>t.unit===u.name&&t.st!=="Done").length;
+ const runN=u=>DB.tasks.filter(t=>t.unit===u.name&&runners(t).length).length;
+ const wide=()=>window.matchMedia("(min-width:820px)").matches;
+ const onPhone=()=>!!(window.PHONE&&PHONE());
+ /* ---------- look (copied from the Shop side) ---------- */
+ const st=document.createElement("style");st.textContent=`#fsSide{display:none}
+ @media(min-width:820px){body.fside #tab{display:none!important}body.fside #fsSide{display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;width:216px;padding:calc(16px + env(safe-area-inset-top,0px)) 10px 22px;background:rgba(14,21,23,.97);border-right:1px solid rgba(255,255,255,.12);overflow-y:auto;z-index:5;gap:4px}
+ body.fside #tiles,body.fside #hmBar{display:none!important}}
+ #fsSide button{display:flex;align-items:center;justify-content:flex-start;gap:8px;width:100%;text-align:left;min-height:46px;padding:6px 12px;border-radius:12px;border:0;background:transparent;color:#e6eded;font-size:16px;font-weight:600}
+ #fsSide button:hover,#fsSide button.on{background:rgba(255,255,255,.08)}#fsSide .sday{background:linear-gradient(135deg,#1f6f6b,#14504d);font-weight:800;min-height:52px}#fsSide .sday small{display:block;font-weight:500;opacity:.8;font-size:12px}
+ #fsSide h4{margin:14px 6px 4px;font:700 12px system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8fa3a5;display:flex;align-items:center;gap:6px}#fsSide h4 button{width:auto;min-height:30px;font-size:13px;padding:0 10px;margin-left:auto;border:1px solid #3a4a4c;letter-spacing:0;text-transform:none}
+ #fsSide .fold{font-weight:800}#fsSide .fold small{display:block;font-weight:500;color:#8fa3a5;font-size:12px}#fsSide .fold .chev{margin-left:auto;opacity:.6}
+ #fsSide .lnk{min-height:38px;font-size:14px;font-weight:500;padding-left:26px;color:#cfdcdc}#fsSide .sep{border-top:1px solid rgba(255,255,255,.12);margin:10px 4px}
+ #fsSide .qrow{display:flex;align-items:center}#fsSide .qrow .qhd{flex:0 0 36px;min-height:40px;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:grab;color:#8fa3a5;font-size:20px;user-select:none;-webkit-user-select:none}
+ #fieldHome{padding:0 16px 10px}@media(min-width:820px){#fieldHome{padding:0 24px 10px}}
+ #fieldHome .qjob{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-left:6px solid #a3283c;border-radius:14px;padding:14px 16px;margin:10px 0}#fieldHome .qjob b{font-size:24px;display:block;letter-spacing:.01em}#fieldHome .qjob small{color:var(--mute);display:block;margin-top:2px;font-size:14px}#fieldHome .qnx{color:inherit;font-size:15px;margin-top:6px}
+ #fieldHome .shBar,#fsp .shBar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:8px}#fieldHome .shBar i,#fsp .shBar i{display:block;height:100%;background:linear-gradient(90deg,#1f6f6b,#3fae66)}
+ #fieldHome .qday{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 12px}#fieldHome .qday button{flex:1 1 220px;min-height:64px;border-radius:16px;font-size:20px;font-weight:800}
+ #fieldHome .shNav{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}#fieldHome .shNav button{min-height:48px;padding:6px 16px;border-radius:24px;font-weight:700;position:relative}#fieldHome .shNav .cnt{display:inline-block;min-width:22px;padding:0 6px;border-radius:11px;background:#d9534f;color:#fff;font-size:13px;margin-left:6px}
+ #fieldHome .stg{display:inline-block;padding:3px 10px;border-radius:12px;font-size:13px;font-weight:800;background:#1f6f6b;color:#fff;white-space:nowrap}#fieldHome .stg.done{background:#2f7d4a}#fieldHome .tg{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:800;margin-left:6px;color:#fff}
+ #fsp{padding:0 16px 50px}@media(min-width:820px){#fsp{padding:0 24px 50px}}#fsp .rec{margin:8px 0}
+ .qlinks{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}.qlinks button{min-height:64px;border-radius:14px;font-size:17px;font-weight:700;text-align:left;padding:10px 16px}
+ #fsFocus{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 16px 0;padding:8px 12px;border-radius:12px;background:rgba(31,111,107,.18);border:1px solid rgba(31,111,107,.6);font-size:14px}@media(min-width:820px){#fsFocus{margin:8px 24px 0}}#fsFocus b{font-size:15px}#fsFocus button{min-height:34px;padding:0 12px;border-radius:17px;font-size:13px;margin-left:auto}
+ .qdrag{opacity:.55}`;document.head.appendChild(st);
+ document.body.classList.add("fside");
+ /* ---------- job folder screen ---------- */
+ M.fs_jf={t:"Job folder",f:[],sum:()=>""};
+ let UID="",SBOPEN=new Set(),SBEDIT=false;
+ const unitOf=id=>U.find(u=>u.id===id);
+ const back=`<button type="button" data-fsgo="home">&larr; Back</button>`;
+ function jfView(){const u=unitOf(UID);if(!u)return show("home");const op=openN(u),rn=runN(u),p=pct(u);
+  MD.innerHTML=`<div class="mh"><h2>${E(uLabel(u))}</h2></div><div id="fsp"><div class="rec"><b>${E([nv(u.customer),nv(u.ttype)&&nv(u.ttype)+" turbine",nv(u.maker),nv(u.model)].filter(Boolean).join(" · ")||"Job folder")}</b><small><span class="stg${u.done?" done":""}" style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:13px;font-weight:800;background:${u.done?"#2f7d4a":"#1f6f6b"};color:#fff">${E(uStage(u))}</span> &middot; ${op} open task${op===1?"":"s"}${rn?" &middot; "+rn+" running":""}${u.hold&&!u.done?` &middot; <span style="color:#d9534f;font-weight:800">On hold: ${E(u.hold)}</span>`:""}</small><div class="shBar"><i style="width:${p}%"></i></div></div>
+  <div class="qlinks">${LORD().filter(([k])=>!SUPK.has(route(k))||isSup()).map(([k,l])=>`<button type="button" data-fsl="${k}">${E(l)}</button>`).join("")}</div><div class="hint">Everything you open from here is filed under this unit. Change the order of these links with Edit in the side menu.</div></div>`}
+ const _mod=mod;mod=function(k){if(k==="fs_jf")return jfView();return _mod.apply(this,arguments)};
+ /* ---------- focus: the unit (or EWA) you opened from the side menu ---------- */
+ function setFocus(u,j){FOCUS.unit=u?u.name:"";FOCUS.job=j||(u?jobNo(u):"");try{if(u){LAST.unit=u.name;localStorage.setItem("tp-last",JSON.stringify(LAST))}}catch(e){}try{if(FOCUS.job&&window.setActJob)setActJob(FOCUS.job)}catch(e){}}
+ function clearFocus(){FOCUS.unit="";FOCUS.job="";UID="";SBOPEN=new Set();fside();try{if(M[cur]&&cur!=="home")mod(cur)}catch(e){}banner()}
+ function banner(){const o=document.getElementById("fsFocus");if(o)o.remove();if(cur==="home"||cur==="fs_jf"||MD.hidden||(!FOCUS.unit&&!FOCUS.job))return;
+  const d=document.createElement("div");d.id="fsFocus";d.innerHTML=`<span>Working in <b>${E(FOCUS.unit?[FOCUS.job,FOCUS.unit].filter(Boolean).join(" "):FOCUS.job)}</b>${cur==="tasks"?" &middot; showing only this "+(FOCUS.unit?"unit's":"job's")+" tasks":" &middot; new entries default to this "+(FOCUS.unit?"unit":"job")}</span><button type="button" data-fsgo="clear">All units</button>`;
+  const mh=MD.querySelector(".mh");if(mh)mh.after(d);else MD.prepend(d)}
+ /* tasks screen: only the unit or EWA in focus (handlers use task ids, so the list stays safe) */
+ const _tv=tasksView;tasksView=function(){if(FOCUS.unit||FOCUS.job){const all=DB.tasks;DB.tasks=all.filter(t=>FOCUS.unit?t.unit===FOCUS.unit:nv(t.job)===FOCUS.job);try{return _tv.apply(this,arguments)}finally{DB.tasks=all}}return _tv.apply(this,arguments)};
+ /* ---------- open a link ---------- */
+ function openLink(uid,k){const u=unitOf(uid);if(!u)return;UID=uid;SBOPEN=new Set([uid]);setFocus(u);
+  if(k==="info"){show("prog");try{openUnit(u.id)}catch(e){}return}
+  const r=route(k);if(!have(r)&&r!=="prog")return alert("That screen is not available here.");show(r)}
+ function openEwa(no,k){UID="";SBOPEN=new Set(["e:"+no]);setFocus(null,no);const r=k==="prog"?"tasks":k==="time"?"costs":"dsr";show(r)}
+ /* ---------- side menu (iPad) ---------- */
+ function fside(){if(onPhone())return;let d=document.getElementById("fsSide");if(!d){d=document.createElement("nav");d.id="fsSide";d.setAttribute("aria-label","Field");document.body.appendChild(d)}
+  if(!ME||(document.getElementById("lock")&&!$("#lock").hidden)){d.innerHTML="";return}
+  const L=LORD().filter(([k])=>!SUPK.has(route(k))||isSup()),us=UNITS(),ew=EWAS();
+  const fold=u=>`<div class="qrow" data-qid="${u.id}">${SBEDIT?`<span class="qhd" aria-label="Drag to reorder">&#8801;</span>`:""}<button type="button" class="fold${UID===u.id?" on":""}" data-fa="sbf" data-fu="${u.id}"><span>${E(uLabel(u))}<small>${E(nv(u.customer)||uStage(u))}</small></span><span class="chev">${SBOPEN.has(u.id)?"&#9662;":"&#9656;"}</span></button></div>`+
+   (SBOPEN.has(u.id)&&!SBEDIT?L.map(([k,l])=>`<button type="button" class="lnk${UID===u.id&&(route(k)===cur||(k==="info"&&cur==="prog"))?" on":""}" data-fa="lnk" data-fu="${u.id}" data-fk="${k}">${E(l)}</button>`).join(""):"");
+  const efold=j=>`<button type="button" class="fold${FOCUS.job===j.no&&!FOCUS.unit?" on":""}" data-fa="ewa" data-fe="${E(j.no)}"><span>${E(j.no)}<small>${E(nv(j.desc).slice(0,28)||"EWA")}</small></span><span class="chev">${SBOPEN.has("e:"+j.no)?"&#9662;":"&#9656;"}</span></button>`+
+   (SBOPEN.has("e:"+j.no)?ELINKS.filter(([k])=>k!=="dsr"&&k!=="time"||isSup()).map(([k,l])=>`<button type="button" class="lnk" data-fa="elnk" data-fe="${E(j.no)}" data-fk="${k}">${E(l)}</button>`).join(""):"");
+  const sh=(window.CURSHIFT&&CURSHIFT())||"";
+  d.innerHTML=`<button type="button" class="sday" data-fa="go" data-fk="ssf"><span>Start My Day<small>${E(new Date().toLocaleDateString([],{weekday:"long",month:"short",day:"numeric"}))}${sh?" &middot; "+E(sh)+" Shift":""}</small></span></button><button type="button" data-fa="go" data-fk="fm_eos">Wrap Up</button>
+  <h4>Jobs${isSup()?`<button type="button" data-fa="sbedit">${SBEDIT?"Done":"Edit"}</button>`:""}</h4><div data-qdrag="uord">${us.map(fold).join("")}</div>${us.length?"":`<div style="color:#8fa3a5;font-size:14px;padding:6px 12px">No units yet.</div>`}
+  ${ew.length?`<h4>EWAs</h4>${ew.map(efold).join("")}`:""}
+  ${isSup()?`<button type="button" data-fa="newj" style="color:#8fa3a5;font-size:14px">+ New job / unit</button>`:""}
+  ${SBEDIT?`<h4>Folder link order</h4><div data-qdrag="lord">${LORD().map(([k,l])=>`<div class="qrow" data-qid="${k}"><span class="qhd" aria-label="Drag to reorder">&#8801;</span><button type="button" class="lnk" style="padding-left:6px" tabindex="-1">${E(l)}</button></div>`).join("")}</div>`:""}
+  <div class="sep"></div><button type="button" data-fa="go" data-fk="g_ord"${cur==="g_ord"||cur==="vend"||cur==="fm_rcv"||cur==="rent"?' class="on"':""}>Vendors &amp; Request PDFs</button><button type="button" data-fa="go" data-fk="g_safe"${cur==="g_safe"||cur==="safety"?' class="on"':""}>Site Safety</button><button type="button" data-fa="go" data-fk="people"${cur==="people"?' class="on"':""}>Field Crew &amp; Hours</button>${isSup()?`<button type="button" data-fa="go" data-fk="qs"${cur==="qs"?' class="on"':""}>Settings</button>`:""}<button type="button" data-fa="go" data-fk="home"${cur==="home"?' class="on"':""}>Home</button>`}
+ /* drag to reorder */
+ function dragInit(root){let it=null,box=null;
+  root.addEventListener("pointerdown",e=>{const h=e.target.closest(".qhd");if(!h)return;it=h.closest("[data-qid]");box=it&&it.parentElement;if(!box||!box.dataset.qdrag){it=null;return}e.preventDefault();it.classList.add("qdrag");try{h.setPointerCapture(e.pointerId)}catch(x){}});
+  root.addEventListener("pointermove",e=>{if(!it)return;e.preventDefault();const sib=[...box.children].filter(x=>x!==it&&x.dataset.qid);let before=null;for(const x of sib){const r=x.getBoundingClientRect();if(e.clientY<r.top+r.height/2){before=x;break}}box.insertBefore(it,before)});
+  const end=()=>{if(!it)return;it.classList.remove("qdrag");const ord=[...box.children].map(x=>x.dataset.qid).filter(Boolean),k=box.dataset.qdrag;SET()[k]=ord;sv();it=null;box=null;fside();try{if(cur==="fs_jf")jfView()}catch(x){}};
+  root.addEventListener("pointerup",end);root.addEventListener("pointercancel",end)}
+ setTimeout(()=>{fside();const d=document.getElementById("fsSide");if(d)dragInit(d)},0);
+ document.addEventListener("click",e=>{const sd=document.getElementById("fsSide");if(!sd||!sd.contains(e.target))return;const b=e.target.closest("button[data-fa]");if(!b)return;const a=b.dataset.fa;
+  if(a==="sbedit"){SBEDIT=!SBEDIT;return fside()}
+  if(a==="sbf"){const id=b.dataset.fu;if(SBEDIT)return;if(SBOPEN.has(id)&&UID===id){SBOPEN.delete(id);return fside()}SBOPEN=new Set([id]);UID=id;const u=unitOf(id);if(u)setFocus(u);return show("fs_jf")}
+  if(a==="lnk")return openLink(b.dataset.fu,b.dataset.fk);
+  if(a==="ewa"){const no=b.dataset.fe;if(SBOPEN.has("e:"+no)){SBOPEN.delete("e:"+no);return fside()}SBOPEN=new Set(["e:"+no]);UID="";setFocus(null,no);return openEwa(no,"prog")}
+  if(a==="elnk")return openEwa(b.dataset.fe,b.dataset.fk);
+  if(a==="newj"){show("prog");try{const x=$("#add");if(x)x.click()}catch(e){}return}
+  if(a==="go"){const k=b.dataset.fk;if(k==="home"){clearFocus();return show("home")}return show(k)}});
+ /* ---------- home: Start My Day, Wrap Up, quick buttons and job cards (the tiles stay on phones) ---------- */
+ function homeField(){let h=document.getElementById("fieldHome");if(!h){h=document.createElement("div");h.id="fieldHome"}const sm=document.getElementById("sum");if(sm)sm.after(h);else $("#home").appendChild(h);
+  if(!ME||onPhone()){h.innerHTML="";return}
+  const td=tdy(),us=UNITS(),open=DB.tasks.filter(t=>t.st!=="Done").length,run=DB.tasks.filter(t=>runners(t).length).length,dl=(DB.delays||[]).find(d=>!d.end);
+  const sh=(window.CURSHIFT&&CURSHIFT())||"",js=(DB.jsas||[]).filter(j=>j.date===td).length;
+  h.innerHTML=`<div class="qday"><button type="button" class="pri" data-fa2="go" data-fk="ssf">Start My Day<small style="display:block;font-size:13px;font-weight:600">${E(sh?sh+" Shift":"")}${sh?" &middot; ":""}${run} running &middot; ${open} open</small></button><button type="button" data-fa2="go" data-fk="fm_eos">Wrap Up<small style="display:block;font-size:13px;font-weight:600">End of shift</small></button></div>
+  <div class="shNav"><button type="button" data-fa2="go" data-fk="tasks">Tasks</button><button type="button" data-fa2="go" data-fk="crew">Crew</button><button type="button" data-fa2="go" data-fk="jsa">JSA${js?"":` <span class="cnt">!</span>`}</button>${isSup()?`<button type="button" data-fa2="go" data-fk="dsr">Daily Report</button>`:""}<button type="button" data-fa2="go" data-fk="delay">Delays${dl?` <span class="cnt">1</span>`:""}</button><button type="button" data-fa2="go" data-fk="g_safe">Safety</button></div>
+  ${us.map(u=>{const op=openN(u),rn=runN(u);return `<button type="button" class="qjob" data-fa2="job" data-fu="${u.id}"><b>${E(uLabel(u))}</b><small>${E([nv(u.customer),nv(u.maker),nv(u.model)].filter(Boolean).join(" · ")||"Tap to open the job folder")}</small><small><span class="stg${u.done?" done":""}">${E(uStage(u))}</span>${u.hold&&!u.done?` <span class="tg" style="background:#d9534f">On hold</span>`:""}${op?` &middot; ${op} open task${op===1?"":"s"}`:""}${rn?` &middot; ${rn} running`:""}</small><div class="shBar"><i style="width:${pct(u)}%"></i></div></button>`}).join("")||`<div class="empty">No units yet. ${isSup()?"Tap + New job / unit in the side menu when the first unit is coming.":""}</div>`}`}
+ $("#home").addEventListener("click",e=>{const b=e.target.closest("button[data-fa2]");if(!b)return;e.stopPropagation();e.preventDefault();
+  if(b.dataset.fa2==="job"){UID=b.dataset.fu;SBOPEN=new Set([UID]);const u=unitOf(UID);if(u)setFocus(u);return show("fs_jf")}
+  return show(b.dataset.fk)},true);
+ MD.addEventListener("click",e=>{const b=e.target.closest("button[data-fsgo],button[data-fsl]");if(!b)return;e.stopPropagation();e.preventDefault();
+  if(b.dataset.fsl)return openLink(UID,b.dataset.fsl);
+  if(b.dataset.fsgo==="clear")return clearFocus();
+  clearFocus();show("home")},true);
+ const _h=home;home=function(){const r=_h.apply(this,arguments);try{homeField()}catch(e){}try{fside()}catch(e){}return r};
+ const _s=show;show=function(v){const r=_s.apply(this,arguments);try{if(cur==="fs_jf")$("#fab").hidden=true;fside();banner();topWho()}catch(e){}return r};
+ try{if(cur==="home")home()}catch(e){}
+})();
+
+/* ===== v53.1: Clear All on every form (empties the fields on the form you have open; nothing saved is touched) ===== */
+(function(){
+ const st=document.createElement("style");st.textContent=`button.tpClr{min-height:44px;border-radius:12px;border:1px dashed #6b7a7c;background:transparent;color:inherit;font-weight:700}`;document.head.appendChild(st);
+ const fields=root=>[...root.querySelectorAll("input,select,textarea")].filter(el=>!el.disabled&&!el.readOnly&&el.type!=="hidden"&&el.type!=="file"&&el.type!=="submit"&&el.type!=="button"&&!el.closest("#tpTop,#wxBar,#fsSide,#shSide,#hs"));
+ function clear(root){fields(root).forEach(el=>{if(el.type==="checkbox"||el.type==="radio")el.checked=false;else if(el.tagName==="SELECT"){const o=[...el.options].find(x=>x.value==="")||el.options[0];el.selectedIndex=o?o.index:-1}else el.value="";try{el.dispatchEvent(new Event("input",{bubbles:true}));el.dispatchEvent(new Event("change",{bubbles:true}))}catch(e){}})}
+ function place(root){if(root.querySelector("button.tpClr"))return;const F=fields(root);if(F.length<2)return;if(root.id==="mod"&&F.filter(el=>el.closest("label")).length<2)return;
+  let rows=[...root.querySelectorAll(".row")].filter(r=>r.querySelector("button.pri,button[type=submit],#lgo"));if(root.id==="mod")rows=rows.filter(r=>/save|create|finaliz|sign|submit|record|complete/i.test(r.textContent));const row=rows[rows.length-1];if(!row)return;
+  const b=document.createElement("button");b.type="button";b.className="tpClr";b.textContent="Clear All";b.title="Empty every field on this form";row.insertBefore(b,row.firstChild)}
+ document.addEventListener("click",e=>{const b=e.target.closest("button.tpClr");if(!b)return;e.preventDefault();e.stopPropagation();const root=b.closest("dialog, form, #mod, #lock, #shp, #fsp")||document.body;if(confirm("Clear every field on this form?"))clear(root)},true);
+ const scan=()=>{document.querySelectorAll("dialog[open]").forEach(place);const m=document.getElementById("mod");if(m&&!m.hidden)place(m)};
+ new MutationObserver(scan).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["open","hidden"]});scan();
+})();
+
+/* ===== v54: Claude button (supervisors), Shop Live Sync, Shop phone versions: PM gets everything, supervisors get a seven-button menu, Technical Director read-only ===== */
+(function(){
+ const E=esc,nv=v=>String(v==null?"":v).trim();
+ /* ---------- Claude button, top right, supervisors only ---------- */
+ try{const t=document.getElementById("tpTop");if(t&&!document.getElementById("tpTopAI")){const b=document.createElement("button");b.id="tpTopAI";b.type="button";b.hidden=true;b.innerHTML=`<svg viewBox="0 0 24 24"><path d="M12 3c-1.5 3.6-3.4 5.5-7 7 3.6 1.5 5.5 3.4 7 7 1.5-3.6 3.4-5.5 7-7-3.6-1.5-5.5-3.4-7-7z"/></svg><span>Claude</span>`;
+  b.onclick=()=>{try{window.open("https://claude.ai/new","_blank","noopener")}catch(e){location.href="https://claude.ai/new"}};
+  const h=document.getElementById("tpTopHome");if(h)t.insertBefore(b,h);else t.appendChild(b);
+  const upd=()=>{const on=!!(typeof ME!=="undefined"&&ME&&isSup());if(b.hidden===on)b.hidden=!on};upd();new MutationObserver(upd).observe(document.getElementById("lock")||document.body,{attributes:true,childList:true,subtree:true})}}catch(e){}
+ if(!window.SHOPMODE)return;
+ /* ---------- Shop Live Sync: same free cloud database as Field, its own site so the two never mix ---------- */
+ try{if(!localStorage.getItem("tp-site-name"))localStorage.setItem("tp-site-name","tp-shop")}catch(e){}
+ try{const _sh=show;show=function(v){if(v==="sync"||v==="reset"){cur=v;$("#home").hidden=true;$("#prog").hidden=true;$("#mod").hidden=false;document.querySelector("header").hidden=false;$("#fab").hidden=true;mod(v);scrollTo(0,0);try{window.SYNCDRAW&&SYNCDRAW()}catch(e){}return}return _sh.apply(this,arguments)}}catch(e){}
+ const fixSet=()=>{try{const h=[...document.querySelectorAll("#mod .hint")].find(x=>/does not use Live Sync/.test(x.textContent));if(h){h.innerHTML=`Live Sync shares this shop's jobs between the shop iPad and the supervisors' phones through the free cloud database (site <b>tp-shop</b>). It never mixes with Field Services.<div class="row" style="padding:0;margin-top:10px"><button type="button" class="pri" data-s54="sync">Live Sync</button></div>`}}catch(e){}};
+ const _mod=mod;mod=function(k){const r=_mod.apply(this,arguments);if(k==="sh_set")setTimeout(fixSet,0);return r};
+ document.addEventListener("click",e=>{const b=e.target.closest("button[data-s54]");if(!b)return;e.preventDefault();e.stopPropagation();show(b.dataset.s54)},true);
+ /* ---------- Shop phone ---------- */
+ const PMROLE=r=>r==="Project Manager"||r==="Supervisor",SUPROLE=r=>/^(Site Supervisor|Shop Supervisor|Foreman)$/.test(r||""),TDROLE=r=>r==="Technical Director";
+ const narrow=()=>!window.matchMedia("(min-width:820px)").matches;
+ const S=()=>DB.shop&&typeof DB.shop==="object"?DB.shop:(DB.shop={units:[]});
+ const units=()=>(S().units||[]);
+ const uName=u=>[nv(u.job),nv(u.unitNo)].filter(Boolean).join(" ")||u.name||"Unit";
+ const MENU=[["pcs","Receiving","Check pieces in as they arrive, photo and damage note"],["ship","Shipping","Mark pieces shipped, target and actual ship dates"],["prog","Task progress","Check off steps and add notes on the task cards"],["photos","Photos","Camera straight into the unit's photo log"],["holds","Hold points / QC","What is on hold and waiting for sign-off"],["vend","Vendor send-outs","What is out at a vendor and when it is due back"],["parts","Parts & Needs","Ask for a part, expendable or tool"]];
+ const ROUTE={pcs:"sh_unit",ship:"sh_unit",prog:"sh_tc",photos:"sh_uph",holds:"sh_safe",vend:"sh_uv",parts:"sh_parts"};
+ const LINKK={pcs:"pcs",ship:"pcs",prog:"prog",photos:"photos",vend:"vend",parts:"parts"};
+ const OK=new Set(["home","sh_unit","sh_piece","sh_tc","sh_uph","sh_safe","sh_uv","sh_parts","sh_send","sync"]);
+ let PU="";
+ const phoneKind=()=>{if(!ME||!narrow())return "";const r=ME.role||"";if(PMROLE(r))return "pm";if(TDROLE(r))return "td";if(SUPROLE(r))return "sup";return "crew"};
+ window.SHOPPHONE=phoneKind;
+ const st=document.createElement("style");st.textContent=`#shPhone{padding:4px 16px 40px}#shPhone h2{font-size:24px;margin:10px 0 4px}#shPhone .pj{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-left:6px solid #a3283c;border-radius:14px;padding:14px 16px;margin:10px 0}#shPhone .pj b{font-size:22px;display:block}#shPhone .pj small{color:var(--mute);display:block}
+ #shPhone .pm{display:block;width:100%;text-align:left;min-height:78px;border-radius:16px;padding:12px 16px;margin:10px 0;font-size:20px;font-weight:800}#shPhone .pm small{display:block;font-size:14px;font-weight:500;color:var(--mute);margin-top:2px}#shPhone .pm.sf{border-color:#d9534f}
+ body.shphone #shopHome>*:not(#shPhone){display:none!important}body.shphone #shSide{display:none!important}
+ body.tpro #mod input,body.tpro #mod textarea,body.tpro #mod select{pointer-events:none;opacity:.55}
+ body.tpro #mod button.tpClr,body.tpro #mod button.pri:not([data-sh="rel"]),body.tpro #mod button[data-sh]:not([data-sh="rel"]),body.tpro #mod button[data-shback],body.tpro #mod button[data-shpt],body.tpro #mod label.chk,body.tpro #mod button.danger,body.tpro #mod [data-qa="newj"],body.tpro #mod .qstep .qck{display:none!important}
+ body.shphone #mod button.danger,body.shphone #mod button[data-sh="rename"]{display:none!important}
+ body.tpro #mod .tpro-note{margin:8px 0;padding:8px 12px;border-radius:10px;background:rgba(224,160,78,.15);border:1px solid #e0a04e;font-size:14px}`;document.head.appendChild(st);
+ function sideBtn(sel){const b=document.querySelector("#shSide "+sel);if(b){b.click();return true}return false}
+ function openUnitLink(uid,k){/* open the folder in the (hidden) side menu, then its link */
+  if(!sideBtn(`button[data-qa="sbf"][data-qu="${uid}"]`))return false;
+  if(k==="info")return true;return sideBtn(`button[data-qa="lnk"][data-qu="${uid}"][data-qk="${k}"]`)}
+ function phoneHome(){const kind=phoneKind();document.body.classList.toggle("shphone",kind==="sup"||kind==="td"||kind==="crew");document.body.classList.toggle("tpro",kind==="td");
+  if(kind!=="sup"&&kind!=="td"&&kind!=="crew")return;
+  let d=document.getElementById("shPhone");const home=document.getElementById("shopHome");if(!home)return;if(!d){d=document.createElement("div");d.id="shPhone";home.appendChild(d)}
+  if(kind==="crew"){d.innerHTML=`<h2>Shop</h2><div class="rec"><b>The phone version is for the project manager, supervisors and the technical director.</b><small>Use the shop iPad, or ask the project manager to set your role.</small></div>`;return}
+  const us=units(),u=us.find(x=>x.id===PU);
+  if(!u){PU="";d.innerHTML=`<h2>Shop${kind==="td"?" &middot; read only":""}</h2><div class="hint" style="padding:0">Pick the job you are working on.</div>${us.map(x=>`<button type="button" class="pj" data-pu="${x.id}"><b>${E(uName(x))}</b><small>${E([nv(x.origin),nv(x.cust),nv(x.model)].filter(Boolean).join(" · ")||"Tap to open")}</small></button>`).join("")||`<div class="empty">No jobs yet. The project manager adds them on the iPad.</div>`}`;return}
+  const holds=(u.pieces||[]).filter(p=>{const h=p.holds&&p.holds[p.stage];return h&&h.on&&!h.rel}).length,exp=(u.pieces||[]).filter(p=>p.status==="expected").length;
+  d.innerHTML=`<button type="button" data-pu="" style="min-height:40px;padding:0 12px;border-radius:12px;font-size:14px">&larr; All jobs</button><h2>${E(uName(u))}${kind==="td"?" <small style=\"font-size:14px;color:var(--mute)\">read only</small>":""}</h2>
+  ${MENU.map(([k,l,s])=>`<button type="button" class="pm${k==="holds"&&holds?" sf":""}" data-pk="${k}">${E(l)}${k==="pcs"&&exp?` <span class="tg" style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:800;background:#5d686b;color:#fff;margin-left:6px">${exp} expected</span>`:""}${k==="holds"&&holds?` <span class="tg" style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:800;background:#d9534f;color:#fff;margin-left:6px">${holds}</span>`:""}<small>${E(s)}</small></button>`).join("")}`}
+ document.addEventListener("click",e=>{const d=document.getElementById("shPhone");if(!d||!d.contains(e.target))return;const b=e.target.closest("button");if(!b)return;e.preventDefault();e.stopPropagation();
+  if("pu" in b.dataset){PU=b.dataset.pu;return phoneHome()}
+  const k=b.dataset.pk;if(!k)return;
+  if(k==="holds")return show("sh_safe");
+  if(!openUnitLink(PU,LINKK[k]))show(ROUTE[k])},true);
+ /* supervisors and the TD stay inside the seven screens */
+ const _s2=show;show=function(v){const kind=phoneKind();if((kind==="sup"||kind==="td"||kind==="crew")&&!OK.has(v)&&v!=="sh_jf")v="home";if(v==="sh_jf"&&(kind==="sup"||kind==="td"||kind==="crew"))v="home";
+  const r=_s2.apply(this,arguments);try{document.body.classList.toggle("tpro",kind==="td");if(kind==="td"&&cur!=="home"&&!document.querySelector("#mod .tpro-note")){const mh=document.querySelector("#mod .mh");if(mh)mh.insertAdjacentHTML("afterend",`<div class="tpro-note">Read only. You can release a hold point; everything else is entered on the iPad.</div>`)}}catch(e){}return r};
+ const _h=home;home=function(){const r=_h.apply(this,arguments);try{phoneHome()}catch(e){}return r};
+ window.addEventListener("resize",()=>{try{if(cur==="home")home()}catch(e){}});
+ try{if(cur==="home")home()}catch(e){}
+})();
+
 /* ===== Installable web app: offline cache + keep storage ===== */
 (function(){if(!/^https?:$/.test(location.protocol))return;
  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
