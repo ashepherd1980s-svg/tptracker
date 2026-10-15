@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -6626,15 +6626,24 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  const fdb=()=>{try{return JSON.parse(FIELDGET("tp-db-v1")||"{}")}catch(e){return {}}};
  function pull(){if(!LINK)return;const d=fdb();DB.people=(d.people||[]).concat(d.pplOther||[]).map(p=>Object.assign({},p));DB.pplOther=[];resplit()}
  function push(){if(!LINK)return;const d=fdb();d.people=ALL().map(p=>Object.assign({},p));d.pplOther=[];d.empWipe56=1;try{FIELDSET("tp-db-v1",JSON.stringify(d))}catch(e){alert("Could not save the employee list: "+(e&&e.message||e))}}
- const save=()=>{sv();push()};
- /* one-time wipe of every employee, both sides (demos keep their sample crew) */
- try{if(!DEMO&&!DB.empWipe56){
-  DB.people=[];DB.pplOther=[];DB.pplShift="";
-  if(SHOP){try{if(DB.shop&&Array.isArray(DB.shop.crew))DB.shop.crew=[]}catch(e){}
-   if(LINK){const d=fdb();if(!d.empWipe56){d.people=[];d.pplOther=[];d.empWipe56=1;try{FIELDSET("tp-db-v1",JSON.stringify(d))}catch(e){}}}}
-  (DB.jobs||[]).forEach(j=>{j.crew=[]});
-  DB.empWipe56=1;ME=null;try{sessionStorage.removeItem("tp-me");sessionStorage.removeItem("tp-shift")}catch(e){}sv()}}catch(e){}
+ const save=()=>{sv();push();try{if(window.SHOPCREWSYNC)SHOPCREWSYNC()}catch(e){}};
+ /* v56.2: the one-time employee wipe is removed. Real entries are only ever deleted inside the app. */
  pull();
+ /* Shop crew roster = the Employees master list. Anyone added on the Shop side (Start Day "Someone new?", Crew Roster) joins Employees. */
+ const T2C=t=>{t=String(t||"");if(t==="PM")return "Project Manager";if(t==="TA")return "Technical Advisor";if(t==="SUPV")return "Supervisor";if(/^GF/.test(t))return "General Foreman";if(/^FORE/.test(t))return "Foreman";if(/^LEAD/.test(t))return "Lead Journeyman";if(t==="LOC J")return "Journeyman";if(/APP$/.test(t))return "Apprentice";return ""};
+ const C2T={"Project Manager":"PM","Technical Advisor":"TA","Supervisor":"SUPV","General Foreman":"GF","Foreman":"FORE","Lead Journeyman":"LEADJ","Journeyman":"LOC J"};
+ const r2c=r=>/Foreman|Lead/.test(r||"")?"Foreman":/Apprentice/.test(r||"")?"Apprentice":/Millwright/.test(r||"")?"Journeyman":"Other";
+ window.SHOPCREWSYNC=function(){if(!SHOP||!DB.shop)return;try{const sh=DB.shop;if(!Array.isArray(sh.crew))sh.crew=[];let ch=false;const key=n=>String(n||"").toLowerCase();
+  /* Shop-only names join Employees */
+  sh.crew.forEach(c=>{if(!c||!c.title||c.fromEmp)return;if(!ALL().some(p=>key(p.title)===key(c.title))){const cls=T2C(c.trade)||r2c(c.role);DB.people.push({title:c.title,cls,role:roleOf(cls),phone:c.phone||"",local:"",shift:c.shift||"",note:"",appYr:"",pin:""});ch=true}c.fromEmp=1;ch=true});
+  const byN=new Map(sh.crew.map(c=>[key(c.title),c]));const out=[];
+  ALL().forEach(p=>{let c=byN.get(key(p.title));const cls=clsOf(p);
+   if(!c){c={id:"cr"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:p.title,trade:C2T[cls]||"",role:roleOf(cls),phone:p.phone||"",shift:p.shift||"Day",fromEmp:1};ch=true}
+   else{const want={title:p.title,phone:p.phone||c.phone||"",shift:p.shift||c.shift||"Day"};if(!c.trade&&C2T[cls])want.trade=C2T[cls];Object.keys(want).forEach(k=>{if(c[k]!==want[k]){c[k]=want[k];ch=true}});c.fromEmp=1}
+   out.push(c)});
+  if(out.length!==sh.crew.length)ch=true;sh.crew=out;if(ch){sv();push()}}catch(e){}};
+ SHOPCREWSYNC();
+ if(SHOP)document.addEventListener("click",()=>{try{SHOPCREWSYNC()}catch(e){}},true);
  /* sign-in: only PIN holders are listed; the first account is the Project Manager */
  const _lk=lockUI;lockUI=function(){const r=_lk.apply(this,arguments);try{if(ME)return r;
   const t=$("#lkT");if(t&&/Set Up/.test(t.textContent))t.textContent="Set Up Project Manager";
