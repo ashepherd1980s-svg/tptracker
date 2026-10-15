@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -6620,6 +6620,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  const pinCls=c=>!!(CLS.find(x=>x[0]===c)||[])[2];
  const clsOf=p=>{if(p.cls)return p.cls;const r=p.role||"";if(r==="Project Manager")return "Project Manager";if(r==="Technical Director")return "Technical Director";if(r==="Technical Advisor")return "Technical Advisor";if(SUPR.includes(r))return "Supervisor";if(r==="Foreman")return "Foreman";if(/Apprentice/.test(r))return "Apprentice";if(/Millwright/.test(r))return "Journeyman";if(r==="Laborer")return "Laborer";return "Other"};
  const isPin=p=>p&&SUPR.includes(p.role);
+ const BOTH=["Project Manager","Technical Director","Technical Advisor"],both=p=>p&&BOTH.includes(p.role);
  const SHOP=!!window.SHOPMODE,DEMO=!!window.TPDEMO,LINK=SHOP&&!DEMO&&!!window.FIELDGET&&!!window.FIELDSET;
  const ALL=()=>{const seen=new Set(),o=[];(DB.people||[]).concat(DB.pplOther||[]).forEach(p=>{if(p&&!seen.has(p)){seen.add(p);o.push(p)}});return o};
  const resplit=()=>{try{if(window.SHRESPLIT)SHRESPLIT()}catch(e){}};
@@ -6630,6 +6631,8 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  const save=()=>{sv();push();try{if(window.SHOPCREWSYNC)SHOPCREWSYNC()}catch(e){}};
  /* v56.2: the one-time employee wipe is removed. Real entries are only ever deleted inside the app. */
  pull();
+ /* v56.4: Project Manager, Technical Director and Technical Advisor are on both shifts, always */
+ try{let ch=false;ALL().forEach(p=>{if(both(p)&&p.shift){p.shift="";ch=true}});if(ch){resplit();sv();push()}}catch(e){}
  /* Shop crew roster = the Employees master list. Anyone added on the Shop side (Start Day "Someone new?", Crew Roster) joins Employees. */
  const T2C=t=>{t=String(t||"");if(t==="PM")return "Project Manager";if(t==="TA")return "Technical Advisor";if(t==="SUPV")return "Supervisor";if(/^GF/.test(t))return "General Foreman";if(/^FORE/.test(t))return "Foreman";if(/^LEAD/.test(t))return "Lead Journeyman";if(t==="LOC J")return "Journeyman";if(/APP$/.test(t))return "Apprentice";return ""};
  const C2T={"Project Manager":"PM","Technical Advisor":"TA","Supervisor":"SUPV","General Foreman":"GF","Foreman":"FORE","Lead Journeyman":"LEADJ","Journeyman":"LOC J"};
@@ -6650,7 +6653,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   const t=$("#lkT");if(t&&/Set Up/.test(t.textContent))t.textContent="Set Up Project Manager";
   const h=$("#lkB .hint");if(h&&/first account/i.test(h.textContent))h.textContent="This is your account as Project Manager, with full access. Add employees from the Employees tab after you sign in.";
   const sel=$("#ln");if(sel&&sel.tagName==="SELECT"){[...sel.options].forEach(o=>{const p=ALL().find(x=>x.title===o.value||x.title===o.text);if(!p||!isPin(p))o.remove()})}}catch(e){}return r};
- const _login=login;login=function(p){const keep=p&&["Project Manager","Technical Director","Technical Advisor"].includes(p.role)&&!p.shift;const r=_login.apply(this,arguments);if(keep&&p.shift){p.shift="";resplit();sv()}return r};
+ const _login=login;login=function(p){if(both(p))p.shift="";const r=_login.apply(this,arguments);if(both(p)&&p.shift){p.shift="";resplit();sv()}return r};
  /* ---------- Employees master list (inside the Employees screen) ---------- */
  let Q="",FC="";
  function listHTML(){const sup=isSup(),L=ALL().filter(p=>(!FC||clsOf(p)===FC)&&(!Q||(p.title+" "+(p.phone||"")+" "+(p.local||"")).toLowerCase().includes(Q.toLowerCase()))).sort((a,b)=>ORDER.indexOf(clsOf(a))-ORDER.indexOf(clsOf(b))||a.title.localeCompare(b.title));
@@ -6669,11 +6672,11 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
    ${o.cls==="Apprentice"?`<label>Apprentice year<select id="emY">${["","1st","2nd","3rd","4th","5th","6th"].map(y=>`<option${y===o.appYr?" selected":""}>${y}</option>`).join("")}</select></label>`:""}
    <label>Phone<input id="emP" type="tel" value="${E(o.phone||"")}"></label>
    <label>Local union<input id="emL" inputmode="numeric" value="${E(o.local||"")}" placeholder="e.g. 2232"></label>
-   <label>Shift<select id="emS">${[["","Both shifts"],["Day","Day"],["Night","Night"]].map(([v,l])=>`<option value="${v}"${(o.shift||"")===v?" selected":""}>${l}</option>`).join("")}</select></label>
+   ${BOTH.includes(roleOf(o.cls))?`<div class="hint">Shift: both shifts (always for ${E(o.cls)})</div>`:`<label>Shift<select id="emS">${[["","Both shifts"],["Day","Day"],["Night","Night"]].map(([v,l])=>`<option value="${v}"${(o.shift||"")===v?" selected":""}>${l}</option>`).join("")}</select></label>`}
    ${pc?`<label>PIN (4 digits, to sign in)<input id="emK" type="password" inputmode="numeric" maxlength="4" value="${E(o.pin||"")}" autocomplete="off"></label>`:`<div class="hint">No PIN: ${E(o.cls)}s don't sign in to the app.</div>`}
    <label>Notes<textarea id="emT" rows="2">${E(o.note||"")}</textarea></label>
    <div class="row"><button type="button" id="emX">Cancel</button><button type="button" class="pri" id="emOk">Save</button></div>`};
-  const grab=()=>{const v=id=>{const el=document.getElementById(id);return el?el.value:undefined};o.title=nv(v("emN"));o.cls=v("emC")||o.cls;if(v("emY")!==undefined)o.appYr=v("emY");o.phone=nv(v("emP"));o.local=nv(v("emL"));o.shift=v("emS")||"";if(v("emK")!==undefined)o.pin=nv(v("emK"));o.note=nv(v("emT"))};
+  const grab=()=>{const v=id=>{const el=document.getElementById(id);return el?el.value:undefined};o.title=nv(v("emN"));o.cls=v("emC")||o.cls;if(v("emY")!==undefined)o.appYr=v("emY");o.phone=nv(v("emP"));o.local=nv(v("emL"));o.shift=BOTH.includes(roleOf(o.cls))?"":(v("emS")||"");if(v("emK")!==undefined)o.pin=nv(v("emK"));o.note=nv(v("emT"))};
   draw();F.oninput=null;F.onchange=e=>{if(e.target.id==="emC"){grab();draw()}};
   F.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="emX")return $("#dDat").close();if(b.id!=="emOk")return;grab();
    if(!o.title)return alert("Enter the name.");
@@ -6681,6 +6684,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
    const pc=pinCls(o.cls);if(pc&&!/^\d{4}$/.test(o.pin))return alert("A "+o.cls+" signs in, so they need a 4-digit PIN.");
    if(pc&&ALL().some(x=>x!==p&&isPin(x)&&String(x.pin)===o.pin))return alert("That PIN is already used. Pick another.");
    if(p===ME&&!pc)return alert("You can't remove your own sign-in. Pick a classification that signs in.");
+   if(p&&p.role==="Project Manager"&&roleOf(o.cls)!=="Project Manager"&&ALL().filter(x=>x.role==="Project Manager").length<=1)return alert("This is the only Project Manager. Add another Project Manager first.");
    const rec=p||{};const old=rec.title;Object.assign(rec,{title:o.title,cls:o.cls,role:roleOf(o.cls),phone:o.phone,local:o.local,shift:o.shift,note:o.note,appYr:o.cls==="Apprentice"?o.appYr:"",pin:pc?o.pin:""});
    if(isNew)DB.people.push(rec);else if(old&&old!==rec.title)(DB.jobs||[]).forEach(j=>{if(Array.isArray(j.crew))j.crew=j.crew.map(n=>n===old?rec.title:n)});
    resplit();save();$("#dDat").close();peopleView()};
@@ -6691,7 +6695,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   const p=b.dataset.n?ALL().find(x=>x.title===b.dataset.n):null;
   if(k==="add")return form(null);
   if(k==="edit"&&p)return form(p);
-  if(k==="del"&&p){if(p===ME)return alert("You can't delete your own account.");if(!confirm("Delete "+p.title+" from the master list? They come off every job's employee list. Past hours, tasks and signatures keep their name."))return;
+  if(k==="del"&&p){if(p===ME)return alert("You can't delete your own account.");if(p.role==="Project Manager"&&ALL().filter(x=>x.role==="Project Manager").length<=1)return alert("This is the only Project Manager. Add another Project Manager before deleting this one.");if(!confirm("Delete "+p.title+" from the master list? They come off every job's employee list. Past hours, tasks and signatures keep their name."))return;
    DB.people=(DB.people||[]).filter(x=>x!==p);DB.pplOther=(DB.pplOther||[]).filter(x=>x!==p);(DB.jobs||[]).forEach(j=>{if(Array.isArray(j.crew))j.crew=j.crew.filter(n=>n!==p.title)});save();peopleView()}},true);
  /* ---------- Job Employees (Field jobs) ---------- */
  const jobByNo=n=>(window.JOBOF?JOBOF(n):null);
