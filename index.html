@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -6292,6 +6292,111 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  });
  /* crew added from Contacts or Field land on the roster with no trade; set it there */
  if(JOB)setTimeout(()=>{try{if(cur==="home"||!cur)homeShop()}catch(e){}},0);
+
+ /* ---------- v54: task photos & data sheets, Shop Daily Status Report (company DSR form, one per unit per day) ---------- */
+ (function(){const st=document.createElement("style");st.textContent=`.qtb{display:inline-flex;align-items:center;min-height:38px;padding:0 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:14px;font-weight:700}
+ .qdsr summary{cursor:pointer;font-weight:800;font-size:17px;padding:12px 0}.qdsr details{border-bottom:1px solid var(--line)}.qdsr .rec label{display:block}
+ #qImgV{position:fixed;inset:0;z-index:90;background:#000d;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}#qImgV img{max-width:100%;max-height:85vh;object-fit:contain}#qImgV button{margin-top:12px;min-height:48px;padding:0 24px}`;document.head.appendChild(st)})();
+ const DSRL=["dsr_comp","dsr_tech","dsr_track","dsr_push","dsr_data","dsr_ewa","dsr_hseq","dsr_vend"],cpj=o=>JSON.parse(JSON.stringify(o));
+ const DSL={dsr_comp:["Work by Component","Add Component",[["title","Component"],["note","What was done (one line per bullet)","area"]]],
+  dsr_tech:["Technical Issues & Parts Request","Add Line Item",[["title","Line Item / # / Owner"],["d1","Date of Discovery","date"],["desc","Description"],["qty","Quantity"],["d2","Date Needed","date"],["d3","Date Received","date"]]],
+  dsr_track:["Component Tracker","Add Component",[["title","Component"],["owner","Owner"],["d1","Date Offsite","date"],["d2","Date Due Back","date"],["d3","Actual Return Date","date"]]],
+  dsr_push:["Schedule or Critical Path Impacts","Add Impact",[["title","Issue"],["d1","Date of Impact","date"],["est","Estimated Push"],["plan","Strategic Plan of Recovery"],["comm","Comments"]]],
+  dsr_data:["As Found / As Left Data Sheets","Add Data Sheet",[["title","Component"],["d1","Date","date"],["desc","Description (As Found/As Left)"],["sup","Supervisor"],["td","Tech Dir/Customer"],["cust","Customer Rep"]]],
+  dsr_ewa:["EWA Tracker","Add EWA",[["title","Job # / Task #"],["hrs","Hours"],["desc","Description"],["status","Status"],["appr","Approved","sel",["No","Yes"]],["comm","Comments"]]],
+  dsr_hseq:["HSEQ Report Tracker","Add Report",[["title","Report Number"],["d1","Report Date","date"],["type","Report Type"],["desc","Describe the Issue"],["comm","Comments"]]],
+  dsr_vend:["Vendor Schedule","Add Vendor",[["title","Vendor Name/Contact/Number"],["d1","Scheduled Onsite","date"],["d2","Scheduled Offsite","date"],["shift","Shift","sel",["Day","Night","Both"]],["comm","Comments"]]]};
+ const DSC={setup:["Report Setup",[["jobNo","Job Number"],["customer","Customer (full line)"],["short","Unit Name (header)"],["unit","Unit Info"],["sow","Outage SOW"],["date","Report Date","date"],["shift","Shift","sel",["Days","Nights"]],["plant","Plant Address (shop)"],["truck","Truck Receiving Address"],["sendTo","Send Daily Reports To (one email per line)","area"]]],
+  contacts:["Contacts",[["dPlant","Day: Plant Contact"],["dCust","Day: Customer Contact"],["dSup","Day: Supervisor"],["dTd","Day: Technical Director"],["dFore","Day: Foreman"],["dCrew","Day: Crew Size"],["dLen","Day: Shift Length"],["nPlant","Night: Plant Contact"],["nCust","Night: Customer Contact"],["nSup","Night: Supervisor"],["nTd","Night: Technical Director"],["nFore","Night: Foreman"],["nCrew","Night: Crew Size"],["nLen","Night: Shift Length"],["oName","Office Contact"],["oPh","Office Phone/Email"],["sName","Safety Contact"],["sPh","Safety Phone/Email"],["qName","Quality Contact"],["qPh","Quality Phone/Email"]]],
+  comp:["Compliance and LOTO",[["pFed","Fed/St OSHA poster hung","chk"],["pQual","Quality Policy poster hung","chk"],["pLoto","LOTO poster hung","chk"],["pCrane","Crane Rules poster hung","chk"],["pSwivel","Swivel Eye poster hung","chk"],["pDate","Date Posted","date"],["craneOp","Crane Operator Name"],["craneSigned","Crane Rules Signed Date","date"],["preOp","Daily Pre-Op Completed","date"],["lotoSt","LOTO Status","sel",["Signed On","Signed Off"]],["sat","Satellite Box","sel",["Yes","No"]],["holder","Primary LOTO Holder (Plant)"],["release","Scheduled Release for Testing","date"]]],
+  brief:["Notes and Shift Briefing",[["notes","High Level Notes (one line per bullet)","area"],["weather","Weather"],["arrive","Shift Arrival Time"],["safety","Safety Topic"],["quality","Quality Topic"],["jsa","JSA Meeting Line"],["permit","Date & Time Signed Onto Site Permits"],["lotoLine","LOTO Line"]]]};
+ const DSB=()=>{const s=S();return s.dsr&&typeof s.dsr==="object"?s.dsr:(s.dsr={})};
+ const dYmd=t=>{const x=new Date(t);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0")};
+ const dMdy=d=>new Date(d+"T12:00:00").toLocaleDateString([],{month:"numeric",day:"numeric",year:"2-digit"});
+ const durTxt=d=>{const m=Math.round(((d.end||Date.now())-d.start)/6e4);return m>=1440?(m/1440).toFixed(1)+" days":m>=60?(m/60).toFixed(1)+" h":m+" min"};
+ function dsrGet(u,d){const B=DSB(),U=B[u.id]||(B[u.id]={});if(U[d])return U[d];
+  const prev=Object.keys(U).filter(k=>k<d).sort().pop(),P=prev?U[prev]:null,r={setup:{},contacts:{},comp:{},brief:{},L:{},au:{}};
+  if(P){r.setup=cpj(P.setup||{});r.contacts=cpj(P.contacts||{});r.comp=cpj(P.comp||{});r.comp.preOp="";const b=P.brief||{};r.brief={jsa:b.jsa,lotoLine:b.lotoLine||"",quality:b.quality||""};
+   const keep={dsr_tech:x=>!x.d3,dsr_track:x=>!x.d3,dsr_ewa:x=>!/complet|closed|paid|denied|reject/i.test(x.status||""),dsr_vend:x=>!x.d2||x.d2>=d};
+   Object.keys(keep).forEach(k=>r.L[k]=cpj(((P.L||{})[k]||[]).filter(x=>!x.a&&keep[k](x))))}
+  DSRL.forEach(k=>r.L[k]=r.L[k]||[]);r.setup.date=d;if(r.brief.jsa===undefined)r.brief.jsa="JSA meeting with crew, discuss work tasks, the hazards involved and mitigation controls";if(r.brief.lotoLine===undefined)r.brief.lotoLine="";
+  U[d]=r;dsrAuto(r,u,d);return r}
+ /* fills from the day's entries; a box you typed in is never overwritten, and a row you edited is kept */
+ function dsrAuto(r,u,d){const s=S(),D=DAY(d,u.id),cr=crewOn(d,u.id),L=dayLeads(u,d),st=r.setup,c=r.contacts,b=r.brief;r.au=r.au||{};
+  const set=(o,k,v)=>{if(v&&!nv(o[k]))o[k]=v},setA=(o,k,v,ak)=>{ak=ak||k;if(v&&(!nv(o[k])||o[k]===r.au[ak])){o[k]=v;r.au[ak]=v}};
+  set(st,"jobNo",nv(u.job));set(st,"customer",nv(u.cust));set(st,"short",[nv(u.origin),nv(u.unitNo)].filter(Boolean).join(" ")||uName(u));
+  set(st,"unit",[nv(u.unitNo),nv(u.model),nv(u.tser)?"Turbine S/N "+nv(u.tser):"",nv(u.gser)?"Gen S/N "+nv(u.gser):""].filter(Boolean).join(", "));
+  set(st,"sow",nv(u.scope)||nv(u.sow));const site=s.set.site&&s.set.site!=="Shop"?s.set.site:"";set(st,"plant",site);set(st,"truck",site);
+  if(!st.shift)st.shift=SDCS==="Night"?"Nights":"Days";
+  const p=st.shift==="Nights"?"n":"d",T=s.time[d]||{};
+  setA(c,p+"Sup",L.sup&&L.sup.title);setA(c,p+"Fore",L.fore&&L.fore.title);setA(c,p+"Crew",cr.length?String(cr.length):"");
+  const mx=Math.max(0,...cr.map(x=>+((T[x.id]||{}).h)||0));setA(c,p+"Len",mx?mx+" hours":"");
+  const pm=s.crew.find(x=>x.trade==="PM");set(c,"oName",pm?pm.title+", Project Manager":ME_());if(!L.sup)set(c,p+"Sup",ME_());
+  const ins=cr.map(x=>(T[x.id]||{}).in).filter(Boolean).sort();setA(b,"arrive",ins[0]||"");
+  const dls=s.delays.filter(x=>x.unitId===u.id&&(dYmd(x.start)===d||(x.end?dYmd(x.end)===d:dYmd(x.start)<d))),dn=D.tasks.filter(t=>t.done),left=D.tasks.filter(t=>!t.done);
+  const nl=[cr.length?cr.length+" crew on "+uName(u)+".":"",D.tasks.length?dn.length+" of "+D.tasks.length+" tasks finished"+(left.length?"; "+left.length+" carry over to the next shift":"")+".":""]
+   .concat(dls.map(x=>"Delay: "+x.reason+(x.note?" – "+x.note:"")+" ("+durTxt(x)+(x.end?"":", still running")+")"),String((D.wrap&&D.wrap.note)||"").split("\n").map(x=>x.trim())).filter(Boolean).join("\n");
+  setA(b,"notes",nl);
+  const A=(k,arr)=>{const keep=r.L[k].filter(x=>!x.a),ks={};keep.forEach(x=>{if(x.k)ks[x.k]=x});
+   arr.forEach(x=>{const o=ks[x.k];if(o&&x.photos){o.photos=Array.from(new Set((o.photos||[]).concat(x.photos)))}});r.L[k]=keep.concat(arr.filter(x=>!ks[x.k]).map(x=>Object.assign(x,{a:1})))};
+  const G={},gOf=t=>{const x=stepOf(u,t.sid);return (x&&x.grp)||"General Work"};D.tasks.forEach(t=>{const g=gOf(t);(G[g]=G[g]||[]).push(t)});
+  A("dsr_comp",Object.keys(G).map(g=>({id:uidS("dc"),k:"g:"+g,title:g,note:G[g].map(t=>cutT(String(t.text).replace(/\s*\n\s*/g," "),170)+(t.done?"":" (in progress, carries over)")).join("\n"),photos:[].concat(...G[g].map(t=>(t.ph||[]).concat((t.sh||[]).filter(z=>!z.pdf).map(z=>z.id))))})));
+  const sd=[];D.tasks.forEach(t=>(t.sh||[]).forEach(z=>sd.push({id:uidS("dd"),k:"s:"+z.id,title:gOf(t),d1:d,desc:z.name+" ("+cutT(t.text,60)+")",sup:L.sup?L.sup.title:"",td:"",cust:""})));A("dsr_data",sd);
+  const dt=dMdy(d),fd=[];u.pieces.forEach(pc=>(pc.finds||[]).forEach((f,i)=>{if(String(f.at||"").startsWith(dt))fd.push({id:uidS("dt"),k:"f:"+pc.id+":"+i,title:pc.name||"Piece",d1:d,desc:[f.note,f.action].filter(Boolean).join(" – "),qty:"",d2:"",d3:""})}));A("dsr_tech",fd);
+  A("dsr_push",dls.map(x=>({id:uidS("dp"),k:"d:"+x.id,title:x.reason+(x.note?" – "+x.note:""),d1:dYmd(x.start),est:durTxt(x),plan:"",comm:x.end?"Ended "+new Date(x.end).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):"Still running"})))}
+ let DSRD="";const DOP=new Set(["dsr_comp"]);
+ const qload=root=>(root||MD).querySelectorAll("img[data-qp]:not([src])").forEach(i=>pGet(i.dataset.qp).then(x=>{if(x)i.src=typeof x==="string"?x:URL.createObjectURL(x)}).catch(()=>{}));
+ function shDsrView(){const u=JU();if(!u)return go("home");const td=today(),d=DSRD||td,r=dsrGet(u,d);if(d===td)dsrAuto(r,u,d);sv();
+  const U=DSB()[u.id]||{},past=Object.keys(U).filter(k=>k!==d).sort().reverse();
+  const fld=(pre,o,[n,l,ty,op])=>ty==="chk"?`<label class="chk" style="color:inherit;display:flex"><input type="checkbox" data-qdf="${pre}.${n}"${o[n]?" checked":""}><span>${E(l)}</span></label>`:`<label>${E(l)}`+(ty==="area"?`<textarea rows="4" data-qdf="${pre}.${n}">${E(o[n]||"")}</textarea>`:ty==="sel"?`<select data-qdf="${pre}.${n}"><option value=""></option>${op.map(x=>`<option${o[n]===x?" selected":""}>${x}</option>`).join("")}</select>`:`<input type="${ty==="date"?"date":"text"}" data-qdf="${pre}.${n}" value="${E(o[n]||"")}" autocomplete="off">`)+`</label>`;
+  const secs=Object.keys(DSC).map(k=>`<details data-qdk="${k}"${DOP.has(k)?" open":""}><summary>${E(DSC[k][0])}</summary>${DSC[k][1].map(f=>fld(k,r[k],f)).join("")}</details>`).join("");
+  const lists=DSRL.map(k=>{const[t,add,fs]=DSL[k],a=r.L[k];return `<details data-qdk="${k}"${DOP.has(k)?" open":""}><summary>${E(t)} (${a.length})</summary>${a.map((x,i)=>`<div class="rec">${x.a?`<small style="color:var(--mute)">Filled in from today. Change anything and it stays.</small>`:""}${fs.map(f=>fld("L."+k+"."+i,x,f)).join("")}${k==="dsr_comp"?`<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0">${(x.photos||[]).map(id=>`<span style="position:relative"><img data-qp="${id}" alt="Photo" style="width:84px;height:63px;object-fit:cover;border-radius:6px;background:var(--line)"><button type="button" data-qa="dsrpx" data-qi="${i}" data-qp="${id}" aria-label="Remove photo" style="position:absolute;top:-6px;right:-6px;min-height:0;width:26px;height:26px;padding:0;border-radius:50%">&times;</button></span>`).join("")}<label class="qtb">+ Photo<input type="file" accept="image/*" multiple hidden data-q52="1" data-qdp="${i}"></label></div>`:""}<div class="row"><button type="button" class="danger" data-qa="dsrrm" data-qk="${k}" data-qi="${i}">Remove</button></div></div>`).join("")}<div class="row" style="margin-bottom:12px"><button type="button" data-qa="dsradd" data-qk="${k}">+ ${E(add)}</button></div></details>`}).join("");
+  MD.innerHTML=head("Daily Report: "+uName(u),"sh_wrap")+`<div id="shp" class="qdsr"><div class="rec" style="border-left:5px solid #2f7d4a"><b>${E(new Date(d+"T12:00:00").toLocaleDateString([],{weekday:"long",month:"long",day:"numeric"}))} &middot; ${E(r.setup.shift||"")}</b><small>TurbinePROs Daily Status Report for ${E(uName(u))} only. It fills itself from Start Day, the JSA, Wrap Up, delays, findings and task photos. Anything you type or add stays.</small></div>
+  <div class="row" style="margin:8px 0 6px"><button type="button" class="pri" data-qa="dsrprev" style="flex:1;min-height:56px">Preview and Print Report</button>${d!==td?`<button type="button" data-qa="dsrday" data-qk="">Back to Today</button>`:""}</div>
+  ${secs}${lists}
+  ${past.length?`<details data-qdk="past"${DOP.has("past")?" open":""}><summary>Past Reports (${past.length})</summary>${past.map(k=>`<div class="rec"><b>${E(k)}</b><small>${E((U[k].setup||{}).shift||"")} &middot; ${(U[k].L&&U[k].L.dsr_comp||[]).length} components</small><div class="row"><button type="button" data-qa="dsrday" data-qk="${E(k)}">Open</button><button type="button" class="pri" data-qa="dsrpp" data-qk="${E(k)}">Preview and Print</button></div></div>`).join("")}</details>`:""}</div>`;
+  qload()}
+ async function shDsrPrev(r){PASTV={dsrs:DB.dsrs};DSRL.forEach(k=>PASTV[k]=DB[k]);DB.dsrs={setup:cpj(r.setup),contacts:cpj(r.contacts),comp:cpj(r.comp),brief:cpj(r.brief)};DSRL.forEach(k=>DB[k]=cpj(r.L[k]||[]));
+  try{await previewDSR()}catch(e){try{$("#rptw").hidden=true}catch(x){}pastBack();alert("The report could not be built: "+e.message)}}
+ RENDER.sh_dsr=shDsrView;M.sh_dsr={t:"Daily Report",f:[],sum:()=>""};ALLOWED.add("sh_dsr");
+ let dq=0;
+ MD.addEventListener("toggle",e=>{const d=e.target;if(cur!=="sh_dsr"||!d.dataset||!d.dataset.qdk)return;if(d.open)DOP.add(d.dataset.qdk);else DOP.delete(d.dataset.qdk)},true);
+ MD.addEventListener("input",e=>{if(cur!=="sh_dsr")return;const t=e.target,p=t.dataset.qdf;if(!p)return;const u=JU();if(!u)return;const r=dsrGet(u,DSRD||today()),a=p.split(".");
+  if(a[0]==="L"){const x=r.L[a[1]][+a[2]];if(!x)return;x[a[3]]=t.type==="checkbox"?t.checked:t.value;delete x.a}else r[a[0]][a[1]]=t.type==="checkbox"?t.checked:t.value;clearTimeout(dq);dq=setTimeout(sv,400)});
+ MD.addEventListener("change",e=>{if(cur!=="sh_dsr")return;const t=e.target;if(t.dataset.qdf&&(t.type==="checkbox"||t.tagName==="SELECT"))t.dispatchEvent(new Event("input",{bubbles:true}))});
+ MD.addEventListener("click",async e=>{const b=e.target.closest("[data-qa]");if(!b)return;const a=b.dataset.qa;
+  if(cur==="sh_wrap"&&a==="wfin"){setTimeout(()=>{DSRD="";go("sh_dsr")},0);return}
+  if(a==="dsropen"){DSRD="";return go("sh_dsr")}
+  if(cur!=="sh_dsr")return;const u=JU();if(!u)return;const r=dsrGet(u,DSRD||today());
+  if(a==="dsrprev")return shDsrPrev(r);
+  if(a==="dsrpp"){const x=(DSB()[u.id]||{})[b.dataset.qk];if(x)return shDsrPrev(x);return}
+  if(a==="dsrday"){DSRD=b.dataset.qk||"";return shDsrView()}
+  if(a==="dsradd"){const k=b.dataset.qk,o={id:uidS("dx"),title:""};DSL[k][2].forEach(([n])=>{if(o[n]===undefined)o[n]=""});if(k==="dsr_comp")o.photos=[];r.L[k].push(o);DOP.add(k);sv();shDsrView();const el=MD.querySelectorAll(`[data-qdf^="L.${k}.${r.L[k].length-1}."]`)[0];if(el){el.scrollIntoView({block:"center"});el.focus()}return}
+  if(a==="dsrrm"){const k=b.dataset.qk,i=+b.dataset.qi;if(!confirm("Remove this line from the report?"))return;r.L[k].splice(i,1);sv();return shDsrView()}
+  if(a==="dsrpx"){const x=r.L.dsr_comp[+b.dataset.qi];if(x){x.photos=(x.photos||[]).filter(id=>id!==b.dataset.qp);delete x.a;sv();shDsrView()}return}});
+ /* photos and data sheets on today's tasks (Wrap Up and the job Today page) */
+ const tAtt=(t,d)=>`<div class="qta" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:2px 0 12px">${(t.ph||[]).map(id=>`<img data-qp="${id}" data-qa="tpo" data-qi="${id}" alt="Task photo" style="width:64px;height:48px;object-fit:cover;border-radius:6px;background:var(--line);cursor:pointer">`).join("")}${(t.sh||[]).map(z=>`<button type="button" data-qa="tpo" data-qi="${z.id}" style="min-height:38px;padding:0 10px;font-size:13px">${z.pdf?"PDF":"Sheet"}: ${E(cutT(z.name,26))}</button>`).join("")}<label class="qtb">+ Photo<input type="file" accept="image/*" multiple hidden data-q52="1" data-qtp="${t.id}" data-qd="${d}"></label><label class="qtb">+ Data Sheet<input type="file" accept="image/*,application/pdf,.pdf" multiple hidden data-q52="1" data-qts="${t.id}" data-qd="${d}"></label></div>`;
+ const _wv=wrapView;wrapView=function(){_wv.apply(this,arguments);const u=JU();if(!u)return;const td=today(),D=DAY(td,u.id);
+  MD.querySelectorAll("input[data-qwd]").forEach(i=>{const t=D.tasks.find(x=>x.id===i.dataset.qwd),l=i.closest("label");if(t&&l)l.insertAdjacentHTML("afterend",tAtt(t,td))});
+  const f=MD.querySelector('[data-qa="wfin"]');if(f){const row=f.closest(".row");row.insertAdjacentHTML("afterend",`<h2 class="sec">5. Daily Report</h2><div class="hint">Finish Wrap Up opens the Daily Status Report for this unit, filled in from today.</div><div class="row"><button type="button" class="pri" data-qa="dsropen" style="flex:1;min-height:56px">Daily Report</button></div>`)}
+  const h=MD.querySelector("h2.sec");if(h&&D.tasks.length)h.insertAdjacentHTML("afterend",`<div class="hint">Add photos and data sheets under each task as the day goes.</div>`);qload()};
+ RENDER.sh_wrap=wrapView;
+ const _hs=homeShop;homeShop=function(){_hs.apply(this,arguments);const u=JU(),h=document.getElementById("shopHome");if(!u||!h)return;const td=today(),D=DAY(td,u.id);if(!D.tasks.length)return;
+  const rc=h.querySelector(".rec");if(!rc)return;rc.insertAdjacentHTML("afterend",`<div class="rec"><b>Today's tasks</b><small>Add photos and data sheets as the work gets done.</small>${D.tasks.map(t=>`<div style="border-top:1px solid var(--line);padding-top:8px;margin-top:8px"><div>${t.done?`<b style="color:#2f7d4a">Done</b> `:""}${E(cutT(String(t.text),160))}</div><small>${E((t.crew||[]).map(id=>(crewOf(id)||{}).title).filter(Boolean).join(", "))}</small>${tAtt(t,td)}</div>`).join("")}</div>`);qload(h)};
+ const reTask=()=>{if(cur==="sh_wrap")wrapView();else if(cur==="sh_uph")uphView();else homeShop()};
+ document.addEventListener("change",async e=>{const t=e.target;if(!(t.dataset&&(t.dataset.qtp||t.dataset.qts||t.dataset.qdp!==undefined)))return;const u=JU();if(!u||!t.files.length)return;const fs=[...t.files];t.value="";
+  const save=async f=>{if(/pdf/i.test(f.type)||/\.pdf$/i.test(f.name)){if(f.size>40e6){alert(f.name+" is over 40 MB.");return null}const id=uidS("tf");await pPut(id,f);return {id,name:f.name,pdf:true}}const d=await shrink(f);if(!d)return null;const id=uidS("tp");await pPut(id,d);return {id,name:f.name||"Photo",pdf:false}};
+  if(t.dataset.qdp!==undefined){const r=dsrGet(u,DSRD||today()),x=r.L.dsr_comp[+t.dataset.qdp];if(!x)return;for(const f of fs){const z=await save(f);if(z&&!z.pdf)(x.photos=x.photos||[]).push(z.id)}delete x.a;sv();return shDsrView()}
+  const D=DAY(t.dataset.qd||today(),u.id),k=D.tasks.find(x=>x.id===(t.dataset.qtp||t.dataset.qts));if(!k)return;
+  for(const f of fs){const z=await save(f);if(!z)continue;if(t.dataset.qtp&&!z.pdf)(k.ph=k.ph||[]).push(z.id);else(k.sh=k.sh||[]).push(Object.assign(z,{at:nowTxt()}))}sv();reTask()});
+ document.addEventListener("click",async e=>{const b=e.target.closest('[data-qa="tpo"]');if(!b)return;e.stopPropagation();const x=await pGet(b.dataset.qi);if(!x)return alert("That file is not on this iPad.");
+  if(typeof x==="string"&&x.startsWith("data:image")){const v=document.createElement("div");v.id="qImgV";v.innerHTML=`<img alt="Photo"><button type="button" class="pri">Close</button>`;v.querySelector("img").src=x;v.onclick=()=>v.remove();document.body.appendChild(v);return}
+  window.open(typeof x==="string"?x:URL.createObjectURL(x),"_blank")},true);
+ const _uph=uphView;uphView=function(){_uph.apply(this,arguments);const u=JU()||unitOf(UID);if(!u)return;const s=S(),ks=Object.keys(s.days||{}).sort().reverse(),out=[];
+  ks.forEach(d=>{const D=(s.days[d]||{})[u.id];if(!D)return;const ts=D.tasks.filter(t=>(t.ph||[]).length||(t.sh||[]).length);if(ts.length)out.push(`<h2 class="sec">${E(new Date(d+"T12:00:00").toLocaleDateString([],{weekday:"short",month:"short",day:"numeric"}))}</h2>`+ts.map(t=>`<div class="rec"><b>${E(cutT(String(t.text),140))}</b>${tAtt(t,d)}</div>`).join(""))});
+  const sh=MD.querySelector("#shp");if(sh)sh.insertAdjacentHTML("afterbegin",`<h2 class="sec" style="margin-top:0">Task photos &amp; data sheets</h2>${out.join("")||`<div class="hint">None yet. Add them under each task on the job's Today page or in Wrap Up.</div>`}<h2 class="sec">Piece photos</h2>`);qload()};
+ RENDER.sh_uph=uphView;
+
 
  setTimeout(()=>{try{syncU();if(cur==="home"||!cur)show("home")}catch(e){}},0);
 })();
