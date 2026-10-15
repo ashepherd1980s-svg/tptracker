@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -5570,7 +5570,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  function sendCard(s){const k=vStat(s),u=unitOf(s.unitId),p=pieceOf(u,s.pieceId);
   return `<div class="rec" style="border-left-color:${VC[k]}"><b style="font-size:17px">${E(vName(s.vendorId))}: ${E(s.what||(p?p.name:""))}</b><small>${u?E(u.name)+" &middot; ":""}${E(s.work||"")}${s.po?" &middot; PO "+E(s.po):""}</small>
   <small>Sent ${E(fmtD(s.sent))}${s.due?" &middot; due back "+E(fmtD(s.due)):""}${s.back?" &middot; back "+E(fmtD(s.back)):""} &middot; <b style="display:inline;font-size:13px;color:${VC[k]}">${VL[k]}${k==="late"?" "+(-days(today(),s.due))+" days":""}</b></small>${(s.photos||[]).map(id=>`<img class="th" data-p="${id}" alt="Photo">`).join("")}
-  ${s.back?"":`<div class="row"><button type="button" class="pri" data-shback="${s.id}">Mark Received Back</button><button type="button" data-shedit="${s.id}">Edit</button></div>`}</div>`}
+  <div class="row">${s.back?"":`<button type="button" class="pri" data-shback="${s.id}">Mark Received Back</button>`}<button type="button" data-shedit="${s.id}">Edit</button><button type="button" class="danger" data-shdel="${s.id}">Delete</button></div></div>`}
  /* vendor send form */
  let SF=null;
  function sendForm(){const s=SF,V=S().vendors,u=unitOf(s.unitId),p=pieceOf(u,s.pieceId);
@@ -5816,7 +5816,8 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   if(b.dataset.shp){if(b.dataset.shu2)UID=b.dataset.shu2;PID=b.dataset.shp;return go("sh_piece")}
   if(b.dataset.shvt){VT=b.dataset.shvt;return vendView()}
   if(b.dataset.shback){const x=s.sends.find(y=>y.id===b.dataset.shback);if(x){const d=prompt("Date received back (YYYY-MM-DD)",today());if(d){x.back=d;sv();mod(cur)}}return}
-  if(b.dataset.shedit){SF=JSON.parse(JSON.stringify(s.sends.find(y=>y.id===b.dataset.shedit)));UID=SF.unitId;PID=SF.pieceId;return go("sh_send")}
+  if(b.dataset.shedit){const x0=s.sends.find(y=>y.id===b.dataset.shedit);if(!x0)return;return pcGate("Edit Vendor Send","Enter your 4-digit PIN to edit this vendor send.",()=>{SF=JSON.parse(JSON.stringify(x0));UID=SF.unitId;PID=SF.pieceId;go("sh_send")})}
+  if(b.dataset.shdel){const x0=s.sends.find(y=>y.id===b.dataset.shdel);if(!x0)return;return pcGate("Delete Vendor Send","This permanently deletes the send to "+vName(x0.vendorId)+(x0.what?" ("+x0.what+")":"")+". Enter your 4-digit PIN to continue.",()=>{if(!confirm("Delete this vendor send? This cannot be undone."))return;s.sends=s.sends.filter(y=>y!==x0);try{(x0.photos||[]).forEach(id=>{if(typeof pDel==="function")pDel(id)})}catch(e){}sv();mod(cur)})}
   if(b.dataset.shpt){const x=s.parts.find(y=>y.id===b.dataset.shpt);if(x){x.st=b.dataset.v;if(x.st==="Received")x.bo=false;sv();partsView()}return}
   if(b.dataset.shbo){const x=s.parts.find(y=>y.id===b.dataset.shbo);if(x){x.bo=!x.bo;sv();partsView()}return}
   if(b.dataset.shpx){if(confirm("Remove this part?")){s.parts=s.parts.filter(y=>y.id!==b.dataset.shpx);sv();partsView()}return}
