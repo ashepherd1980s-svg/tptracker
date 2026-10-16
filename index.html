@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA; v57.0: LOTO checked task by task, all-stop when anyone is on a LOTO task without LOTO; v58.0: Shop 6B Major Inspection: QC Checklist, GT inspection forms, Risk Assessment; v58.1: TurbinePros logo and branding on the inspection forms, checklist and risk register; v58.2: saved documents open inside the app on the iPad)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA; v57.0: LOTO checked task by task, all-stop when anyone is on a LOTO task without LOTO; v58.0: Shop 6B Major Inspection: QC Checklist, GT inspection forms, Risk Assessment; v58.1: TurbinePros logo and branding on the inspection forms, checklist and risk register; v58.2: saved documents open inside the app on the iPad; v58.3: receiving on Shop and Field, printable receiving reports)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -588,7 +588,7 @@ function scanForm(mode,keep){const F=$("#dDatF"),rec=keep||{cat:DCATS[0],unit:LA
    await pPut(o.id,blob);DOCS().push(o);LAST.unit=o.unit;try{localStorage.setItem("tp-last",JSON.stringify(LAST))}catch(x){}sv();SCAN=[];$("#dDat").close();DT="docs";refresh()}};
  if(!$("#dDat").open)$("#dDat").showModal()}
 let VURL="";
-async function docOpen(id){const r=DOCS().find(x=>x.id===id),b=await pGet(id);if(!r||!b)return alert("The file for this document is not on this device. It was probably added on another device or the browser data was cleared.");
+async function docOpen(id){const r=DOCS().find(x=>x.id===id),b=await pGet(id);if(!r||!b)return alert("The file for this document is not on this device. It was probably added on another device or the browser data was cleared.");if(r.type==="application/pdf"&&window.TPVIEW)return TPVIEW(b,r.name||r.title);
  if(VURL)URL.revokeObjectURL(VURL);VURL=URL.createObjectURL(b);const img=/^image\//.test(r.type),pdf=r.type==="application/pdf";
  $("#vBody").innerHTML=`<h2>${esc(r.title)}</h2><small>${esc(r.cat)}${r.unit?" &middot; "+esc(r.unit):""}${r.ttl?" &middot; "+esc(r.ttl):""} &middot; ${esc(r.date||"")}${r.pages?" &middot; "+r.pages+" page"+(r.pages>1?"s":""):""} &middot; ${(r.size/1048576).toFixed(2)} MB</small>`+(img?`<img src="${VURL}" alt="" style="width:100%;border-radius:10px;margin-top:8px">`:pdf?`<iframe src="${VURL}" style="width:100%;height:50vh;border:0;border-radius:10px;margin-top:8px;background:#fff"></iframe>`:"")+`<div class="row"><a class="lnk" href="${VURL}" target="_blank" rel="noopener">Open Full Screen</a><a class="lnk" href="${VURL}" download="${esc(r.name)}">Download</a>${navigator.canShare?`<button type="button" id="vSh">Share</button>`:""}<button type="button" id="vX">Close</button></div>`;
  $("#vBody").onclick=async e=>{const x=e.target.closest("button");if(!x)return;if(x.id==="vX")$("#dView").close();if(x.id==="vSh"){try{const f=new File([b],r.name,{type:r.type});if(navigator.canShare({files:[f]}))await navigator.share({files:[f],title:r.title})}catch(z){}}};$("#dView").showModal()}
@@ -3971,9 +3971,9 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   RENT().forEach(x=>(x.rcv||[]).forEach(r=>{if((r.date||"")>=since)L.push({x,r,kind:"Rental",what:(x.vend?x.vend+": ":"")+x.desc})}));
   L.sort((a,b)=>(b.r.ts||0)-(a.r.ts||0)||String(b.r.date).localeCompare(String(a.r.date)));
   const dm=L.filter(a=>a.r.dmg&&!a.r.dmgOk);
-  MD.innerHTML=`<div class="mh"><h2>Receive Delivery</h2></div><div class="rec" style="border-left:5px solid #1f6f6b"><b>A truck just showed up</b><small>Match it to an order or rental, scan the BOL, take photos and note any damage. Vendors &amp; Orders updates right away.</small><div class="row"><button class="pri" data-rv="new" style="min-height:56px;font-size:18px">Receive a Delivery</button></div></div>`+
+  MD.innerHTML=`<div class="mh"><h2>Receive Delivery</h2></div><div class="rec" style="border-left:5px solid #1f6f6b"><b>A truck just showed up</b><small>Match it to an order or rental, scan the BOL, take photos and note any damage. Vendors &amp; Orders updates right away.</small><div class="row"><button class="pri" data-rv="new" style="min-height:56px;font-size:18px">Receive a Delivery</button></div><div class="row"><button type="button" data-rr="log">Receiving Log (printable)</button></div></div>`+
   (dm.length?`<h2 class="sec">Damage to review (${dm.length})</h2>`+dm.map(rRow).join(""):"")+`<h2 class="sec">Last 14 days</h2>`+(L.filter(a=>!(a.r.dmg&&!a.r.dmgOk)).map(rRow).join("")||`<div class="empty" style="padding:6px 16px">No deliveries yet.</div>`)+`<div style="height:40px"></div>`;loadTh()}
- const rRow=a=>{const r=a.r;return `<div class="rec${r.dmg&&!r.dmgOk?" hold":""}"><b>${E(a.what)}</b>${r.dmg?`<span class="tag"${r.dmgOk?' style="background:#5d686b"':""}>Damaged${r.dmgOk?" (reviewed)":""}</span>`:""}${r.partial?`<span class="tag" style="background:#e0a04e">Partial</span>`:""}<small>${E(a.kind)} &middot; ${E(r.date||"")} &middot; Qty ${E(r.qty)} &middot; ${E(r.by||"")}${r.bolNo?" &middot; BOL "+E(r.bolNo):""}${r.driver?" &middot; Driver "+E(r.driver):""}</small>${r.dmg&&r.dmgNote?`<small style="color:var(--ink)">Damage: ${E(r.dmgNote)}</small>`:""}${r.note?`<small>${E(r.note)}</small>`:""}${thumbs((r.photos||[]).slice(0,4))}<div class="row">${r.bol?`<button data-rv="bol" data-id="${r.bol}">View BOL</button>`:""}${r.drvSig?`<button data-rv="sig" data-id="${r.drvSig}">Driver Signature</button>`:""}${r.dmg&&!r.dmgOk&&isSup()?`<button class="pri" data-rv="ok" data-id="${r.id}">Damage Reviewed</button>`:""}</div></div>`};
+ const rRow=a=>{const r=a.r;return `<div class="rec${r.dmg&&!r.dmgOk?" hold":""}"><b>${E(a.what)}</b>${r.dmg?`<span class="tag"${r.dmgOk?' style="background:#5d686b"':""}>Damaged${r.dmgOk?" (reviewed)":""}</span>`:""}${r.partial?`<span class="tag" style="background:#e0a04e">Partial</span>`:""}<small>${E(a.kind)} &middot; ${E(r.date||"")} &middot; Qty ${E(r.qty)} &middot; ${E(r.by||"")}${r.bolNo?" &middot; BOL "+E(r.bolNo):""}${r.driver?" &middot; Driver "+E(r.driver):""}</small>${r.dmg&&r.dmgNote?`<small style="color:var(--ink)">Damage: ${E(r.dmgNote)}</small>`:""}${r.note?`<small>${E(r.note)}</small>`:""}${thumbs((r.photos||[]).slice(0,4))}<div class="row"><button type="button" data-rr="one" data-id="${r.id}">Receiving Report</button>${r.bol?`<button data-rv="bol" data-id="${r.bol}">View BOL</button>`:""}${r.drvSig?`<button data-rv="sig" data-id="${r.drvSig}">Driver Signature</button>`:""}${r.dmg&&!r.dmgOk&&isSup()?`<button class="pri" data-rv="ok" data-id="${r.id}">Damage Reviewed</button>`:""}</div></div>`};
  function rcvForm2(){RV={src:"",full:true,dmg:null,pages:[],photos:[],dph:[],sig:"",driver:""};drawRcv();dlg()}
  window.rcvOpen=function(src){RV={src:src||"",full:true,dmg:null,pages:[],photos:[],dph:[],sig:"",driver:""};drawRcv();dlg()};
  function drawRcv(){const F=$("#dDatF"),o=ORD().filter(isOpen),ve=o.filter(x=>x.kind==="vend"),sh=o.filter(x=>x.kind==="shop"),rn=RENT().filter(x=>!x.dOut),R=RV;
@@ -4024,6 +4024,34 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   else{(rent.rcv=rent.rcv||[]).push(r);rent.inPh=(rent.inPh||[]).concat(r.photos);(rent.log=rent.log||[]).push({t:new Date().toLocaleString(),by,m:"Delivery received: "+q+" ("+cond+")"+(r.bolNo?" BOL "+r.bolNo:"")+(r.dmg?" - DAMAGE: "+r.dmgNote:"")})}
   RV=null;sv();$("#dDat").close();alert(r.dmg?"Saved. The damage shows in Needs attention for the supervisor.":"Delivery saved.");if(cur==="fm_rcv")rcvView();else if(M[cur])mod(cur)}
  function rcvFind(id){for(const o of ORD())for(const r of (o.rec||[]))if(r.id===id)return r;for(const x of RENT())for(const r of (x.rcv||[]))if(r.id===id)return r}
+
+ /* ===== v58.3 Field receiving reports: one per delivery and a receiving log, TurbinePros branded, with a PDF copy saved to Documents ===== */
+ (function(){
+  const fmt=d=>{try{return d?new Date(d+"T12:00:00").toLocaleDateString([],{month:"short",day:"numeric",year:"numeric"}):""}catch(e){return d||""}};
+  try{if(Array.isArray(DCATS)&&!DCATS.includes("Receiving Report"))DCATS.push("Receiving Report")}catch(e){}
+  function all(){const L=[];ORD().forEach(o=>(o.rec||[]).forEach(r=>L.push({r,o,kind:o.kind==="shop"?"Request":"Order",vend:o.vendor||"",what:o.desc||"",po:o.po||"",unit:o.unit||"",of:o.qty})));
+   RENT().forEach(x=>(x.rcv||[]).forEach(r=>L.push({r,x,kind:"Rental",vend:x.vend||"",what:x.desc||"",po:x.ref||"",unit:x.unit||""})));return L}
+  const find=id=>all().find(a=>a.r.id===id);
+  const saveDoc=a=>async(blob,name,pages)=>{const id="d"+Date.now().toString(36)+"rr";await pPut(id,blob);const d=(a&&a.r.date)||tdy();
+   DOCS().push(Object.assign({id,title:a?"Receiving Report - "+(a.vend||a.what)+(a.r.bolNo?" BOL "+a.r.bolNo:""):"Receiving Log",cat:"Receiving Report",unit:a?a.unit:"",date:d,who:me(),pages,name,type:"application/pdf",size:blob.size,note:""},a&&a.o?{ord:a.o.id}:a&&a.x?{rent:a.x.id}:{}));sv()};
+  function oneDoc(a){const r=a.r,D=TPREPORT.Doc({title:"Receiving Report",sub:(a.vend?a.vend+" · ":"")+fmt(r.date)});
+   D.h("Delivery");D.kv([["Date received",fmt(r.date)],["Received by",r.by||""],["Shift",r.shift||""],["Type",a.kind],["From",a.vend||"—"],["Item",a.what],["PO / ref",a.po||""],["Unit",a.unit||""],["Quantity",String(r.qty)+(a.of?" of "+a.of+" ordered":"")],["Delivery",r.partial?"Partial":"Full"],["Condition",r.cond||""],["BOL / slip #",r.bolNo||"—"],["Carrier",r.carrier||"—"],["Driver",r.driver||"—"],["BOL scan",r.bol?"Saved in Documents":"none"]]);
+   if(r.dmg){D.h("Damage");D.p(r.dmgNote||"Damaged");D.p(r.dmgOk?"Reviewed by the supervisor.":"Not reviewed yet.",true)}
+   if(r.note){D.h("Notes");D.p(r.note)}
+   const dph=r.dmgPh||[],oth=(r.photos||[]).filter(id=>!dph.includes(id));if(dph.length){D.h("Damage photos");D.img(dph)}if(oth.length){D.h("Photos");D.img(oth)}
+   D.h("Signatures");if(r.drvSig)D.sig(r.drvSig,"Driver"+(r.driver?": "+r.driver:""));D.sig("","Received by: "+(r.by||""));return D}
+  function logDoc(from,to){const L=all().filter(a=>(a.r.date||"")>=from&&(a.r.date||"")<=to).sort((a,b)=>String(a.r.date).localeCompare(String(b.r.date))||(a.r.ts||0)-(b.r.ts||0));
+   const D=TPREPORT.Doc({title:"Receiving Log",sub:fmt(from)+" to "+fmt(to)});let site="";try{site=(ds().setup||{}).site||""}catch(e){}
+   D.kv([["Site",site],["Deliveries",String(L.length)],["Damaged",String(L.filter(a=>a.r.dmg).length)],["Partial",String(L.filter(a=>a.r.partial).length)]]);
+   D.table(["Date","From / item","Qty","Condition","BOL #","Carrier","Received by"],L.map(a=>[fmt(a.r.date),(a.vend?a.vend+": ":"")+a.what+(a.kind==="Rental"?" (rental)":""),String(a.r.qty)+(a.r.partial?" partial":""),(a.r.cond||"")+(a.r.dmg&&a.r.dmgNote?": "+a.r.dmgNote:""),a.r.bolNo||"",a.r.carrier||"",a.r.by||""]),[.11,.27,.08,.22,.1,.1,.12],L.map(a=>a.r.dmg?"#f6d5d1":a.r.partial?"#fff4d6":""));
+   if(!L.length)D.p("No deliveries recorded in these dates.");return D}
+  function logDlg(){const F=$("#dDatF"),L=all().map(a=>a.r.date).filter(Boolean).sort();
+   F.innerHTML=`<h2>Receiving Log</h2><div class="hint">Every delivery received between these dates.</div><label>From<input type="date" id="rlF" value="${esc(addDay(tdy(),-30)>(L[0]||tdy())?addDay(tdy(),-30):(L[0]||tdy()))}"></label><label>To<input type="date" id="rlT" value="${esc(tdy())}"></label><div class="row"><button type="button" id="rlX">Cancel</button><button type="button" class="pri" id="rlGo">Make Report</button></div>`;
+   F.oninput=F.onchange=null;F.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="rlX")return $("#dDat").close();if(b.id==="rlGo"){const f=$("#rlF").value,t=$("#rlT").value;if(!f||!t||f>t)return alert("Pick a From date on or before the To date.");$("#dDat").close();TPREPORT.run(logDoc(f,t),"TurbinePros_Receiving_Log_"+f+"_to_"+t,saveDoc(null))}};$("#dDat").showModal()}
+  window.TPFIELDRCV={find,oneDoc,logDoc,all,run:id=>{const a=find(id);if(a)TPREPORT.run(oneDoc(a),"TurbinePros_Receiving_Report_"+(a.r.bolNo||a.r.date)+"_"+(a.vend||""),saveDoc(a))}};
+  document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-rr]");if(!b)return;e.preventDefault();e.stopPropagation();if(b.dataset.rr==="log")return logDlg();if(b.dataset.rr==="one")return TPFIELDRCV.run(b.dataset.id)},true);
+ })();
+
 
  /* =================== BREAKS =================== */
  const BDEF={Day:[{id:"bd1",t:"09:00",len:15,kind:"Break"},{id:"bd2",t:"12:00",len:30,kind:"Lunch"},{id:"bd3",t:"15:00",len:15,kind:"Break"}],Night:[{id:"bn1",t:"21:00",len:15,kind:"Break"},{id:"bn2",t:"00:00",len:30,kind:"Lunch"},{id:"bn3",t:"03:00",len:15,kind:"Break"}]};
@@ -5932,8 +5960,8 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  /* ===================== v53 ===================== */
  const MS=[["rcv","Received"],["dis","Disassembly complete"],["insp","Inspection & discovery complete"],["reas","Reassembly complete"],["rpt","Final report"],["ship","Shipped / storage"]];
  const UF=[["job","Job number"],["unitNo","Unit (e.g. Unit 1)"],["cust","Customer"],["origin","Origin (shipped from)"],["model","Model"],["tser","Turbine serial"],["gser","Generator serial"],["dRec","Date received","date"],["dTgt","Target ship date","date"],["dShip","Actual ship date","date"]];
- const LINKS=[["prog","Progress & task cards"],["qc","QC Checklist"],["gtf","Inspection Forms"],["risk","Risk Assessment"],["pcs","Pieces"],["crew","Crew & timesheet"],["jsa","JSAs"],["vend","Vendors"],["parts","Parts"],["photos","Photos"],["finds","Findings"],["delay","Delays"],["hseq","HSEQ & FME"],["plan","Past days"],["status","Customer status"],["info","Unit info"]];
- const LROUTE={prog:"sh_tc",qc:"sh_qc",gtf:"sh_gtl",risk:"sh_risk",pcs:"sh_unit",crew:"sh_uc",jsa:"sh_uj",vend:"sh_uv",parts:"sh_parts",photos:"sh_uph",finds:"sh_uf",delay:"sh_ud",hseq:"sh_uh",plan:"sh_up",status:"sh_status",info:"sh_ui"};
+ const LINKS=[["prog","Progress & task cards"],["qc","QC Checklist"],["gtf","Inspection Forms"],["risk","Risk Assessment"],["pcs","Pieces"],["rcv","Receiving"],["crew","Crew & timesheet"],["jsa","JSAs"],["vend","Vendors"],["parts","Parts"],["photos","Photos"],["finds","Findings"],["delay","Delays"],["hseq","HSEQ & FME"],["plan","Past days"],["status","Customer status"],["info","Unit info"]];
+ const LROUTE={prog:"sh_tc",qc:"sh_qc",gtf:"sh_gtl",risk:"sh_risk",pcs:"sh_unit",rcv:"sh_rcv",crew:"sh_uc",jsa:"sh_uj",vend:"sh_uv",parts:"sh_parts",photos:"sh_uph",finds:"sh_uf",delay:"sh_ud",hseq:"sh_uh",plan:"sh_up",status:"sh_status",info:"sh_ui"};
  const uName=u=>[nv(u.job),nv(u.unitNo)].filter(Boolean).join(" ")||u.name||"Unit";
  function fixU(u){if(!Array.isArray(u.steps))u.steps=[];if(!u.ms||typeof u.ms!=="object")u.ms={};if(!Array.isArray(u.docs))u.docs=[];if(!Array.isArray(u.pieces))u.pieces=[];if(!Array.isArray(u.tpl))u.tpl=[];if(nv(u.job)||nv(u.unitNo))u.name=uName(u);return u}
  const UNITS=()=>{const s=S(),o=s.set.uord||[];s.units.forEach(fixU);return s.units.slice().sort((a,b)=>{const ia=o.indexOf(a.id),ib=o.indexOf(b.id);return (ia<0?1e6:ia)-(ib<0?1e6:ib)})};
@@ -6566,6 +6594,105 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  window.TPMI={openForm,loadForms,QC6B,RISK6B,FLIST,close:closeForm,paint:async()=>CUR&&await allPages()};
  })();
 
+ /* ===================== v58.3 Shop receiving: truckload or single-piece check-in, and printable receiving reports ===================== */
+ (function(){
+ const RC=()=>{const s=S();return s.rcpts||(s.rcpts=[])};
+ const CONDS=["Good","Damaged","Missing parts","Wrong item"];
+ const fmt=d=>{try{return d?new Date(d+"T12:00:00").toLocaleDateString([],{month:"short",day:"numeric",year:"numeric"}):""}catch(e){return d||""}};
+ const LG=()=>{try{if(typeof LOGO==="string"&&LOGO)return LOGO}catch(e){}return (document.querySelector("img.logo")||{}).src||""};
+ const st=document.createElement("style");st.textContent=`.srPc{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0}.srPc.on{border-color:#1f6f6b;border-width:2px}.srPc .hd{display:flex;align-items:center;gap:10px;font-weight:700}.srPc .hd input{width:26px;height:26px}.srPc .bd{margin-top:6px}.srPc.dmg{border-color:#d9534f}
+ .srTag{display:inline-block;padding:2px 8px;border-radius:8px;font-size:12px;font-weight:800;color:#fff;background:#d9534f;margin-left:6px}`;document.head.appendChild(st);
+ let SR=null;
+ function names(){const n=new Set();(S().crew||[]).forEach(c=>c&&c.title&&n.add(c.title));(DB.people||[]).forEach(p=>p&&p.title&&n.add(p.title));return [...n]}
+ function openForm(u,pid){const pre=pid?[pid]:[];SR={unitId:u.id,date:today(),by:ME_(),bolNo:"",carrier:"",driver:"",note:"",sig:"",pages:[],photos:[],pcs:{}};
+  pre.forEach(id=>SR.pcs[id]={on:true,cond:"Good",dmg:"",photos:[]});draw()}
+ function draw(){const u=unitOf(SR.unitId);if(!u)return;const F=$("#dDatF"),exp=u.pieces.filter(p=>p.status==="expected"||SR.pcs[p.id]);const R=SR;
+  F.innerHTML=`<h2>Receive a Shipment</h2><div class="hint">${E(uName(u))}. Tick every piece that came on this truck.</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><label>Date received<input type="date" id="srD" value="${E(R.date)}"></label><label>Received by<input id="srBy" list="srByL" value="${E(R.by)}"><datalist id="srByL">${names().map(n=>`<option value="${E(n)}">`).join("")}</datalist></label>
+  <label>BOL / packing slip #<input id="srB" value="${E(R.bolNo)}"></label><label>Carrier<input id="srC" value="${E(R.carrier)}"></label></div>
+  <h3 style="margin:12px 0 4px">Pieces on this truck</h3>${exp.length?exp.map(p=>{const x=R.pcs[p.id]||{};return `<div class="srPc${x.on?" on":""}${x.on&&x.cond!=="Good"?" dmg":""}"><label class="hd"><input type="checkbox" data-sr="pc" data-pid="${p.id}"${x.on?" checked":""}><span>${E(p.name)}</span></label>${x.on?`<div class="bd"><label>Condition<select data-sr="cond" data-pid="${p.id}">${CONDS.map(c=>`<option${c===x.cond?" selected":""}>${c}</option>`).join("")}</select></label>${x.cond!=="Good"?`<label>What's wrong<textarea data-sr="dmg" data-pid="${p.id}" rows="2" placeholder="Required">${E(x.dmg||"")}</textarea></label>`:""}<label class="lnk" style="cursor:pointer;display:block;margin:6px 0">Photos of this piece (${(x.photos||[]).length})<input type="file" data-sr="pph" data-pid="${p.id}" accept="image/*" capture="environment" multiple hidden></label><div>${(x.photos||[]).map(id=>`<img class="th" data-p="${id}" alt="Photo">`).join("")}</div></div>`:""}</div>`}).join(""):`<div class="hint">Every piece on this unit is already received. Add one below if something extra came.</div>`}
+  <div class="shRow"><input id="srNew" placeholder="Piece not on the list"><button type="button" data-sr="addpc">Add Piece</button></div>
+  <h3 style="margin:12px 0 4px">BOL pages</h3><div class="hint">Take a photo of each page. They save as one PDF in Unit documents.</div><div class="chips" style="flex-wrap:wrap">${R.pages.map((p,i)=>`<span style="position:relative"><img class="th" src="${p.d}" alt=""><button type="button" data-sr="rmpg" data-v="${i}" style="position:absolute;top:2px;right:8px;min-height:26px;padding:0 8px">x</button></span>`).join("")||"<small>No pages yet.</small>"}</div><label class="lnk" style="cursor:pointer;display:block;margin:6px 0">+ Scan BOL Page<input type="file" id="srPg" accept="image/*" capture="environment" multiple hidden></label>
+  <h3 style="margin:12px 0 4px">Photos of the load</h3><label class="lnk" style="cursor:pointer;display:block;margin:6px 0">Take Load Photos (${R.photos.length})<input type="file" id="srPh" accept="image/*" capture="environment" multiple hidden></label><div>${R.photos.map(id=>`<img class="th" data-p="${id}" alt="Photo">`).join("")}</div>
+  <label>Driver name<input id="srDr" value="${E(R.driver)}"></label><div class="row"><button type="button" data-sr="sign">${R.sig?"Driver Signed (redo)":"Driver Signature"}</button></div>${R.sig?`<img src="${R.sig}" alt="Driver signature" style="max-width:240px;border:1px solid var(--line);border-radius:8px;background:#fff">`:""}
+  <label>Notes<textarea id="srN" rows="2">${E(R.note)}</textarea></label>
+  <div class="row" style="position:sticky;bottom:0;background:var(--card);padding:10px 0"><button type="button" data-sr="x">Cancel</button><button type="button" class="pri" data-sr="save">Save Receipt</button></div>`;
+  const keep=()=>{const g=i=>{const e=$("#"+i);return e?e.value:""};R.date=g("srD")||R.date;R.by=g("srBy");R.bolNo=g("srB");R.carrier=g("srC");R.driver=g("srDr");R.note=g("srN");F.querySelectorAll("[data-sr=dmg]").forEach(t=>{(R.pcs[t.dataset.pid]||{}).dmg=t.value})};
+  F.oninput=keep;
+  F.onchange=async e=>{const t=e.target;keep();const k=t.dataset.sr,pid=t.dataset.pid;
+   if(k==="pc"){if(t.checked)R.pcs[pid]=Object.assign({cond:"Good",dmg:"",photos:[]},R.pcs[pid]||{},{on:true});else if(R.pcs[pid])R.pcs[pid].on=false;return draw()}
+   if(k==="cond"){R.pcs[pid].cond=t.value;return draw()}
+   if(k==="pph"&&t.files.length){R.pcs[pid].photos=(R.pcs[pid].photos||[]).concat(await savePh(t.files));return draw()}
+   if(t.id==="srPg"&&t.files.length){for(const f of [...t.files]){const p=await prepPage(f,true);if(p)R.pages.push(p)}return draw()}
+   if(t.id==="srPh"&&t.files.length){R.photos=R.photos.concat(await savePh(t.files));return draw()}};
+  F.onclick=async e=>{const b=e.target.closest("button[data-sr]");if(!b)return;keep();const k=b.dataset.sr;
+   if(k==="x"){if(SR&&(Object.values(SR.pcs).some(x=>x.on)||SR.pages.length)&&!confirm("Close without saving this receipt?"))return;SR=null;return $("#dDat").close()}
+   if(k==="addpc"){const n=nv($("#srNew").value);if(!n)return;const u=unitOf(R.unitId);const p=mkPiece(n,[]);u.pieces.push(p);sv();R.pcs[p.id]={on:true,cond:"Good",dmg:"",photos:[]};return draw()}
+   if(k==="rmpg"){R.pages.splice(+b.dataset.v,1);return draw()}
+   if(k==="sign")return sigPad("Driver signature",d=>{R.sig=d;draw();if(!$("#dDat").open)$("#dDat").showModal()});
+   if(k==="save"){b.disabled=true;try{await save()}catch(x){alert("Could not save: "+(x&&x.message||x))}if(b.isConnected)b.disabled=false}};
+  if(!$("#dDat").open)$("#dDat").showModal();try{loadThumbs(F)}catch(e){}}
+ const loadThumbs=F=>F.querySelectorAll("img.th[data-p]:not([src])").forEach(i=>pGet(i.dataset.p).then(x=>{if(x)i.src=typeof x==="string"?x:URL.createObjectURL(x)}));
+ async function save(){const R=SR,u=unitOf(R.unitId);if(!u)return;const on=Object.entries(R.pcs).filter(([,x])=>x.on);
+  if(!on.length)return alert("Tick at least one piece that arrived.");if(!nv(R.by))return alert("Enter who received it.");
+  for(const [pid,x] of on)if(x.cond!=="Good"&&!nv(x.dmg)){const p=pieceOf(u,pid);return alert("Say what's wrong with "+(p?p.name:"the piece")+".")}
+  const r={id:uidS("rc"),unitId:u.id,date:R.date||today(),ts:Date.now(),by:nv(R.by),bolNo:nv(R.bolNo),carrier:nv(R.carrier),driver:nv(R.driver),note:nv(R.note),photos:R.photos.slice(),pieces:[]};
+  if(R.sig){const sid=uidS("sg");await pPut(sid,R.sig);r.sig=sid}
+  if(R.pages.length){const blob=mkPDF(R.pages),id=uidS("ud");await pPut(id,blob);const nm=("BOL_"+(r.bolNo||r.date)+"_"+uName(u)).replace(/[^\w\-]+/g,"_")+".pdf";fixU(u);u.docs.push({id,name:nm,at:nowTxt()});r.bolDoc=id;r.bolPages=R.pages.length}
+  on.forEach(([pid,x])=>{const p=pieceOf(u,pid);if(!p)return;r.pieces.push({pid,name:p.name,cond:x.cond,dmg:x.cond==="Good"?"":nv(x.dmg),photos:(x.photos||[]).slice()});
+   p.status="received";const q=p.rec||(p.rec={});q.date=r.date;q.by=r.by;q.cond=x.cond;q.rid=r.id;if(r.carrier)q.carrier=r.carrier;if(r.bolNo)q.bol=r.bolNo;if(x.cond!=="Good")q.damage=[q.damage,x.cond+": "+nv(x.dmg)].filter(Boolean).join("\n");q.photos=(q.photos||[]).concat(x.photos||[]);if(R.sig)q.sig=R.sig});
+  if(!u.dRec)u.dRec=r.date;RC().push(r);sv();try{syncU()}catch(e){}SR=null;$("#dDat").close();
+  const bad=r.pieces.filter(x=>x.cond!=="Good").length;alert("Receipt saved: "+r.pieces.length+" piece"+(r.pieces.length===1?"":"s")+(bad?", "+bad+" with a problem noted":"")+". Tap Receiving Report to print it.");
+  try{RENDER[cur]&&RENDER[cur]()}catch(e){}}
+ /* ---------- reports ---------- */
+ const saveTo=u=>async(blob,name)=>{const id=uidS("ud");await pPut(id,blob);fixU(u);u.docs.push({id,name,at:nowTxt(),rpt:1});sv()};
+ function shipDoc(u,r){const D=TPREPORT.Doc({title:"Receiving Report",sub:uName(u)+" · "+fmt(r.date)});
+  D.h("Delivery");D.kv([["Unit",uName(u)],["Customer",nv(u.cust)],["Date received",fmt(r.date)],["Received by",r.by],["BOL / slip #",r.bolNo||"—"],["Carrier",r.carrier||"—"],["Driver",r.driver||"—"],["Pieces",String(r.pieces.length)],["BOL scan",r.bolDoc?(r.bolPages||"")+" page PDF in Unit documents":"none"]]);
+  D.h("Pieces received");D.table(["Piece","Condition","Notes"],r.pieces.map(p=>[p.name,p.cond,p.dmg||""]),[.38,.18,.44],r.pieces.map(p=>p.cond!=="Good"?"#f6d5d1":""));
+  if(r.note){D.h("Notes");D.p(r.note)}
+  const bad=r.pieces.filter(p=>p.cond!=="Good"&&(p.photos||[]).length);if(bad.length){D.h("Damage photos");bad.forEach(p=>D.img(p.photos,p.name+": "+p.cond))}
+  const ok=r.pieces.filter(p=>p.cond==="Good"&&(p.photos||[]).length);if(ok.length||r.photos.length){D.h("Photos");ok.forEach(p=>D.img(p.photos,p.name));if(r.photos.length)D.img(r.photos,"Load")}
+  D.h("Signatures");if(r.sig)D.sig(r.sig,"Driver"+(r.driver?": "+r.driver:""));D.sig("", "Received by: "+(r.by||""));return D}
+ /* receipts made before v58.3 live only on the piece */
+ function legacyDoc(u,p){const q=p.rec||{};const D=TPREPORT.Doc({title:"Receiving Report",sub:uName(u)+" · "+p.name});
+  D.h("Delivery");D.kv([["Unit",uName(u)],["Piece",p.name],["Date received",fmt(q.date)],["Received by",q.by||""],["Serial #",q.serial||""],["BOL / slip #",q.bol||"—"],["Carrier",q.carrier||"—"],["Condition",q.cond||(nv(q.damage)?"Damaged":"")]]);
+  if(nv(q.damage)){D.h("Damage noted");D.p(q.damage)}if(nv(q.missing)){D.h("Missing parts");D.p(q.missing)}
+  if((q.photos||[]).length){D.h("Photos");D.img(q.photos)}if((q.np||[]).length)D.img(q.np,"Nameplate");if(q.sig){D.h("Signatures");D.sig(q.sig,"Driver")}return D}
+ function summaryDoc(u){const D=TPREPORT.Doc({title:"Unit Receiving Summary",sub:uName(u)});const P=u.pieces,rec=P.filter(p=>p.status!=="expected");
+  D.kv([["Unit",uName(u)],["Customer",nv(u.cust)],["Origin",nv(u.origin)],["Turbine S/N",nv(u.tser)],["Pieces received",rec.length+" of "+P.length],["Shipments",String(RC().filter(r=>r.unitId===u.id).length)]]);
+  D.h("Pieces");D.table(["Piece","Status","Date","Condition","BOL #","Carrier","Received by"],P.map(p=>{const q=p.rec||{};const ex=p.status==="expected";return [p.name,ex?"Expected":"Received",ex?"":fmt(q.date),ex?"":(q.cond||(nv(q.damage)?"Damaged":"Good")),ex?"":(q.bol||""),ex?"":(q.carrier||""),ex?"":(q.by||"")]}),[.22,.1,.12,.13,.13,.15,.15],P.map(p=>p.status==="expected"?"#fff4d6":(p.rec&&p.rec.cond&&p.rec.cond!=="Good")||nv((p.rec||{}).damage)?"#f6d5d1":""));
+  const dm=rec.filter(p=>nv((p.rec||{}).damage));if(dm.length){D.h("Damage and problems");dm.forEach(p=>{D.p(p.name,true);D.p(p.rec.damage)})}return D}
+ function logDoc(u,from,to){const L=RC().filter(r=>r.unitId===u.id&&r.date>=from&&r.date<=to).sort((a,b)=>a.date.localeCompare(b.date)||a.ts-b.ts);
+  const D=TPREPORT.Doc({title:"Receiving Log",sub:uName(u)+" · "+fmt(from)+" to "+fmt(to)});D.kv([["Unit",uName(u)],["Deliveries",String(L.length)],["Pieces",String(L.reduce((a,r)=>a+r.pieces.length,0))],["With problems",String(L.filter(r=>r.pieces.some(p=>p.cond!=="Good")).length)]]);
+  D.table(["Date","Pieces","Condition","BOL #","Carrier","Driver","Received by"],L.map(r=>[fmt(r.date),r.pieces.map(p=>p.name).join(", "),r.pieces.some(p=>p.cond!=="Good")?r.pieces.filter(p=>p.cond!=="Good").map(p=>p.name+": "+p.cond+(p.dmg?" ("+p.dmg+")":"")).join("; "):"Good",r.bolNo,r.carrier,r.driver,r.by]),[.11,.24,.21,.11,.11,.11,.11],L.map(r=>r.pieces.some(p=>p.cond!=="Good")?"#f6d5d1":""));
+  if(!L.length)D.p("No deliveries recorded for this unit in these dates.");return D}
+ const run=(u,D,name)=>TPREPORT.run(D,"TurbinePros_"+name+"_"+uName(u),saveTo(u));
+ /* ---------- receiving screen ---------- */
+ function rcView(){const u=JU()||unitOf(UID);if(!u)return go("home");UID=u.id;const L=RC().filter(r=>r.unitId===u.id).sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);const ex=u.pieces.filter(p=>p.status==="expected").length;
+  const legacy=u.pieces.filter(p=>p.status!=="expected"&&!(p.rec&&p.rec.rid));
+  MD.innerHTML=head("Receiving: "+uName(u))+`<div id="shp"><div class="rec"><div class="miBrand"><img src="${LG()}" alt="TurbinePros"><span>Receiving</span></div><b>${u.pieces.length-ex} of ${u.pieces.length} pieces received</b><small>${ex} still expected · ${L.length} shipment${L.length===1?"":"s"} logged</small>
+   <div class="row"><button type="button" class="pri" data-rc="new" style="min-height:56px;font-size:18px">Receive a Shipment</button></div><div class="row"><button type="button" data-rc="sum">Unit Receiving Summary</button><button type="button" data-rc="log">Receiving Log</button></div></div>
+   <h2 class="sec">Shipments</h2>${L.map(r=>{const bad=r.pieces.filter(p=>p.cond!=="Good");return `<div class="rec"${bad.length?' style="border-left-color:#d9534f"':""}><b>${E(fmt(r.date))} · ${r.pieces.length} piece${r.pieces.length===1?"":"s"}${bad.length?`<span class="srTag">${bad.length} problem${bad.length===1?"":"s"}</span>`:""}</b><small>${E(r.pieces.map(p=>p.name).join(", "))}</small><small>${[r.bolNo?"BOL "+r.bolNo:"",r.carrier,r.driver?"Driver "+r.driver:"","Received by "+r.by].filter(Boolean).map(E).join(" · ")}</small><div class="row"><button type="button" class="pri" data-rc="rpt" data-id="${r.id}">Receiving Report</button>${r.bolDoc?`<button type="button" data-rc="bol" data-id="${r.bolDoc}">View BOL</button>`:""}</div></div>`}).join("")||`<div class="hint">No shipments logged yet. Tap Receive a Shipment when a truck arrives.</div>`}
+   ${legacy.length?`<h2 class="sec">Checked in before v58.3</h2>${legacy.map(p=>`<div class="rec"><b>${E(p.name)}</b><small>Received ${E(fmt((p.rec||{}).date))}</small><div class="row"><button type="button" data-rc="lrpt" data-id="${p.id}">Receiving Report</button></div></div>`).join("")}`:""}</div>`}
+ function logDlg(u){const F=$("#dDatF"),L=RC().filter(r=>r.unitId===u.id),first=L.map(r=>r.date).sort()[0]||today();
+  F.innerHTML=`<h2>Receiving Log</h2><div class="hint">${E(uName(u))}. Every delivery between these dates.</div><label>From<input type="date" id="rlF" value="${E(first)}"></label><label>To<input type="date" id="rlT" value="${E(today())}"></label><div class="row"><button type="button" id="rlX">Cancel</button><button type="button" class="pri" id="rlGo">Make Report</button></div>`;
+  F.oninput=F.onchange=null;F.onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="rlX")return $("#dDat").close();if(b.id==="rlGo"){const f=$("#rlF").value,t=$("#rlT").value;if(!f||!t||f>t)return alert("Pick a From date on or before the To date.");$("#dDat").close();run(u,logDoc(u,f,t),"Receiving_Log_"+f+"_to_"+t)}};$("#dDat").showModal()}
+ MD.addEventListener("click",e=>{if(!/^sh_/.test(cur))return;const b=e.target.closest("[data-rc]");if(!b)return;const u=JU()||unitOf(UID);if(!u)return;const k=b.dataset.rc;
+  if(k==="new")return openForm(u);if(k==="sum")return run(u,summaryDoc(u),"Unit_Receiving_Summary_"+today());if(k==="log")return logDlg(u);
+  if(k==="rpt"){const r=RC().find(x=>x.id===b.dataset.id);if(r)run(u,shipDoc(u,r),"Receiving_Report_"+r.date);return}
+  if(k==="lrpt"){const p=pieceOf(u,b.dataset.id);if(p)run(u,legacyDoc(u,p),"Receiving_Report_"+p.name+"_"+today());return}
+  if(k==="bol"){pGet(b.dataset.id).then(x=>x?TPVIEW(x,"BOL"):alert("That file is not on this iPad."));return}});
+ /* the piece screen: Check In opens the full form for that piece; received pieces get a report button */
+ MD.addEventListener("click",e=>{if(cur!=="sh_piece")return;const b=e.target.closest('[data-sh="recv"],[data-sh="prcpt"]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();const u=unitOf(UID),p=pieceOf(u,PID);if(!p)return;
+  if(b.dataset.sh==="recv")return openForm(u,p.id);const r=p.rec&&p.rec.rid&&RC().find(x=>x.id===p.rec.rid);run(u,r?shipDoc(u,r):legacyDoc(u,p),"Receiving_Report_"+p.name+"_"+today())},true);
+ const _pv=pieceView;pieceView=function(){const r=_pv.apply(this,arguments);try{const u=unitOf(UID),p=pieceOf(u,PID);if(p&&p.status!=="expected"){const h=[...MD.querySelectorAll("h2.sec")].find(x=>/Receiving Inspection/.test(x.textContent));const btn=`<div class="row"><button type="button" class="pri" data-sh="prcpt">Receiving Report</button></div>`;if(h)h.insertAdjacentHTML("afterend",btn);else{const s=MD.querySelector("#shp");if(s)s.insertAdjacentHTML("beforeend",`<h2 class="sec">Receiving</h2>`+btn)}}}catch(e){}return r};RENDER.sh_piece=pieceView;
+ /* the pieces screen gets a Receive a Shipment button */
+ const _uv2=unitView;unitView=function(){const r=_uv2.apply(this,arguments);try{const row=MD.querySelector("#shp .row");if(row&&!row.querySelector('[data-rc="new"]'))row.insertAdjacentHTML("afterbegin",`<button type="button" class="pri" data-rc="new">Receive a Shipment</button>`)}catch(e){}return r};RENDER.sh_unit=unitView;
+ RENDER.sh_rcv=rcView;M.sh_rcv={t:"Receiving",f:[],sum:()=>""};ALLOWED.add("sh_rcv");
+ window.TPSHOPRCV={openForm:(uid,pid)=>openForm(unitOf(uid),pid),RC,shipDoc,summaryDoc,logDoc};
+ })();
+
+
  const _sh53=show;show=function(v){if(v==="sh_jf"){v="home"}const r=_sh53.apply(this,[v]);try{side()}catch(e){}return r};
  const _uv=unitView;unitView=function(){const u=unitOf(UID);_uv.apply(this,arguments);try{const h=MD.querySelector(".mh");if(h&&u){const t=h.querySelector("h2");if(t)t.textContent="Pieces: "+uName(u)}}catch(e){}};
  RENDER.sh_unit=unitView;
@@ -7164,6 +7291,9 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  const E=esc;
  /* screen -> help. what: one or two lines on what you are looking at. steps: how to do the main jobs. tips: things people get stuck on. */
  const HELP={
+  sh_rcv_h:{t:"Receiving",what:"Check in what arrives for this unit and print receiving reports. Each report also saves as a PDF in Unit documents.",
+   steps:["Tap Receive a Shipment when a truck arrives.","Tick every piece on the truck. Set each one's condition; if it isn't Good, say what's wrong and take photos.","Enter the BOL number and carrier, scan the BOL pages, take load photos and get the driver's signature.","Tap Save Receipt, then Receiving Report to print it."],
+   tips:["Unit Receiving Summary lists every piece: received or still expected.","Receiving Log prints every delivery between two dates.","A single piece can also be checked in from its own screen with Check In This Piece."]},
   mi_qc:{t:"QC Checklist",what:"The 6B Major Inspection QC checklist for this unit, from Mobilization to Demobilization. Each step shows who signs it: V = Verify, W = Witness, H = Hold Point.",
    steps:["Tap a section to open it.","Tap a VERIFY, WITNESS or HOLD box, type your initials and tap Sign. The date is added for you.","Steps that cite a GT form have a GT button. Tap it to fill in that form for this step."],
    tips:["Use the filter to show Hold Points only, steps with a GT form, or steps not signed yet.","Tap a signed box to see who entered it, or to clear it.","Hold Points are shaded red. Get them signed before moving past them.","In a GT form: yellow cells are for typing, green numbers work themselves out, Save PDF puts a copy in Unit info, Unit documents."]},
@@ -7243,7 +7373,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
    steps:["Use the Home button or the side bar to get around.","Every screen has this ? button with help for that screen."],
    tips:["Stuck on a red STOP WORK screen? The LOTO needs fixing before anyone can work."]}
  };
- const MAP={home:"home",jobs:"jobs",prog:"prog",tasks:"tasks",crew:"crew",fm_tasks:"crew",jsa:"jsa",loto:"loto",fm_req:"needs",shop:"needs",tools:"needs",g_req:"needs",vend:"orders",fm_rcv:"orders",rent:"orders",g_ord:"orders",people:"people",delay:"delay",sh_delay:"delay",sh_ud:"delay",dsr:"dsr",sh_dsr:"dsr",sh_sd:"sd",sh_unit:"unit",sh_piece:"unit",sh_ui:"unit",sh_tc:"unit",sh_uph:"unit",sh_up:"unit",sh_uj:"jsa",sh_wrap:"wrap",sh_vend:"vend",sh_send:"vend",sh_uv:"vend",sh_vform:"vend",sh_crew:"shopcrew",sh_ros:"shopcrew",sh_uc:"shopcrew",sh_qc:"mi_qc",sh_gtl:"mi_forms",sh_risk:"mi_risk",qs:"setup",sync:"setup",reset:"setup",costs:"setup"};
+ const MAP={home:"home",jobs:"jobs",prog:"prog",tasks:"tasks",crew:"crew",fm_tasks:"crew",jsa:"jsa",loto:"loto",fm_req:"needs",shop:"needs",tools:"needs",g_req:"needs",vend:"orders",fm_rcv:"orders",rent:"orders",g_ord:"orders",people:"people",delay:"delay",sh_delay:"delay",sh_ud:"delay",dsr:"dsr",sh_dsr:"dsr",sh_sd:"sd",sh_unit:"unit",sh_piece:"unit",sh_ui:"unit",sh_tc:"unit",sh_uph:"unit",sh_up:"unit",sh_uj:"jsa",sh_wrap:"wrap",sh_vend:"vend",sh_send:"vend",sh_uv:"vend",sh_vform:"vend",sh_crew:"shopcrew",sh_ros:"shopcrew",sh_uc:"shopcrew",sh_qc:"mi_qc",sh_rcv:"sh_rcv_h",sh_gtl:"mi_forms",sh_risk:"mi_risk",qs:"setup",sync:"setup",reset:"setup",costs:"setup"};
  function key(){
   if(document.getElementById("stopW"))return "stop";
   const L=document.getElementById("lock");if(L&&!L.hidden)return "signin";
@@ -7347,6 +7477,53 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   catch(e){S.innerHTML=`<div class="msg">This file could not be shown. Use Share / Save or Open in New Tab.</div>`}}
  window.TPVIEW=view;window.TPVIEWCLOSE=close;
  addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("tpView"))close()});
+})();
+
+
+/* ===== v58.3 TurbinePros report pages: one builder draws receiving reports to page images, used for the printout and the saved PDF ===== */
+(function(){
+ const DPI=150,PW=8.5*DPI,PH=11*DPI,M=0.45*DPI,FOOTH=36;
+ const LG=()=>{try{if(typeof LOGO==="string"&&LOGO)return LOGO}catch(e){}return (document.querySelector("img.logo")||{}).src||""};
+ const loadImg=src=>new Promise(res=>{if(!src)return res(null);const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src});
+ async function srcOf(x){if(!x)return "";if(typeof x==="string"&&/^data:|^blob:/.test(x))return x;try{const v=await pGet(x);if(!v)return "";return typeof v==="string"?v:URL.createObjectURL(v)}catch(e){return ""}}
+ /* ops: {t:"h",text} {t:"p",text,b} {t:"kv",rows:[[k,v],...],cols} {t:"table",head,rows,w:[fractions],tint:[rowIndex->color]} {t:"img",ids:[],cap} {t:"sig",id,label} {t:"gap",h} {t:"brk"} */
+ function Doc(o){const D={title:o.title||"Report",sub:o.sub||"",ops:[]};const add=x=>{D.ops.push(x);return D};
+  D.h=t=>add({t:"h",text:t});D.p=(t,b)=>add({t:"p",text:t,b});D.kv=(rows,cols)=>add({t:"kv",rows:rows.filter(r=>r&&r[1]!==undefined&&r[1]!==null&&String(r[1]).trim()!==""),cols:cols||2});
+  D.table=(head,rows,w,tint)=>add({t:"table",head,rows,w,tint});D.img=(ids,cap)=>add({t:"img",ids:(ids||[]).filter(Boolean),cap});D.sig=(id,label)=>add({t:"sig",id,label});D.gap=h=>add({t:"gap",h:h||10});D.brk=()=>add({t:"brk"});
+  D.render=async()=>{const lg=await loadImg(LG());const pages=[];let c,x,y;const now=new Date().toLocaleString([],{month:"numeric",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"});
+   const page=()=>{if(c)pages.push(c);c=document.createElement("canvas");c.width=PW;c.height=PH;x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,PW,PH);x.textBaseline="alphabetic";
+    let tx=M;if(lg){const lh=52,lw=lg.width*lh/lg.height;x.drawImage(lg,M,M-8,lw,lh);tx=M+lw+18}
+    x.fillStyle="#111";x.font="bold 26px Arial";x.fillText(D.title,tx,M+20);x.font="16px Arial";x.fillStyle="#333";if(D.sub)x.fillText(D.sub,tx,M+42);
+    x.strokeStyle="#111";x.lineWidth=3;x.beginPath();x.moveTo(M,M+56);x.lineTo(PW-M,M+56);x.stroke();y=M+80};
+   const room=h=>{if(y+h>PH-M-FOOTH)page()};
+   const wrap=(t,w,font)=>{x.font=font;const out=[];String(t==null?"":t).split("\n").forEach(par=>{let L="";par.split(/\s+/).forEach(wd=>{const tt=L?L+" "+wd:wd;if(x.measureText(tt).width>w&&L){out.push(L);L=wd}else L=tt});out.push(L)});return out};
+   page();
+   for(const op of D.ops){
+    if(op.t==="brk"){page();continue}
+    if(op.t==="gap"){y+=op.h;continue}
+    if(op.t==="h"){room(50);y+=8;x.fillStyle="#a3283c";x.font="bold 20px Arial";x.fillText(op.text,M,y+18);y+=26;x.strokeStyle="#a3283c";x.lineWidth=1.5;x.beginPath();x.moveTo(M,y);x.lineTo(PW-M,y);x.stroke();y+=12;continue}
+    if(op.t==="p"){const f=(op.b?"bold ":"")+"17px Arial",L=wrap(op.text,PW-2*M,f);for(const l of L){room(24);x.font=f;x.fillStyle="#111";x.fillText(l,M,y+17);y+=23}y+=4;continue}
+    if(op.t==="kv"){const cw=(PW-2*M)/op.cols;for(let i=0;i<op.rows.length;i+=op.cols){const row=op.rows.slice(i,i+op.cols);let hmax=0;const cells=row.map(([k,v])=>{const L=wrap(v,cw-150,"17px Arial");hmax=Math.max(hmax,L.length*22+8);return [k,L]});room(hmax);
+      cells.forEach(([k,L],j)=>{const cx=M+j*cw;x.font="bold 15px Arial";x.fillStyle="#555";x.fillText(k,cx,y+16);x.font="17px Arial";x.fillStyle="#111";L.forEach((l,n)=>x.fillText(l,cx+140,y+17+n*22))});y+=hmax}y+=6;continue}
+    if(op.t==="table"){const W=PW-2*M,ws=op.w.map(f=>f*W),pad=6;const drawHead=()=>{x.font="bold 14px Arial";const hl=op.head.map((h,i)=>wrap(h,ws[i]-2*pad,"bold 14px Arial"));const hh=Math.max(...hl.map(l=>l.length))*18+10;room(hh+30);x.fillStyle="#e3e3e3";x.fillRect(M,y,W,hh);x.strokeStyle="#666";x.lineWidth=1;x.strokeRect(M,y,W,hh);let cx=M;hl.forEach((L,i)=>{x.fillStyle="#111";x.font="bold 14px Arial";L.forEach((l,n)=>x.fillText(l,cx+pad,y+18+n*18));if(i)x.beginPath(),x.moveTo(cx,y),x.lineTo(cx,y+hh),x.stroke();cx+=ws[i]});y+=hh};
+      drawHead();op.rows.forEach((r,ri)=>{const cl=r.map((v,i)=>wrap(v,ws[i]-2*pad,"14px Arial"));const rh=Math.max(...cl.map(l=>l.length))*18+10;if(y+rh>PH-M-FOOTH){page();drawHead()}
+       const tint=op.tint&&op.tint[ri];if(tint){x.fillStyle=tint;x.fillRect(M,y,W,rh)}x.strokeStyle="#999";x.strokeRect(M,y,W,rh);let cx=M;cl.forEach((L,i)=>{x.fillStyle="#111";x.font="14px Arial";L.forEach((l,n)=>x.fillText(l,cx+pad,y+18+n*18));if(i){x.beginPath();x.moveTo(cx,y);x.lineTo(cx,y+rh);x.stroke()}cx+=ws[i]});y+=rh});y+=12;continue}
+    if(op.t==="img"){if(!op.ids.length)continue;if(op.cap){room(30);x.font="bold 15px Arial";x.fillStyle="#555";x.fillText(op.cap,M,y+15);y+=24}
+     const n=4,gap=12,tw=(PW-2*M-gap*(n-1))/n,th=tw*0.75;let i=0;for(const id of op.ids){if(i%n===0){room(th+gap)}const im=await loadImg(await srcOf(id));const cx=M+(i%n)*(tw+gap);
+      x.strokeStyle="#bbb";x.strokeRect(cx,y,tw,th);if(im){const k=Math.min(tw/im.width,th/im.height),w=im.width*k,h=im.height*k;x.drawImage(im,cx+(tw-w)/2,y+(th-h)/2,w,h)}i++;if(i%n===0)y+=th+gap}if(i%n)y+=th+gap;y+=4;continue}
+    if(op.t==="sig"){const im=await loadImg(await srcOf(op.id));room(120);x.font="bold 15px Arial";x.fillStyle="#555";x.fillText(op.label||"Signature",M,y+15);y+=22;if(im){const h=80,w=Math.min(360,im.width*h/im.height);x.drawImage(im,M,y,w,h)}x.strokeStyle="#111";x.beginPath();x.moveTo(M,y+86);x.lineTo(M+380,y+86);x.stroke();y+=100;continue}}
+   pages.push(c);
+   return pages.map((cv,i)=>{const g=cv.getContext("2d");g.fillStyle="#555";g.font="13px Arial";g.textAlign="left";g.fillText("TurbinePros · Field Service Division · Printed "+now,M,PH-M+6);g.textAlign="right";g.fillText("Page "+(i+1)+" of "+pages.length,PW-M,PH-M+6);g.textAlign="left";return {d:cv.toDataURL("image/jpeg",.85),w:PW,h:PH}})};
+  return D}
+ /* show pages in the app's print preview; returns once shown */
+ let OWN=false;
+ function preview(P){$("#pgsty").textContent="";$("#rptb").innerHTML=P.map(p=>`<div class="pg" style="padding:0"><img src="${p.d}" alt="" style="width:100%;height:100%;display:block"></div>`).join("");OWN=true;$("#rptw").hidden=false;try{window.scrollTo(0,0)}catch(e){}}
+ document.addEventListener("click",e=>{if(!OWN)return;if(e.target.closest&&e.target.closest("#rpX")){e.preventDefault();e.stopImmediatePropagation();OWN=false;$("#rptw").hidden=true;$("#rptb").innerHTML=""}},true);
+ /* make the pages, save a PDF copy through save(blob,name), then show the print preview */
+ async function run(D,name,save){let P;try{P=await D.render()}catch(e){alert("Could not build the report: "+(e.message||e));return}
+  if(save){try{await save(mkPDF(P),name.replace(/[^\w\-]+/g,"_")+".pdf",P.length)}catch(e){alert("The report printed, but a PDF copy could not be saved: "+(e.message||e))}}
+  preview(P);return P}
+ window.TPREPORT={Doc,run,preview};
 })();
 
 (function(){if(!/^https?:$/.test(location.protocol))return;
