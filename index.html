@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -6737,6 +6737,80 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
    if(x.id==="jeOk"){j.crew=ALL().filter(p=>sel.has(p.title)).map(p=>p.title);sv();$("#dDat").close();const o=document.getElementById("jobEmp");if(o)o.remove();paintJob()}};
   $("#dDat").showModal()},true);
  const _sh=show;show=function(v){const r=_sh.apply(this,arguments);try{if(cur==="people"){const f=$("#fab");if(f)f.hidden=true}}catch(e){}return r};
+ setTimeout(()=>{try{if(!ME)lockUI()}catch(e){}},0);
+})();
+
+/* ===== v56.7 Wipe: on the sign-in screen and the STOP WORK screen (no PIN; the user types WIPE). The user ticks what to erase: demos, employees, jobs and tasks, photos, vendor sends, the Live Sync cloud. Only ticked parts are erased. Ticking everything is the full start-over. Never runs on its own. ===== */
+(function(){
+ const E=esc;
+ const rawGet=k=>{try{return window.FIELDGET?FIELDGET(k):Storage.prototype.getItem.call(localStorage,k)}catch(e){return null}};
+ const rawSet=(k,v)=>{try{if(window.FIELDSET)FIELDSET(k,v);else localStorage.setItem(k,v)}catch(e){}};
+ const rawKeys=()=>{const a=[];try{for(let i=0;i<localStorage.length;i++)a.push(localStorage.key(i))}catch(e){}return a};
+ const rawDel=k=>{try{Storage.prototype.removeItem.call(localStorage,k)}catch(e){}};
+ const PEND="tp-mwipe-pending";
+ const CATS=[["demos","Demos","Field and Shop demo data"],["emp","Employees and supervisors","The master Employees list, Shop crew and every job's crew list. Afterward you set up the Project Manager again."],["jobs","Jobs and tasks","Jobs, units, tasks, hours, JSAs, LOTO, Needs and orders, rentals, daily reports, Quick Start job info, Shop units and parts"],["photos","Photos","All photos and scanned documents"],["sends","Vendor sends","Field vendor shipments and Shop vendor sends"],["cloud","Live Sync cloud","Empties the shared cloud so linked phones and iPads empty out too"]];
+ const syncOn=()=>!!rawGet("tp-sync-cfg");
+ const st=document.createElement("style");st.textContent=`#mwBox{margin-top:18px;border-top:1px solid var(--line);padding-top:12px;text-align:left}#mwBox .mwW{background:#b3342b;color:#fff;border-radius:10px;padding:10px 12px;margin:8px 0;font-size:15px}#mwBox .mwW b{color:#fff}#mwBox .mwC{display:flex;gap:10px;align-items:flex-start;margin:8px 0;font-size:16px;color:inherit}#mwBox .mwC input{width:24px;height:24px;flex:none;margin-top:2px}#mwBox .mwC small{display:block;opacity:.75;font-size:13px}#mwBox .mwAll{font-weight:800;border-bottom:1px solid var(--line);padding-bottom:8px}#stopW #mwBox{color:#fff;max-width:560px;width:100%}#mwOv{position:fixed;inset:0;z-index:10100;background:#0e1517;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font:600 20px system-ui,sans-serif;text-align:center;padding:20px}`;document.head.appendChild(st);
+ const panel=()=>`<div id="mwBox"><div class="row"><button type="button" class="danger" data-mw="open" style="width:100%">Wipe&hellip;</button></div></div>`;
+ const form=()=>`<b>Wipe: choose what to erase</b><label class="mwC mwAll"><input type="checkbox" id="mwAllC"><span>Select all (full start-over)<small>Erases everything, like a fresh install${syncOn()?", and takes this iPad off Live Sync":""}</small></span></label>`+
+  CATS.filter(([k])=>k!=="cloud"||syncOn()).map(([k,l,d])=>`<label class="mwC"><input type="checkbox" data-mwc="${k}"><span>${E(l)}<small>${E(d)}</small></span></label>`).join("")+
+  (syncOn()?`<div class="hint" id="mwSyncNote">Live Sync is on. If you leave Live Sync cloud unticked, what you erase here can come back from the cloud, or the erase can spread to linked devices.</div>`:"")+
+  `<div class="mwW"><b>This cannot be undone.</b> Only the ticked items are erased. Everything else stays.</div><label>Type WIPE to confirm<input id="mwT" autocomplete="off" autocapitalize="characters"></label><div class="row"><button type="button" data-mw="x">Cancel</button><button type="button" class="danger" data-mw="go">Erase Selected</button></div>`;
+ function addTo(host){if(!host||host.querySelector("#mwBox"))return;host.insertAdjacentHTML("beforeend",panel())}
+ const _lk=lockUI;lockUI=function(){const r=_lk.apply(this,arguments);try{if(!ME)addTo(document.getElementById("lkB"))}catch(e){}return r};
+ new MutationObserver(()=>{try{const o=document.getElementById("stopW");if(o&&!ME)addTo(o)}catch(e){}}).observe(document.body,{childList:true});
+ document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#mwBox"))return;const all=document.getElementById("mwAllC"),bs=[...document.querySelectorAll("#mwBox [data-mwc]")];
+  if(t.id==="mwAllC")bs.forEach(b=>b.checked=t.checked);else if(all)all.checked=bs.every(b=>b.checked)},true);
+ function overlay(t){let o=document.getElementById("mwOv");if(!o){o=document.createElement("div");o.id="mwOv";document.body.appendChild(o)}o.innerHTML=t}
+ async function waitSync(ms){const t0=Date.now();while(Date.now()-t0<ms){try{const s=window.SYNCSTATE&&SYNCSTATE();if(s&&s.ready)return true;if(s&&(s.status==="offline"||s.status==="error"))return false}catch(e){}await new Promise(r=>setTimeout(r,500))}return false}
+ async function delDB(n){try{await new Promise(r=>{const q=indexedDB.deleteDatabase(n);q.onsuccess=q.onerror=q.onblocked=()=>r()})}catch(e){}}
+ async function closeIdb(){try{const d=await idb;if(d)d.close()}catch(e){}}
+ const finish=()=>{try{sessionStorage.clear()}catch(e){}location.replace(location.pathname)};
+ async function fullWipe(){WIPING=true;await closeIdb();let names=["tp-photos","tp-photos-demo","tp-sync"];try{if(indexedDB.databases){(await indexedDB.databases()).forEach(x=>{if(x&&x.name&&/^tp-/.test(x.name)&&!names.includes(x.name))names.push(x.name)})}}catch(e){}
+  for(const n of names)await delDB(n);try{localStorage.clear()}catch(e){}finish()}
+ /* data that is NOT job data and stays when Jobs and tasks is ticked */
+ const KEEP=new Set(["people","pplOther","home","homeBy","phoneLay","banks","favs","steps","expList","partBank","wx","shop"]);
+ function editDB(key,fn){const t=rawGet(key);if(t==null)return;let d;try{d=JSON.parse(t)}catch(e){return}if(!d||typeof d!=="object")return;fn(d);rawSet(key,JSON.stringify(d))}
+ function wipeLocal(S){
+  /* the real (non-demo) Field and Shop data */
+  [["tp-db-v1","turbine-tracker-v1"],["tp-shop-tp-db-v1","tp-shop-turbine-tracker-v1"]].forEach(([K,UK])=>{
+   editDB(K,d=>{const sh=d.shop&&typeof d.shop==="object"?d.shop:null;
+    if(S.emp){d.people=[];d.pplOther=[];d.pplShift="";if(Array.isArray(d.jobs))d.jobs.forEach(j=>{if(j)j.crew=[]});if(sh)sh.crew=[];d.empWipe56=1}
+    if(S.sends){if(Array.isArray(d.orders))d.orders=d.orders.filter(o=>!(o&&o.kind==="vend"));d.dsr_vend=[];if(sh){sh.sends=[];delete sh.vdraft;sh.vpdfs=[]}}
+    if(S.jobs){const keepVend=!S.sends&&Array.isArray(d.orders)?d.orders.filter(o=>o&&o.kind==="vend"):null;
+     Object.keys(d).forEach(k=>{const v=d[k];if(KEEP.has(k))return;if(v&&typeof v==="object")delete d[k]});
+     if(keepVend&&keepVend.length)d.orders=keepVend;
+     if(sh){const keepSends=!S.sends?sh.sends:null;["units","parts","delays"].forEach(k=>sh[k]=[]);sh.time={};delete sh.days;delete sh.rig;delete sh.crane;delete sh.fork;if(keepSends)sh.sends=keepSends}
+     rawSet(UK,"[]")}});
+  });
+  if(S.demos){rawKeys().filter(k=>/^tp-demo-(shop|field)-/.test(k)).forEach(rawDel)}}
+ async function run(S){
+  const ticked=CATS.filter(([k])=>k!=="cloud"||syncOn()).every(([k])=>S[k]);
+  if(S.cloud&&syncOn()){
+   if(window.SHOPMODE||window.TPDEMO){try{sessionStorage.setItem(PEND,JSON.stringify(S));sessionStorage.removeItem("tp-demo");sessionStorage.setItem("tp-side","field");sessionStorage.removeItem("tp-me")}catch(e){}overlay("Switching to Field to erase the cloud&hellip;");location.reload();return}
+   overlay("Connecting to Live Sync to erase the cloud&hellip;<small style='font-weight:400;font-size:15px'>This can take up to 30 seconds.</small>");
+   const ok=await waitSync(30000);let err="";
+   if(ok){try{overlay("Erasing the shared cloud&hellip;");await syncWipe()}catch(e){err=(e&&e.message)||String(e)}}else err="Live Sync could not connect (no internet?).";
+   if(err){window.MWS=S;overlay(`<div>Could not erase the shared cloud.</div><small style="font-weight:400;font-size:16px;max-width:520px">${E(err)}<br>If you go on without the cloud, other phones and iPads keep their data and it can sync back.</small><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button type="button" data-mw="retry">Try Again</button><button type="button" class="danger" data-mw="local">Erase This iPad Only</button><button type="button" data-mw="stop">Cancel</button></div>`);return}
+  }
+  overlay("Erasing&hellip;");
+  if(ticked)return fullWipe();
+  WIPING=true;wipeLocal(S);await closeIdb();
+  if(S.photos)await delDB("tp-photos");
+  if(S.demos)await delDB("tp-photos-demo");
+  if(S.cloud&&syncOn())await delDB("tp-sync");
+  finish()}
+ document.addEventListener("click",e=>{const b=e.target.closest("button[data-mw]");if(!b)return;e.preventDefault();e.stopImmediatePropagation();const k=b.dataset.mw,box=b.closest("#mwBox");
+  if(k==="open"&&box){box.innerHTML=form();return}
+  if(k==="x"&&box){box.outerHTML=panel();return}
+  if(k==="go"){const S={};document.querySelectorAll("#mwBox [data-mwc]").forEach(c=>S[c.dataset.mwc]=c.checked);
+   if(!Object.values(S).some(Boolean))return alert("Tick at least one thing to erase.");
+   const v=String((document.getElementById("mwT")||{}).value||"").trim().toUpperCase();if(v!=="WIPE")return alert("Type WIPE to confirm.");return run(S)}
+  if(k==="retry")return run(window.MWS||{});
+  if(k==="local"){const S=Object.assign({},window.MWS||{},{cloud:false});const all=CATS.filter(([c])=>c!=="cloud").every(([c])=>S[c]);overlay("Erasing&hellip;");if(all)return fullWipe();WIPING=true;wipeLocal(S);(async()=>{await closeIdb();if(S.photos)await delDB("tp-photos");if(S.demos)await delDB("tp-photos-demo");finish()})();return}
+  if(k==="stop"){const o=document.getElementById("mwOv");if(o)o.remove();try{sessionStorage.removeItem(PEND)}catch(x){}return}},true);
+ /* finishing a wipe that started on the Shop side or in a demo */
+ try{const p=sessionStorage.getItem(PEND);if(p&&!window.SHOPMODE&&!window.TPDEMO){sessionStorage.removeItem(PEND);let S={};try{S=JSON.parse(p)}catch(x){S={demos:1,emp:1,jobs:1,photos:1,sends:1,cloud:1}}setTimeout(()=>run(S),300)}}catch(e){}
  setTimeout(()=>{try{if(!ME)lockUI()}catch(e){}},0);
 })();
 
