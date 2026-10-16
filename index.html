@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA question)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -6822,7 +6822,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   signin:{t:"Sign-in screen",what:"Only the Project Manager, Technical Director, Technical Advisor and Supervisors sign in. Crew never sign in.",
    steps:["Tap Day Shift or Night Shift.","Pick your name from the list.","Type your 4-digit PIN and tap Sign In."],
    tips:["Not on the list? Tap Change Shift and try the other shift. Supervisors only show on their own shift. The Project Manager, Technical Director and Technical Advisor show on both.","No Project Manager set up on this iPad? Tap Set Up Project Manager under the list and create the account with a new PIN.","Wipe&hellip; at the bottom erases data you choose. Tick only what you want gone, type WIPE, then Erase Selected. It can't be undone."]},
-  stop:{t:"STOP WORK",what:"The crew is not covered by LOTO, so the whole app is locked. This is on purpose: no one can work around a LOTO problem.",
+  stop:{t:"STOP WORK",what:"Today's JSA says this job requires LOTO, and the crew is not covered by LOTO, so the whole app is locked. This is on purpose: no one can work around a LOTO problem.",
    steps:["Stop all work on the unit now.","A supervisor taps Supervisor: fix the LOTO, picks their name and enters their PIN.","On the LOTO screen, fix what the red screen listed: set LOTO Status back to Signed On, make sure a permit is Active and not expired, and approve the LOTO if it changed.","The app unlocks by itself on every device as soon as the LOTO is good."],
    tips:["In an emergency, use the number on the red screen. It is the site's own number from Quick Start.","There is no override. The only way out is fixing the LOTO."]},
   home:{t:"Home",what:"Your starting point. The big number is Jobs in Progress. Tools are grouped into folders.",
@@ -6847,11 +6847,11 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
    steps:["Tap a person's name onto a task to start their time on it.","Starting someone on a new task stops their time on the old one.","Pause or Complete a task to stop the clock."],
    tips:["Clocks can't start while the crew isn't covered by LOTO."]},
   jsa:{t:"Daily JSA",what:"The company Pre-Task Planning Work Sheet. It is required every shift and must be answered completely.",
-   steps:["Open today's JSA. Tasks you created fill in their hazards automatically.","Answer every section. Tap any part of the form to fill it in.","Each crew member taps their name and signs.","Tap Finalize JSA when everything is answered and signed."],
-   tips:["Finalize is blocked while the crew isn't covered by LOTO. The red box says why and has a Go to LOTO button.","Preview &amp; Print gives the company form."]},
+   steps:["Open today's JSA. Tasks you created fill in their hazards automatically.","Answer the question at the top: Does this job require LOTO? Yes or No.","Answer every section. Tap any part of the form to fill it in.","Each crew member taps their name and signs.","Tap Finalize JSA when everything is answered and signed."],
+   tips:["Yes, requires LOTO: finalizing, task clocks and walking cards are blocked until the crew is covered by LOTO, and the red STOP WORK lock applies.","No, LOTO not required: no LOTO block for this job. Finalize and print normally.","Preview &amp; Print gives the company form."]},
   loto:{t:"LOTO",what:"The plant's lockout/tagout paperwork and the crew's locks for this job.",
    steps:["Supervisors: add each permit by scanning or uploading it, then Approve the LOTO.","Each person working under the LOTO records their own lock.","The foreman taps Verify Crew Locks On every shift.","Set LOTO Status to Signed On while the crew works under the plant's LOTO."],
-   tips:["Setting LOTO Status to Signed Off, letting every permit expire or be released, or changing an approved LOTO without approving it again locks the app with STOP WORK.","Questions about a permit go to the supervisor with LOTO Clarification Request."]},
+   tips:["The LOTO gate only applies when today's JSA says Yes, requires LOTO. If it says No, nothing here blocks work.","When LOTO is required: setting LOTO Status to Signed Off, letting every permit expire or be released, or changing an approved LOTO without approving it again locks the app with STOP WORK.","Questions about a permit go to the supervisor with LOTO Clarification Request."]},
   needs:{t:"Needs",what:"Expendables, parts and damaged tools in one place.",
    steps:["Expendables: tap + on what the crew needs, then Send Request.","Parts: type the part number and description, pick the unit and task, then Send Part Request.","Damaged Tool: opens the full damaged tool report.","My Needs: see what you asked for and its status. Supervisors approve here too."],
    tips:["Request List and Damaged Tools, across the top, are the supervisor lists."]},
@@ -6912,6 +6912,48 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("hlpP"))close()});
  /* the wipe screen covers everything; hide the button while it shows */
  setInterval(()=>{try{btn.hidden=!!document.getElementById("mwOv")||!!document.getElementById("demoLoad")}catch(e){}},700);
+})();
+
+/* ===== v56.9 LOTO gate follows the JSA: "Does this job require LOTO?" Yes keeps the full gate (JSA finalize, task clocks, delay restarts, walking card printing, STOP WORK). No turns the gate off for that job. Same rule on Field and Shop. ===== */
+(function(){
+ const E=esc,nv=v=>String(v==null?"":v).trim();
+ const GAP=window.LOTOGAP,STOP=window.LOTOSTOP;if(!GAP||!STOP)return;
+ const curSh=()=>(window.CURSHIFT&&CURSHIFT())||"Day";
+ const wDate=()=>{const d=new Date();if(curSh()==="Night"&&d.getHours()<14)d.setDate(d.getDate()-1);return ymd(d)};
+ const today=()=>(DB.jsas||[]).filter(j=>j&&(j.date===wDate()||j.date===ldate())&&(!j.shift||!window.CURSHIFT||!CURSHIFT()||j.shift===curSh()));
+ /* jobs set up before this question existed: keep the gate only where the job already has LOTO paperwork or a LOTO status */
+ const legacy=()=>{try{const L=DB.loto||{},st=((ds()||{}).comp||{}).lotoSt||"";return (L.docs||[]).length>0||(L.locks||[]).length>0||st==="Signed On"||st==="Signed Off"}catch(e){return false}};
+ const ans=j=>j&&(j.lotoReq==="Yes"||j.lotoReq==="No")?j.lotoReq:"";
+ function reqFor(list){const a=list.map(ans);if(a.includes("Yes"))return true;if(a.length&&a.every(x=>x==="No"))return false;return legacy()}
+ /* which JSA(s) decide right now */
+ function scope(){
+  if(typeof cur==="string"&&cur==="jsa"&&typeof jget==="function"){const j=jget();if(j)return [j]}
+  if(window.SHOPMODE&&DB.shop){let id="";try{id=sessionStorage.getItem("tp-job")||""}catch(e){}const u=(DB.shop.units||[]).find(x=>x.id===id);
+   if(u){const nm=[nv(u.job),nv(u.unitNo)].filter(Boolean).join(" ")||u.name||"Unit";const L=today().filter(j=>j.unit===nm);if(L.length)return L}}
+  return today()}
+ window.LOTOREQ=()=>{try{return reqFor(scope())}catch(e){return true}};
+ window.LOTOGAP=function(){return LOTOREQ()?GAP.apply(this,arguments):[]};
+ window.LOTOSTOP=function(){return LOTOREQ()?STOP.apply(this,arguments):[]};
+ /* the question at the top of every JSA */
+ const st=document.createElement("style");st.textContent=`#lreqBox{margin:10px 16px;padding:12px 14px;border-radius:10px;border:3px solid #e0a04e;background:var(--card)}#lreqBox.ok{border-color:#2f7d4a}#lreqBox b{font-size:18px;display:block;margin-bottom:6px}#lreqBox .row{padding:0;gap:8px}#lreqBox button{flex:1;min-height:52px;font-size:16px}#lreqBox button.on{background:#1f6f6b;color:#fff;border-color:#1f6f6b}`;document.head.appendChild(st);
+ function box(){if(cur!=="jsa")return;const j=jget();if(!j)return;const a=ans(j),M=document.getElementById("mod");const old=document.getElementById("lreqBox");if(old)old.remove();
+  const d=document.createElement("div");d.id="lreqBox";if(a)d.className="ok";
+  d.innerHTML=`<b>Does this job require LOTO?</b>`+(j.final?`<div>${a==="Yes"?"Yes, requires LOTO":a==="No"?"No, LOTO not required":"Not answered"}</div>`:
+   `<div class="row"><button type="button" data-lreq="Yes" class="${a==="Yes"?"on":""}">Yes, requires LOTO</button><button type="button" data-lreq="No" class="${a==="No"?"on":""}">No, LOTO not required</button></div><small style="display:block;margin-top:6px">${a==="Yes"?"The LOTO gate is on: finalizing, task clocks and walking cards need the crew covered by LOTO.":a==="No"?"No LOTO gate for this job. Finalize and print normally.":"Answer this before finalizing the JSA."}</small>`);
+  const mh=M.querySelector(".mh");if(mh)mh.after(d);else M.prepend(d)}
+ const _je=jsaEdit;jsaEdit=function(){const r=_je.apply(this,arguments);try{box()}catch(e){}return r};
+ new MutationObserver(()=>{try{if(cur==="jsa"&&jget()&&!document.getElementById("lreqBox"))box()}catch(e){}}).observe(document.getElementById("mod"),{childList:true});
+ document.addEventListener("click",e=>{const b=e.target.closest("button[data-lreq]");if(!b)return;e.preventDefault();e.stopPropagation();const j=jget();if(!j||j.final)return;j.lotoReq=b.dataset.lreq;sv();const y=scrollY;jsaEdit(j.id);scrollTo(0,y)},true);
+ /* finalize: the question must be answered first (runs before the LOTO gate) */
+ window.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('#mod button[data-j="final"]');if(!b||cur!=="jsa")return;const j=jget();if(!j||ans(j))return;
+  e.preventDefault();e.stopImmediatePropagation();alert("Answer the question at the top of the JSA first: Does this job require LOTO?");const x=document.getElementById("lreqBox");if(x){x.scrollIntoView({block:"center"});x.style.borderColor="#b3342b"}},true);
+ /* walking cards: blocked only when the job requires LOTO and the crew isn't covered */
+ function blocked(what){const g=LOTOGAP();if(!g.length)return false;const F=$("#dDatF");
+  F.innerHTML=`<h2 style="color:#b3342b">${E(what)} blocked</h2><div style="background:#b3342b;color:#fff;border-radius:10px;padding:12px 14px"><b style="color:#fff;font-size:20px">STOP: CREW NOT COVERED BY LOTO</b><ul style="margin:6px 0 0">${g.map(x=>`<li>${E(x)}</li>`).join("")}</ul></div><div class="hint">This job's JSA says it requires LOTO. Fix the LOTO, or if the job truly doesn't need LOTO, change the JSA answer to No.</div><div class="row"><button type="button" id="lbX">Close</button></div>`;
+  F.oninput=F.onchange=null;F.onclick=ev=>{if(ev.target.closest("#lbX"))$("#dDat").close()};if(!$("#dDat").open)$("#dDat").showModal();return true}
+ window.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('button[data-qa="print"]');if(!b||!window.SHOPMODE)return;if(blocked("Printing walking cards")){e.preventDefault();e.stopImmediatePropagation()}},true);
+ if(typeof window.printTasks==="function"){const _pt=window.printTasks;window.printTasks=function(){if(blocked("Printing walking cards"))return;return _pt.apply(this,arguments)}}
+ setTimeout(()=>{try{if(cur==="home")home()}catch(e){}},0);
 })();
 
 (function(){if(!/^https?:$/.test(location.protocol))return;
