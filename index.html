@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -6812,6 +6812,106 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  /* finishing a wipe that started on the Shop side or in a demo */
  try{const p=sessionStorage.getItem(PEND);if(p&&!window.SHOPMODE&&!window.TPDEMO){sessionStorage.removeItem(PEND);let S={};try{S=JSON.parse(p)}catch(x){S={demos:1,emp:1,jobs:1,photos:1,sends:1,cloud:1}}setTimeout(()=>run(S),300)}}catch(e){}
  setTimeout(()=>{try{if(!ME)lockUI()}catch(e){}},0);
+})();
+
+/* ===== v56.8 Help: a ? button on every screen. Opens a plain-English explanation of the screen you are on and how to do the main jobs there. All text is written into the app: no internet, no AI service, no key. Edit the HELP map below to change the wording. ===== */
+(function(){
+ const E=esc;
+ /* screen -> help. what: one or two lines on what you are looking at. steps: how to do the main jobs. tips: things people get stuck on. */
+ const HELP={
+  signin:{t:"Sign-in screen",what:"Only the Project Manager, Technical Director, Technical Advisor and Supervisors sign in. Crew never sign in.",
+   steps:["Tap Day Shift or Night Shift.","Pick your name from the list.","Type your 4-digit PIN and tap Sign In."],
+   tips:["Not on the list? Tap Change Shift and try the other shift. Supervisors only show on their own shift. The Project Manager, Technical Director and Technical Advisor show on both.","No Project Manager set up on this iPad? Tap Set Up Project Manager under the list and create the account with a new PIN.","Wipe&hellip; at the bottom erases data you choose. Tick only what you want gone, type WIPE, then Erase Selected. It can't be undone."]},
+  stop:{t:"STOP WORK",what:"The crew is not covered by LOTO, so the whole app is locked. This is on purpose: no one can work around a LOTO problem.",
+   steps:["Stop all work on the unit now.","A supervisor taps Supervisor: fix the LOTO, picks their name and enters their PIN.","On the LOTO screen, fix what the red screen listed: set LOTO Status back to Signed On, make sure a permit is Active and not expired, and approve the LOTO if it changed.","The app unlocks by itself on every device as soon as the LOTO is good."],
+   tips:["In an emergency, use the number on the red screen. It is the site's own number from Quick Start.","There is no override. The only way out is fixing the LOTO."]},
+  home:{t:"Home",what:"Your starting point. The big number is Jobs in Progress. Tools are grouped into folders.",
+   steps:["Tap Start Shift / JSA at the start of each shift.","Tap a folder (Daily Work, Safety, Jobs &amp; Schedule, Needs &amp; Orders, Supervisor Setup) to open its tools.","Tap the big Jobs in Progress number to see all job numbers."],
+   tips:["The Shift at a glance boxes turn red when something needs you: JSA not done, LOTO not verified, delay running.","Needs attention lists things waiting on you, like broken tools and requests to approve.","Edit Home lets a supervisor move, rename and group the tiles."]},
+  shophome:{t:"Shop home",what:"Every unit in the shop is a job packet. Open one to run its day.",
+   steps:["Tap a job packet to open that unit.","To add a unit from a packet file, tap Load Job Packet and pick the file.","Inside a unit, use Start Day in the morning and Wrap Up at the end of the day."],
+   tips:["Crew come from the Employees list. Add people there and they show up here."]},
+  jobs:{t:"Job Numbers",what:"Every unit, task, hour, rental and EWA is filed under a job number. The working job is where new tasks go.",
+   steps:["Tap Open on a job to see its units, crew, tasks and hours.","Tap Make Working Job to send new tasks to that job.","Supervisors: tap Add Job for a new job number, or Add EWA Under&hellip; for extra work. Each EWA gets its own number."],
+   tips:["Open, Closed and All filter the list.","An EWA shows authorized hours against hours used."]},
+  job:{t:"A job",what:"Everything filed under this one job number: hours by shift, units, Job Employees, EWAs and tasks.",
+   steps:["Add Tasks to This Job creates tasks filed here.","Edit Job Employees: tick everyone working this job. Task assignment, the crew board and JSA names then show only them.","Open Unit Stage Checklists to work each unit's stages.","Open Task on any task to see it. Move to Another Job refiles it."],
+   tips:["Print Job Report gives hours by shift and by task.","Close Job when the work is done. Supervisors can reopen it."]},
+  prog:{t:"Unit stage checklists",what:"Each unit moves through stages: Mobilization, Disassembly, Inspection, Repair, Reassembly, Startup &amp; Turnover. Each stage has a checklist.",
+   steps:["Tap a stage along the top to see the units in it.","Open a unit and tick each checklist item as it is done.","When every item is ticked, close the stage and the unit moves to the next one."],
+   tips:["A unit can't skip ahead with open items. Moving early needs the password-protected reason page."]},
+  tasks:{t:"Tasks",what:"Every task, who is on it, its status and its hours.",
+   steps:["Tap Add Tasks. Pick the unit and date, tap the crew, then go Step by Step: section, outage stage, task, components. Add as many as you need, then Create.","Tap Start to put the assigned crew on the clock. Pause stops their time. Completed closes the task.","Open Task shows notes, photos, data sheets and hours."],
+   tips:["Only people on the job's Job Employees list show up to assign.","Start is blocked while the crew isn't covered by LOTO. Fix the LOTO first.","Hours are logged per person per day. Expected hours let you compare later."]},
+  crew:{t:"Millwright Task Tracker",what:"Who is on which task right now, and who is idle.",
+   steps:["Tap a person's name onto a task to start their time on it.","Starting someone on a new task stops their time on the old one.","Pause or Complete a task to stop the clock."],
+   tips:["Clocks can't start while the crew isn't covered by LOTO."]},
+  jsa:{t:"Daily JSA",what:"The company Pre-Task Planning Work Sheet. It is required every shift and must be answered completely.",
+   steps:["Open today's JSA. Tasks you created fill in their hazards automatically.","Answer every section. Tap any part of the form to fill it in.","Each crew member taps their name and signs.","Tap Finalize JSA when everything is answered and signed."],
+   tips:["Finalize is blocked while the crew isn't covered by LOTO. The red box says why and has a Go to LOTO button.","Preview &amp; Print gives the company form."]},
+  loto:{t:"LOTO",what:"The plant's lockout/tagout paperwork and the crew's locks for this job.",
+   steps:["Supervisors: add each permit by scanning or uploading it, then Approve the LOTO.","Each person working under the LOTO records their own lock.","The foreman taps Verify Crew Locks On every shift.","Set LOTO Status to Signed On while the crew works under the plant's LOTO."],
+   tips:["Setting LOTO Status to Signed Off, letting every permit expire or be released, or changing an approved LOTO without approving it again locks the app with STOP WORK.","Questions about a permit go to the supervisor with LOTO Clarification Request."]},
+  needs:{t:"Needs",what:"Expendables, parts and damaged tools in one place.",
+   steps:["Expendables: tap + on what the crew needs, then Send Request.","Parts: type the part number and description, pick the unit and task, then Send Part Request.","Damaged Tool: opens the full damaged tool report.","My Needs: see what you asked for and its status. Supervisors approve here too."],
+   tips:["Request List and Damaged Tools, across the top, are the supervisor lists."]},
+  orders:{t:"Orders &amp; Deliveries",what:"Vendor shipments coming in, receiving and rentals.",
+   steps:["Use the tabs across the top: Vendor Shipments, Shipping &amp; Receiving, Rentals.","Receive a delivery against its order and add photos of what came in.","Rentals: log what came in and mark it returned when it goes back."],
+   tips:["Late shipments turn red."]},
+  vend:{t:"Vendor sends",what:"Parts out at vendors for repair: when they went, when they are due back.",
+   steps:["To send a part out, open the piece in Pieces and choose Send to vendor.","When it comes back, tap Mark Received Back and enter the date.","Edit or Delete a send: tap the button and enter your PIN. Delete asks once more to confirm."],
+   tips:["Late sends show in red with the days late.","Only PIN holders can edit or delete a send."]},
+  people:{t:"Employees",what:"The one master list for the whole app, Field and Shop. Each job picks its Job Employees from here.",
+   steps:["Tap Add Employee. Enter name, classification, phone, local, shift and notes, then Save.","Edit or Delete on anyone to change them.","Project Manager, Technical Director, Technical Advisor and Supervisors need a 4-digit PIN. No one else gets one."],
+   tips:["Search by name, phone or local. The buttons filter by classification.","The only Project Manager can't be deleted. Add a second one first.","Deleting someone takes them off every job. Old hours and signatures keep their name."]},
+  delay:{t:"Delay Tracker",what:"Weather, customer or crane delays. A delay stops the task timers and runs its own clock.",
+   steps:["Start a delay: pick the category and the tasks it stops, then start it.","End the delay when work can go again. Choose whether to restart the timers.","Print or report delays from here."],
+   tips:["Timers won't restart while the crew isn't covered by LOTO."]},
+  dsr:{t:"Daily Report",what:"The company Daily Status Report for the shift. Much of it fills itself from tasks, hours, delays and the JSA.",
+   steps:["Check each section and fill in anything missing.","Make sure the day's weather is on the front page.","Preview and print at the end of the shift."],
+   tips:["Reports show each shift separately plus combined totals."]},
+  sd:{t:"Start Day (Shop)",what:"Four steps to start the day on one unit: Crew, Tasks, JSA, Print.",
+   steps:["Crew: tap Sign On for each person working this unit today. They get 10 hours; change it if less.","Tasks: add carry-overs, add steps From the job packet with Add to Today, or type a task. Tap names onto each task.","JSA: today's crew sign the unit's JSA.","Print: the JSA, a walking card for each person and their task sheets."],
+   tips:["A person can only be on one unit a day.","No names to tap in step 2? Sign the crew on in step 1 first. Crew come from Employees."]},
+  unit:{t:"A unit (Shop)",what:"One unit from receiving to shipping. The menu on the left has everything for this unit.",
+   steps:["Start Day each morning. Today shows the day's work. Wrap Up at the end of the day.","Pieces: open a piece to record findings, photos and repairs, or send it to a vendor.","Progress &amp; task cards, Crew &amp; timesheet, JSAs, Vendors, Parts, Photos, Findings, Delays, HSEQ &amp; FME, Past days, Customer status and Unit info are in the menu.","Leave Job takes you back to all job packets."],
+   tips:["Deleting a unit also removes its vendor sends and parts."]},
+  wrap:{t:"Wrap Up (Shop)",what:"Close out the day on this unit in four parts.",
+   steps:["What got done: tick what got done today.","Hours on this unit: check each person's hours.","Delays: check the delays on this unit.","Notes for nights: leave notes for the next shift, then tap Finish Wrap Up."],
+   tips:["Anything not ticked shows up tomorrow in Start Day under Not finished.","You can change it and finish again."]},
+  shopcrew:{t:"Shop crew",what:"The Shop crew list, by shift. It comes from the Employees list.",
+   steps:["Add, edit or remove people in Employees. The Shop crew follows it.","Set each person's trade once (apprentice percentage, for example)."],
+   tips:["People set to Both shifts show on the Day list."]},
+  setup:{t:"Supervisor Setup",what:"Job setup, employees, time tracking, Live Sync and resetting app data.",
+   steps:["Quick Start: enter the job, site, contacts and emergency number once. It fills in reports and the JSA.","Employees: the master people list.","Live Sync: links phones and iPads to share one job."],
+   tips:["Live Sync and App Data Reset ask for a supervisor PIN."]},
+  general:{t:"Help",what:"TP Tracker runs the job: jobs and tasks, crew and hours, the JSA and LOTO safety gate, needs, vendors and daily reports.",
+   steps:["Use the Home button or the side bar to get around.","Every screen has this ? button with help for that screen."],
+   tips:["Stuck on a red STOP WORK screen? The LOTO needs fixing before anyone can work."]}
+ };
+ const MAP={home:"home",jobs:"jobs",prog:"prog",tasks:"tasks",crew:"crew",fm_tasks:"crew",jsa:"jsa",loto:"loto",fm_req:"needs",shop:"needs",tools:"needs",g_req:"needs",vend:"orders",fm_rcv:"orders",rent:"orders",g_ord:"orders",people:"people",delay:"delay",sh_delay:"delay",sh_ud:"delay",dsr:"dsr",sh_dsr:"dsr",sh_sd:"sd",sh_unit:"unit",sh_piece:"unit",sh_ui:"unit",sh_tc:"unit",sh_uph:"unit",sh_up:"unit",sh_uj:"jsa",sh_wrap:"wrap",sh_vend:"vend",sh_send:"vend",sh_uv:"vend",sh_vform:"vend",sh_crew:"shopcrew",sh_ros:"shopcrew",sh_uc:"shopcrew",qs:"setup",sync:"setup",reset:"setup",costs:"setup"};
+ function key(){
+  if(document.getElementById("stopW"))return "stop";
+  const L=document.getElementById("lock");if(L&&!L.hidden)return "signin";
+  const c=typeof cur==="string"?cur:"";
+  if(c==="home"||c===""){if(!window.SHOPMODE)return "home";let j="";try{j=sessionStorage.getItem("tp-job")||""}catch(e){}return j?"unit":"shophome"}
+  if(c==="jobs"){const h=document.querySelector("#mod .mh h2");if(h&&/^Job /.test(h.textContent)&&!/^Job Numbers/.test(h.textContent))return "job";return "jobs"}
+  return MAP[c]||"general"}
+ window.TPHELP=HELP;window.TPHELPKEY=key;
+ const st=document.createElement("style");st.textContent=`#hlpB{position:fixed;right:16px;bottom:calc(166px + env(safe-area-inset-bottom,0px));z-index:10060;width:48px;height:48px;min-height:0;padding:0;border-radius:50%;border:2px solid #fff;background:#1f6f6b;color:#fff;font:800 24px/1 system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.45)}#hlpB:focus-visible{outline:3px solid #f5c518;outline-offset:2px}
+#hlpP{position:fixed;inset:0;z-index:10070;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}#hlpP .hp{background:var(--card,#172124);color:var(--ink,#e8f0f0);width:100%;max-width:640px;max-height:86vh;overflow:auto;border-radius:16px 16px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 24px rgba(0,0,0,.4)}
+#hlpP h2{margin:0 0 6px;font-size:24px}#hlpP .hlpw{font-size:17px;margin:0 0 12px}#hlpP h3{margin:14px 0 6px;font-size:15px;text-transform:uppercase;letter-spacing:.06em;opacity:.8}#hlpP ol,#hlpP ul{margin:0;padding-left:22px}#hlpP li{margin:6px 0;font-size:16px;line-height:1.4}#hlpP .hlpx{display:flex;gap:8px;margin-top:16px;position:static}#hlpP .hlpx button{flex:1;min-height:48px}`;document.head.appendChild(st);
+ const btn=document.createElement("button");btn.id="hlpB";btn.type="button";btn.setAttribute("aria-label","Help for this screen");btn.textContent="?";document.body.appendChild(btn);
+ function open(k){k=k||key();const h=HELP[k]||HELP.general;close();const p=document.createElement("div");p.id="hlpP";p.setAttribute("role","dialog");p.setAttribute("aria-modal","true");p.dataset.k=k;
+  p.innerHTML=`<div class="hp"><h2>${h.t}</h2><p class="hlpw">${h.what}</p>${h.steps&&h.steps.length?`<h3>How to</h3><ol>${h.steps.map(s=>`<li>${s}</li>`).join("")}</ol>`:""}${h.tips&&h.tips.length?`<h3>Good to know</h3><ul>${h.tips.map(s=>`<li>${s}</li>`).join("")}</ul>`:""}<div class="hlpx"><button type="button" data-hlp="x" class="pri" style="position:static;width:100%;transform:none">Got It</button></div></div>`;
+  document.body.appendChild(p);const b=p.querySelector("[data-hlp]");if(b)b.focus()}
+ function close(){const p=document.getElementById("hlpP");if(p)p.remove()}
+ window.TPHELPOPEN=open;
+ btn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();open()});
+ document.addEventListener("click",e=>{const p=document.getElementById("hlpP");if(!p)return;if(e.target===p||e.target.closest("[data-hlp]")){e.preventDefault();e.stopPropagation();close()}},true);
+ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("hlpP"))close()});
+ /* the wipe screen covers everything; hide the button while it shows */
+ setInterval(()=>{try{btn.hidden=!!document.getElementById("mwOv")||!!document.getElementById("demoLoad")}catch(e){}},700);
 })();
 
 (function(){if(!/^https?:$/.test(location.protocol))return;
