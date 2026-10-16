@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -6652,7 +6652,23 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  const _lk=lockUI;lockUI=function(){const r=_lk.apply(this,arguments);try{if(ME)return r;
   const t=$("#lkT");if(t&&/Set Up/.test(t.textContent))t.textContent="Set Up Project Manager";
   const h=$("#lkB .hint");if(h&&/first account/i.test(h.textContent))h.textContent="This is your account as Project Manager, with full access. Add employees from the Employees tab after you sign in.";
-  const sel=$("#ln");if(sel&&sel.tagName==="SELECT"){[...sel.options].forEach(o=>{const p=ALL().find(x=>x.title===o.value||x.title===o.text);if(!p||!isPin(p))o.remove()})}}catch(e){}return r};
+  const sel=$("#ln");if(sel&&sel.tagName==="SELECT"){[...sel.options].forEach(o=>{const p=ALL().find(x=>x.title===o.value||x.title===o.text);if(!p||!isPin(p))o.remove()})}
+  /* v56.5 recovery: no Project Manager on this device -> offer to add one (adds an account only; nothing is erased) */
+  if(sel&&sel.tagName==="SELECT"&&!ALL().some(p=>p.role==="Project Manager")&&!document.getElementById("pmRec")){
+   $("#lkB").insertAdjacentHTML("beforeend",`<div id="pmRec" style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px"><div class="hint">No Project Manager is set up on this iPad.</div><div class="row"><button type="button" id="pmRecGo" style="width:100%">Set Up Project Manager</button></div></div>`)}}catch(e){}return r};
+ document.getElementById("lock").addEventListener("click",e=>{const b=e.target.closest("#pmRecGo,#pmRecOk,#pmRecX");if(!b)return;e.preventDefault();e.stopImmediatePropagation();
+  if(ALL().some(p=>p.role==="Project Manager")){const x=document.getElementById("pmRec");if(x)x.remove();return}
+  const box=document.getElementById("pmRec");if(!box)return;
+  if(b.id==="pmRecX"){box.remove();return lockUI()}
+  if(b.id==="pmRecGo"){box.innerHTML=`<b>Set Up Project Manager</b><div class="hint">Adds your account. Everyone and everything else stays as it is.</div><label>Your name<input id="pmN" autocomplete="off"></label><label>Choose a 4-digit PIN<input id="pmP" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label><label>Type the PIN again<input id="pmP2" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label><div class="row"><button type="button" id="pmRecX">Cancel</button><button type="button" class="pri" id="pmRecOk">Create and Sign In</button></div>`;setTimeout(()=>{const i=document.getElementById("pmN");if(i)i.focus()},50);return}
+  const n=nv(($("#pmN")||{}).value),pin=nv(($("#pmP")||{}).value),pin2=nv(($("#pmP2")||{}).value);
+  if(!n)return alert("Enter your name.");if(!/^\d{4}$/.test(pin))return alert("The PIN must be 4 digits.");if(pin!==pin2)return alert("The two PINs don't match.");
+  if(ALL().some(x=>isPin(x)&&String(x.pin)===pin&&x.title.toLowerCase()!==n.toLowerCase()))return alert("That PIN is already used by someone else. Pick another.");
+  let p=ALL().find(x=>x.title.toLowerCase()===n.toLowerCase());
+  if(p)Object.assign(p,{cls:"Project Manager",role:"Project Manager",pin,shift:""});
+  else{p={title:n,cls:"Project Manager",role:"Project Manager",pin,phone:"",local:"",shift:"",note:"",appYr:""};DB.people.push(p)}
+  resplit();sv();push();try{if(window.SHOPCREWSYNC)SHOPCREWSYNC()}catch(x){}
+  const me=ALL().find(x=>x.title===p.title)||p;login(me)},true);
  const _login=login;login=function(p){if(both(p))p.shift="";const r=_login.apply(this,arguments);if(both(p)&&p.shift){p.shift="";resplit();sv()}return r};
  /* ---------- Employees master list (inside the Employees screen) ---------- */
  let Q="",FC="";
