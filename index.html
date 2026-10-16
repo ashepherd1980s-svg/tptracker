@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA; v57.0: LOTO checked task by task, all-stop when anyone is on a LOTO task without LOTO; v58.0: Shop 6B Major Inspection: QC Checklist, GT inspection forms, Risk Assessment; v58.1: TurbinePros logo and branding on the inspection forms, checklist and risk register)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA; v57.0: LOTO checked task by task, all-stop when anyone is on a LOTO task without LOTO; v58.0: Shop 6B Major Inspection: QC Checklist, GT inspection forms, Risk Assessment; v58.1: TurbinePros logo and branding on the inspection forms, checklist and risk register; v58.2: saved documents open inside the app on the iPad)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -5660,7 +5660,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  function vpSeed(){}
  async function vpOpen(id,share){const r=VP().find(x=>x.id===id),b=await pGet(id);if(!r||!b)return alert("That PDF is not on this iPad.");const blob=b instanceof Blob?b:new Blob([b],{type:"application/pdf"});
   if(share&&navigator.canShare){try{const f=new File([blob],r.file,{type:"application/pdf"});if(navigator.canShare({files:[f]}))return await navigator.share({files:[f],title:r.file})}catch(e){if(e&&e.name==="AbortError")return}}
-  const u=URL.createObjectURL(blob);if(share){const a=document.createElement("a");a.href=u;a.download=r.file;document.body.appendChild(a);a.click();a.remove();return}window.open(u,"_blank")}
+  const u=URL.createObjectURL(blob);if(share){const a=document.createElement("a");a.href=u;a.download=r.file;document.body.appendChild(a);a.click();a.remove();return}URL.revokeObjectURL(u);TPVIEW(blob,r.file)}
  /* draws the company Vendor Request Form (FORM.XXX.0178.1) and returns a PDF */
  async function vpMake(v){const W=612,H=792,K=2.2,logo=await new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=LOGO});
   const pages=[];const F="Arial, Helvetica, sans-serif";
@@ -5835,7 +5835,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   if(b.dataset.vpd){const r=VP().find(x=>x.id===b.dataset.vpd);if(r&&confirm("Remove "+r.file+" from this iPad?")){s.vpdfs=VP().filter(x=>x!==r);s.vendors.forEach(v=>{if(v.pdf===r.id)delete v.pdf});try{pDel&&pDel(r.id)}catch(x){}sv();vendView()}return}
   if(b.dataset.vpo)return vpOpen(b.dataset.vpo,false);if(b.dataset.vps)return vpOpen(b.dataset.vps,true);
   if(b.dataset.vyn){VD[b.dataset.vyn]=b.dataset.v;sv();return vformView()}
-  if(b.dataset.vfo){const f=(VED.files||[])[+b.dataset.vfo];if(f){const x=await pGet(f.id);if(!x)return alert("That file is not on this iPad.");const url=typeof x==="string"?x:URL.createObjectURL(x);window.open(url,"_blank")}return}
+  if(b.dataset.vfo){const f=(VED.files||[])[+b.dataset.vfo];if(f){const x=await pGet(f.id);if(!x)return alert("That file is not on this iPad.");TPVIEW(x,f.name||"File")}return}
   if(b.dataset.vfx){if(confirm("Remove this file?")){VED.files.splice(+b.dataset.vfx,1);sv();vformView()}return}
   if(b.dataset.cro){CED=CR().find(y=>y.id===b.dataset.cro);return craneView()}
   if(b.dataset.crr){CED.res=CED.res||{};CED.res[b.dataset.crr]=b.dataset.v;if(b.dataset.v==="U")CED.ok="Unsatisfactory";if(CR().includes(CED))sv();return craneView()}
@@ -6578,7 +6578,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   if(a==="print")return printDay();
   /* unit info */
   if(a==="ufx"){if(!u)return;delete u[b.dataset.qk];fixU(u);sv();syncU();return uiView()}
-  if(a==="udo"){const x=await pGet(b.dataset.qi);if(!x)return alert("That file is not on this iPad.");window.open(typeof x==="string"?x:URL.createObjectURL(x),"_blank");return}
+  if(a==="udo"){const x=await pGet(b.dataset.qi);if(!x)return alert("That file is not on this iPad.");TPVIEW(x,((u&&u.docs||[]).find(d=>d.id===b.dataset.qi)||{}).name||"Document");return}
   if(a==="udx"){if(!confirm("Remove this document from the unit and this iPad?"))return;u.docs=u.docs.filter(d=>d.id!==b.dataset.qi);try{pDel(b.dataset.qi)}catch(x){}sv();return uiView()}
   if(a==="udel"){if(!confirm("Delete "+uName(u)+" and everything on it (pieces, task cards, findings)? Hours stay on past timesheets."))return;s.units=s.units.filter(x=>x!==u);sv();setJob("");return go("home")}
   /* task cards */
@@ -6736,7 +6736,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   for(const f of fs){const z=await save(f);if(!z)continue;if(t.dataset.qtp&&!z.pdf)(k.ph=k.ph||[]).push(z.id);else(k.sh=k.sh||[]).push(Object.assign(z,{at:nowTxt()}))}sv();reTask()});
  document.addEventListener("click",async e=>{const b=e.target.closest('[data-qa="tpo"]');if(!b)return;e.stopPropagation();const x=await pGet(b.dataset.qi);if(!x)return alert("That file is not on this iPad.");
   if(typeof x==="string"&&x.startsWith("data:image")){const v=document.createElement("div");v.id="qImgV";v.innerHTML=`<img alt="Photo"><button type="button" class="pri">Close</button>`;v.querySelector("img").src=x;v.onclick=()=>v.remove();document.body.appendChild(v);return}
-  window.open(typeof x==="string"?x:URL.createObjectURL(x),"_blank")},true);
+  TPVIEW(x,b.dataset.qn||b.textContent.trim()||"Document")},true);
  const _uph=uphView;uphView=function(){_uph.apply(this,arguments);const u=JU()||unitOf(UID);if(!u)return;const s=S(),ks=Object.keys(s.days||{}).sort().reverse(),out=[];
   ks.forEach(d=>{const D=(s.days[d]||{})[u.id];if(!D)return;const ts=D.tasks.filter(t=>(t.ph||[]).length||(t.sh||[]).length);if(ts.length)out.push(`<h2 class="sec">${E(new Date(d+"T12:00:00").toLocaleDateString([],{weekday:"short",month:"short",day:"numeric"}))}</h2>`+ts.map(t=>`<div class="rec"><b>${E(cutT(String(t.text),140))}</b>${tAtt(t,d)}</div>`).join(""))});
   const sh=MD.querySelector("#shp");if(sh)sh.insertAdjacentHTML("afterbegin",`<h2 class="sec" style="margin-top:0">Task photos &amp; data sheets</h2>${out.join("")||`<div class="hint">None yet. Add them under each task on the job's Today page or in Wrap Up.</div>`}<h2 class="sec">Piece photos</h2>`);qload()};
@@ -7307,6 +7307,46 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  window.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('button[data-qa="print"]');if(!b||!window.SHOPMODE)return;if(blocked("Printing walking cards")){e.preventDefault();e.stopImmediatePropagation()}},true);
  if(typeof window.printTasks==="function"){const _pt=window.printTasks;window.printTasks=function(){if(blocked("Printing walking cards"))return;return _pt.apply(this,arguments)}}
  setTimeout(()=>{try{if(cur==="home")home()}catch(e){}},0);
+})();
+
+
+/* ===== v58.2 in-app document viewer. iPad Safari (and the installed app) silently blocks window.open when it comes after loading the file, so saved PDFs, photos and files open here instead, on top of the app. ===== */
+(function(){
+ const st=document.createElement("style");st.textContent=`#tpView{position:fixed;inset:0;z-index:10080;background:#2b2f33;display:flex;flex-direction:column}
+#tpView .vb{flex:none;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));background:#a3283c;color:#fff}
+#tpView .vb b{flex:1;min-width:140px;font-size:16px;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tpView .vb a,#tpView .vb button{min-height:44px;display:inline-flex;align-items:center;padding:0 14px;border-radius:10px;font-weight:800;font-size:15px;text-decoration:none;border:0;background:#fff;color:#a3283c}
+#tpView .vb .x{background:rgba(255,255,255,.2);color:#fff}
+#tpView .vs{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px}
+#tpView .vs img.pg{display:block;width:100%;max-width:900px;margin:0 auto 12px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+#tpView .vs iframe{width:100%;height:100%;min-height:70vh;border:0;background:#fff}
+#tpView .vs .msg{color:#fff;text-align:center;padding:30px 10px;font-size:16px}`;document.head.appendChild(st);
+ let URLS=[];
+ const toBlob=x=>{if(x instanceof Blob)return x;if(typeof x==="string"&&/^data:/.test(x)){const m=x.match(/^data:([^;,]*)(;base64)?,(.*)$/s);const raw=m[2]?atob(m[3]):decodeURIComponent(m[3]);const u=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)u[i]=raw.charCodeAt(i);return new Blob([u],{type:m[1]||"application/octet-stream"})}return null};
+ /* pull the page pictures out of a PDF (the app's own PDFs and scans are one JPEG per page) */
+ async function pdfPages(b){const u=new Uint8Array(await b.arrayBuffer());let s="";for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));
+  const out=[];const re=/\/Subtype\s*\/Image/g;let m;
+  while((m=re.exec(s))){const d0=s.lastIndexOf("<<",m.index),sk=s.indexOf("stream",m.index);if(d0<0||sk<0)continue;const dict=s.slice(d0,sk);if(!/DCTDecode/.test(dict))continue;
+   let p=sk+6;if(s[p]==="\r")p++;if(s[p]==="\n")p++;const L=dict.match(/\/Length\s+(\d+)(?!\s+\d+\s+R)/);let end=L?p+(+L[1]):s.indexOf("endstream",p);if(end<=p)continue;
+   const w=(dict.match(/\/Width\s+(\d+)/)||[])[1],h=(dict.match(/\/Height\s+(\d+)/)||[])[1];if(w&&h&&(+w<120||+h<120))continue;
+   out.push(new Blob([u.subarray(p,end)],{type:"image/jpeg"}));re.lastIndex=end}
+  return out}
+ function close(){const v=document.getElementById("tpView");if(v)v.remove();URLS.forEach(x=>{try{URL.revokeObjectURL(x)}catch(e){}});URLS=[]}
+ async function view(x,name){close();const b=toBlob(x);if(!b){alert("That file could not be opened.");return}
+  const ty=b.type||(/\.pdf$/i.test(name||"")?"application/pdf":/\.(jpe?g|png|gif|webp|heic)$/i.test(name||"")?"image/jpeg":"");const url=URL.createObjectURL(b);URLS.push(url);
+  const v=document.createElement("div");v.id="tpView";v.setAttribute("role","dialog");v.setAttribute("aria-label",name||"Document");
+  v.innerHTML=`<div class="vb"><b></b>${navigator.canShare?'<button type="button" data-tv="sh">Share / Save</button>':""}<a href="${url}" target="_blank" rel="noopener" data-tv="new">Open in New Tab</a><button type="button" class="x" data-tv="x">Close</button></div><div class="vs"><div class="msg">Opening&hellip;</div></div>`;
+  v.querySelector(".vb b").textContent=name||"Document";document.body.appendChild(v);const S=v.querySelector(".vs");
+  v.addEventListener("click",async e=>{const t=e.target.closest("[data-tv]");if(!t)return;const k=t.dataset.tv;if(k==="x")return close();
+   if(k==="sh"){e.preventDefault();try{const f=new File([b],name||"document",{type:ty||b.type||"application/octet-stream"});if(navigator.canShare({files:[f]}))await navigator.share({files:[f],title:name||"Document"});else alert("This iPad can't share this file.")}catch(z){}}});
+  try{
+   if(/^image\//.test(ty)){S.innerHTML=`<img class="pg" alt="">`;S.querySelector("img").src=url;return}
+   if(/pdf/.test(ty)){const P=await pdfPages(b);if(P.length){S.innerHTML="";P.forEach((p,i)=>{const im=document.createElement("img");im.className="pg";im.alt="Page "+(i+1);const u2=URL.createObjectURL(p);URLS.push(u2);im.src=u2;S.appendChild(im)});return}
+    S.innerHTML=`<iframe title=""></iframe>`;S.querySelector("iframe").src=url;return}
+   S.innerHTML=`<div class="msg">This file type can't be shown inside the app. Use Share / Save or Open in New Tab.</div>`}
+  catch(e){S.innerHTML=`<div class="msg">This file could not be shown. Use Share / Save or Open in New Tab.</div>`}}
+ window.TPVIEW=view;window.TPVIEWCLOSE=close;
+ addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("tpView"))close()});
 })();
 
 (function(){if(!/^https?:$/.test(location.protocol))return;
