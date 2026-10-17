@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA; v57.0: LOTO checked task by task, all-stop when anyone is on a LOTO task without LOTO; v58.0: Shop 6B Major Inspection: QC Checklist, GT inspection forms, Risk Assessment; v58.1: TurbinePros logo and branding on the inspection forms, checklist and risk register; v58.2: saved documents open inside the app on the iPad; v58.3: receiving on Shop and Field, printable receiving reports; v58.4: saved signatures picked at every sign-off; v58.5: attach scanned or uploaded documents to tasks; v58.6: upload receiving photos from the photo album or Files; v58.7: Daily Report photos continue onto extra pages instead of running off the page; v58.8: Daily Report photo X removes the photo, report photos shown whole)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA; v57.0: LOTO checked task by task, all-stop when anyone is on a LOTO task without LOTO; v58.0: Shop 6B Major Inspection: QC Checklist, GT inspection forms, Risk Assessment; v58.1: TurbinePros logo and branding on the inspection forms, checklist and risk register; v58.2: saved documents open inside the app on the iPad; v58.3: receiving on Shop and Field, printable receiving reports; v58.4: saved signatures picked at every sign-off; v58.5: attach scanned or uploaded documents to tasks; v58.6: upload receiving photos from the photo album or Files; v58.7: Daily Report photos continue onto extra pages instead of running off the page; v58.8: Daily Report photo X removes the photo, report photos shown whole; v59.0: Shop phone version (PM full, Site Supervisor short menu, Technical Director read-only) and Shop Live Sync)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -312,6 +312,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 /* ===== v52: Shop or Field Services, chosen on every app open, plus a Demo that runs in its own separate space. The Shop side runs on its own data (never synced with Field). ===== */
 (function(){
  let side=null,demo=null;try{side=sessionStorage.getItem("tp-side");demo=sessionStorage.getItem("tp-demo")}catch(e){}
+ try{const q=new URLSearchParams(location.search);if(q.get("join")&&q.get("side")==="shop"&&!demo){side="shop";sessionStorage.setItem("tp-side","shop")}}catch(e){}
  if(demo!=="shop"&&demo!=="field")demo=null;
  if(demo)side=demo;
  window.TPSIDE=side;window.SHOPMODE=side==="shop";window.TPDEMO=demo;
@@ -3495,9 +3496,11 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
 (function(){
  const E=esc,LS=localStorage,origSet=Storage.prototype.setItem;
  const CFGK="tp-sync-cfg",QK="tp-sync-bq",DEVK="tp-sync-dev";
+ /* v59.0: on the Shop side the Shop's own data (DB.shop) is split record by record, so two devices editing different units, steps or pieces never overwrite each other */
+ const SHOPSYNC=!!window.SHOPMODE&&!window.TPDEMO;
  const EXC=new Set(["wx","pplOther","pplShift","demo"]);
  const REC=new Set(["tasks","people","data","dsr_comp","dsr_tech","dsr_track","dsr_push","dsr_data","dsr_ewa","dsr_hseq","dsr_vend","steps","orders","rent","mcal","delays","dmgTools","hours","jsas","tphotos","docs","qnotes","parts","fmea","closeouts","vendors","issues","qcap","overrides","cases","media","handoff","timeouts","msgs","msgReads","breaks","eos","expList","pushTok","partBank","__U"]);
- const NB=k=>(k==="hours"||k==="jsas"||k==="closeouts"||k==="tasks")?16:8;
+ const NB=k=>k.indexOf("shop.")===0?(k==="shop.units"?16:8):(k==="hours"||k==="jsas"||k==="closeouts"||k==="tasks")?16:8;
  const J=JSON.stringify,isO=v=>v&&typeof v==="object"&&!Array.isArray(v);
  let cfg=null,T=null,ready=false,base={},prev={},pat={},timer=0,applying=false,status="off",statusMsg="",pendingRender=false,remote={};
  try{cfg=JSON.parse(LS.getItem(CFGK)||"null")}catch(e){}
@@ -3507,29 +3510,52 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  function hsh(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return Math.abs(h)}
  function rid(key,r){if(key==="hours")return (r.tid||"")+"|"+(r.who||"")+"|"+(r.date||"");if(key==="people")return r.title||r._k||(r._k="k"+Math.random().toString(36).slice(2,10));if(r.id)return String(r.id);if(!r._k)r._k="k"+Date.now().toString(36)+Math.random().toString(36).slice(2,7);return r._k}
  const safeId=s=>String(s).replace(/\//g,"∕");
- function arrOf(key){if(key==="__U")return U;if(key==="people")return (DB.people||[]).concat(DB.pplOther||[]);return DB[key]}
+ function arrOf(key){if(key.indexOf("shop.")===0)return (DB.shop||{})[key.slice(5)];if(key==="__U")return U;if(key==="people")return (DB.people||[]).concat(DB.pplOther||[]);return DB[key]}
  /* snapshot of everything, as units: whole sections and record buckets */
  function snap(){const m={};
   const keys=Object.keys(DB).filter(k=>!EXC.has(k)&&typeof DB[k]!=="function").concat(["__U"]);
   keys.forEach(k=>{const v=arrOf(k);if(v===undefined)return;
-   if(REC.has(k)&&Array.isArray(v)&&v.every(x=>x&&typeof x==="object")){const n=NB(k),bk={};v.forEach(r=>{const id=rid(k,r),b=hsh(id)%n;(bk[b]=bk[b]||{})[id]=r});Object.keys(bk).forEach(b=>m[safeId(k+"~"+b)]=J(bk[b]))}
+   if(k==="shop"&&SHOPSYNC&&isO(v)){shopSnap(v,m);return}
+   if(REC.has(k)&&Array.isArray(v)&&v.every(x=>x&&typeof x==="object")){const n=NB(k),bk={};v.forEach(r=>{const id=rid(k,r),b=hsh(id)%n;(bk[b]=bk[b]||{})[id]=r});Object.keys(bk).forEach(b=>m[safeId(k+"~"+b)]=J(SHOPSYNC?sortK(bk[b]):bk[b]))}
    else m[safeId(k)]=J(v)});
   return m}
+ /* Shop: arrays of records become buckets of records; maps of records (days, time) become buckets of keys; anything else is one piece */
+ const sortK=o=>{const r={};Object.keys(o).sort().forEach(k=>r[k]=o[k]);return r};
+ const recArr=v=>Array.isArray(v)&&v.every(x=>isO(x)),recMap=v=>isO(v)&&Object.keys(v).every(x=>isO(v[x]));
+ function shopSnap(sh,m){Object.keys(sh).forEach(sk=>{const v=sh[sk];if(v===undefined||typeof v==="function")return;const key="shop."+sk;
+   if(recArr(v)){const n=NB(key),bk={};v.forEach(r=>{const id=rid(key,r),b=hsh(id)%n;(bk[b]=bk[b]||{})[id]=r});Object.keys(bk).forEach(b=>m[safeId(key+"~"+b)]=J(sortK(bk[b])))}
+   else if(recMap(v)){const bk={};Object.keys(v).forEach(id=>{const b=hsh(id)%8;(bk[b]=bk[b]||{})[id]=v[id]});Object.keys(bk).forEach(b=>m[safeId(key+"^"+b)]=J(sortK(bk[b])))}
+   else m[safeId(key)]=J(v)})}
+ /* Shop: lists of records with ids (steps, pieces, tasks) merge record by record */
+ const idArr=a=>Array.isArray(a)&&a.every(x=>isO(x)&&x.id!=null);
+ function mArr(b,l,r,hasB,pr){const bm={},lm={},rm={};(hasB&&Array.isArray(b)?b:[]).forEach(x=>bm[x.id]=x);l.forEach(x=>lm[x.id]=x);r.forEach(x=>rm[x.id]=x);
+  const ord=r.map(x=>String(x.id));let prevId=null;l.forEach(x=>{const id=String(x.id);if(!(id in rm)){const i=prevId==null?-1:ord.indexOf(prevId);ord.splice(i+1,0,id)}prevId=id});
+  const out=[],seen=new Set();ord.forEach(id=>{if(seen.has(id))return;seen.add(id);const inL=id in lm,inR=id in rm,inB=hasB&&(id in bm);
+   if(inL&&!inR){if(inB&&J(lm[id])===J(bm[id]))return;out.push(lm[id]);return}
+   if(!inL&&inR){if(inB&&J(rm[id])===J(bm[id]))return;out.push(rm[id]);return}
+   out.push(m3(bm[id],lm[id],rm[id],hasB&&inB,pr))});return out}
  /* three-way merge: keep both sides' changes; with no shared history the cloud wins */
  function m3(b,l,r,hasB,pr){const jl=J(l),jr=J(r);if(jl===jr)return l;if(hasB&&jl===J(b))return r;if(hasB&&jr===J(b))return l;
+  if(SHOPSYNC&&idArr(l)&&idArr(r)&&(!hasB||b===undefined||idArr(b)))return mArr(b,l,r,hasB&&b!==undefined,pr);
   if(isO(l)&&isO(r)){const o={},bb=isO(b)?b:{};new Set(Object.keys(l).concat(Object.keys(r))).forEach(k=>{const inL=k in l,inR=k in r,inB=hasB&&(k in bb);
     if(!inL&&inR){if(inB&&J(r[k])===J(bb[k]))return;o[k]=r[k];return}
     if(inL&&!inR){if(inB&&J(l[k])===J(bb[k]))return;o[k]=l[k];return}
     o[k]=m3(bb[k],l[k],r[k],hasB&&inB,pr)});return o}
   return hasB&&!pr?l:r}
  /* ---------- applying cloud changes to this device ---------- */
- function unitKey(u){const i=u.lastIndexOf("~");if(i>0&&/^\d+$/.test(u.slice(i+1))){const k=u.slice(0,i).replace(/∕/g,"/");if(REC.has(k))return [k,+u.slice(i+1)]}return [u.replace(/∕/g,"/"),-1]}
- function applyUnit(u,val){const [k,b]=unitKey(u);
+ function unitKey(u){const i=u.lastIndexOf("~");if(i>0&&/^\d+$/.test(u.slice(i+1))){const k=u.slice(0,i).replace(/∕/g,"/");if(REC.has(k)||(SHOPSYNC&&k.indexOf("shop.")===0))return [k,+u.slice(i+1)]}return [u.replace(/∕/g,"/"),-1]}
+ function applyUnit(u,val){
+  if(SHOPSYNC&&u.indexOf("shop.")===0){const sh=isO(DB.shop)?DB.shop:(DB.shop={});const mm=u.match(/^shop\.(.+)\^(\d+)$/);
+   if(mm){const sk=mm[1].replace(/∕/g,"/"),b=+mm[2];const o=isO(sh[sk])?sh[sk]:(sh[sk]={});Object.keys(o).forEach(id=>{if(hsh(id)%8===b&&!(val&&id in val))delete o[id]});if(val)Object.keys(val).forEach(id=>o[id]=val[id]);return}
+   const [k0,b0]=unitKey(u);if(b0<0){const sk=k0.slice(5);if(val!==undefined){sh[sk]=val;return}const cv=sh[sk];
+    if(Array.isArray(cv)){if(!recArr(cv)||!cv.length)sh[sk]=[];return}if(recMap(cv))return;delete sh[sk];return}}
+  const [k,b]=unitKey(u);
   if(b<0){if(val===undefined)delete DB[k];else DB[k]=val;return}
   const n=NB(k),map=val||{};let arr=arrOf(k);if(!Array.isArray(arr))arr=[];
   const keep=arr.filter(r=>{const id=rid(k,r);return hsh(id)%n!==b||id in map});
   const idx={};keep.forEach((r,i)=>idx[rid(k,r)]=i);
   Object.keys(map).forEach(id=>{if(id in idx)keep[idx[id]]=map[id];else keep.push(map[id])});
+  if(k.indexOf("shop.")===0){(isO(DB.shop)?DB.shop:(DB.shop={}))[k.slice(5)]=keep;return}
   if(k==="__U"){U.length=0;keep.forEach(x=>U.push(x))}
   else if(k==="people"){DB.people=keep;DB.pplOther=[];try{window.SHRESPLIT&&SHRESPLIT()}catch(e){}}
   else DB[k]=keep}
@@ -3550,12 +3576,12 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
  /* ---------- sending this device's changes ---------- */
  function schedule(ms){clearTimeout(timer);timer=setTimeout(push,ms==null?1500:ms)}
  Storage.prototype.setItem=function(k,v){origSet.call(this,k,v);if(this===LS&&!applying&&ready&&(k==="tp-db-v1"||k==="turbine-tracker-v1"))schedule()};
- async function push(){if(!ready||isDemo())return;const L=snap();let n=0;
+ async function push(){if(!ready||isDemo()||window.SYNCRO)return;const L=snap();let n=0;
   for(const u in L){if(L[u]!==base[u]){const at=Date.now();T.set(u,{v:L[u],at,by:dev});prev[u]=base[u];pat[u]=at;base[u]=L[u];n++}}
   for(const u in base){if(!(u in L)){T.del(u);delete base[u];n++}}
   if(n){saveBase();setStatus(navigator.onLine===false?"offline":"on")}}
  /* the last synced copy lives in its own small database so offline edits can be merged later */
- const sdb=new Promise(r=>{try{const q=indexedDB.open("tp-sync",1);q.onupgradeneeded=()=>q.result.createObjectStore("s");q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)}catch(e){r(null)}});
+ const sdb=new Promise(r=>{try{const q=indexedDB.open(SHOPSYNC?"tp-sync-shop":"tp-sync",1);q.onupgradeneeded=()=>q.result.createObjectStore("s");q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)}catch(e){r(null)}});
  async function saveBase(){const d=await sdb;if(!d)return;try{d.transaction("s","readwrite").objectStore("s").put(base,"base")}catch(e){}}
  async function loadBase(){const d=await sdb;if(!d)return {};return new Promise(r=>{try{const q=d.transaction("s").objectStore("s").get("base");q.onsuccess=()=>r(q.result||{});q.onerror=()=>r({})}catch(e){r({})}})}
  /* ---------- photos, scans and videos ---------- */
@@ -3605,7 +3631,7 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   if(!c||!c.fb||!c.site||!c.email)throw new Error("That setup code is missing parts. Copy it again from the iPad.");
   if(isDemo())throw new Error("Live Sync stays off while the demo is loaded. Use Factory Reset to leave the demo first.");
   T=fbTransport();await T.init(c);await T.signIn(c.email,pw);if(fresh){ready=false;await T.wipe()}cfg=c;origSet.call(LS,CFGK,J(c));
-  try{const d=await idb;const keys=await new Promise(r=>{const q=d.transaction("p").objectStore("p").getAllKeys();q.onsuccess=()=>r(q.result||[]);q.onerror=()=>r([])});setBQ(BQ().concat(keys))}catch(e){}
+  try{const d=await idb;const keys=await new Promise(r=>{const q=d.transaction("p").objectStore("p").getAllKeys();q.onsuccess=()=>r(q.result||[]);q.onerror=()=>r([])});const all=SHOPSYNC?J(DB):"";setBQ(BQ().concat(SHOPSYNC?keys.filter(k=>all.indexOf(String(k))>=0):keys))}catch(e){}
   base={};await saveBase();ready=false;await start();return true};
  /* erase everything in this site's shared cloud record (Factory Reset option). Nothing is pushed back up afterwards. */
  window.syncWipe=async function(){if(!cfg||!T)throw new Error("Live Sync is not on");ready=false;clearTimeout(timer);await T.wipe();base={};await saveBase()};
@@ -4351,7 +4377,7 @@ window.QRSVG=(function(){
  const appURL=()=>(location.origin==="null"?"file://":location.origin)+location.pathname.replace(/index\.html$/,"");
  const b64u=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
  const unb64u=s=>{s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return decodeURIComponent(escape(atob(s)))};
- window.JOINURL=()=>{const c=window.syncCode?syncCode():"";return c?appURL()+"?join="+b64u(c):""};
+ window.JOINURL=()=>{const c=window.syncCode?syncCode():"";return c?appURL()+"?join="+b64u(c)+(window.SHOPMODE?"&side=shop":""):""};
  const fixQ=s=>String(s).replace(/[“”„″]/g,'"').replace(/[‘’]/g,"'");
  window.JOINPARSE=t=>{t=fixQ(String(t||"").trim());const m=t.match(/[?&]join=([A-Za-z0-9_-]+)/);if(m){try{return unb64u(m[1])}catch(e){}}const i=t.indexOf("{"),j=t.lastIndexOf("}");if(i>0&&j>i&&/"fb"\s*:/.test(t))return t.slice(i,j+1);return t};
  const fbOf=t=>{const o={};["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId"].forEach(k=>{const m=t.match(new RegExp('["\']?'+k+'["\']?\\s*:\\s*["\']([^"\']+)["\']'));if(m)o[k]=m[1]});return o.apiKey&&o.projectId?o:null};
@@ -5663,7 +5689,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   ${done.length?`<h2 class="sec">Past delays</h2>${done.map(card).join("")}`:""}</div>`}
  /* settings */
  function setView(){MD.innerHTML=head("Shop Settings")+`<div id="shp"><label>Shop name (on the JSA, weekly sheet and status sheet)<input id="ssN" value="${E(S().set.site||"Shop")}"></label><label>Shop address<textarea id="ssA" rows="2">${E(S().set.addr||"")}</textarea></label><div class="row"><button type="button" class="pri" data-sh="ssave">Save</button></div>
-  <div class="hint" style="margin-top:20px">The Shop side keeps its own data on this iPad. It does not use Live Sync and never mixes with Field Services.</div><div class="row"><button type="button" data-tpgo="field">Switch to Field Services</button><button type="button" data-sh="signout">Sign Out</button></div></div>`}
+  <div class="hint" style="margin-top:20px">The Shop side keeps its own data. Shop Live Sync (above) shares it with Shop phones and iPads only. It never mixes with Field Services.</div><div class="row"><button type="button" data-tpgo="field">Switch to Field Services</button><button type="button" data-sh="signout">Sign Out</button></div></div>`}
  /* customer status sheet (built when you open it) */
  function statusHTML(u){const s=S(),th="border:1px solid #000;padding:4px 6px;background:#ede9dc;font-weight:700;text-align:left",td="border:1px solid #000;padding:4px 6px;vertical-align:top",sends=s.sends.filter(x=>x.unitId===u.id&&!x.back),fnd=[];u.pieces.forEach(p=>p.finds.forEach(f=>fnd.push([p,f])));
   const ship=u.pieces.length?u.pieces.filter(p=>p.done).length+" of "+u.pieces.length+" pieces shipped":"";
@@ -5682,7 +5708,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  const VYN=[["single","Was this a single source selection?"],["sub","All subcontractors are required to provide a Workers Comp Certificate of Insurance. Is this a subcontractor?"],["site","All vendors that go past “reception” at a TurbinePROs building or enter a jobsite are required to provide both General Liability and Workers Comp Certificate(s) of Insurance. Will this vendor enter a TurbinePROs jobsite or building?"],["veh","All vendors that enter a TurbinePROs building parking lot or take their vehicle past the gate at a jobsite are required to provide an Automobile Certificate of Insurance. Will this vendor’s vehicle need to enter a TurbinePROs jobsite or parking lot?"]];
  const vNew=()=>({id:uidS("vd"),name:"",addr:"",web:"",contact:"",phone:"",email:"",heard:"",why:"",single:"No",just:"",svc:"",spend:"",sub:"Yes",site:"Yes",veh:"Yes",req:(ME&&ME.title)||"",reqDate:today(),appr:"",apprDate:"",files:[]});
  const VSEED=[{name:"Texas Bearing Services",svc:"Bearing and seal replacement or repair"},{name:"Ohmstede Ltd.",svc:"Cooler Bundle cleaning and repairs"},{name:"Southwest Impregion, Inc.",svc:"Parts coatings and painting"},{name:"Master Pump & Power",svc:"Pump inspection and repairs"}];
- function vSeed(){const s=S();if(s.vseed1)return;VSEED.forEach(x=>{if(!s.vendors.some(y=>nv(y.name).toLowerCase()===x.name.toLowerCase()))s.vendors.push(Object.assign(vNew(),x,{id:uidS("vd")}))});s.vseed1=1;sv()}
+ function vSeed(){const s=S();if(s.vseed1)return;VSEED.forEach(x=>{if(!s.vendors.some(y=>nv(y.name).toLowerCase()===x.name.toLowerCase()))s.vendors.push(Object.assign(vNew(),x,{id:"vdz-"+x.name.toLowerCase().replace(/[^a-z0-9]+/g,"-")}))});s.vseed1=1;sv()}
  const vOK=v=>!!(nv(v.appr)&&nv(v.apprDate));
  const vMiss=v=>VF.filter(f=>f[2]&&!nv(v[f[0]])).map(f=>f[1]).concat(!nv(v.svc)?["Products or services"]:[],!nv(v.spend)?["Estimated annual spend"]:[],v.single==="Yes"&&!nv(v.just)?["Single source justification"]:[]);
  const mdy=d=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||"");return m?(+m[2])+"/"+m[3]+"/"+m[1]:(d||"")};
@@ -5826,7 +5852,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  function go(k){if(k==="home")return show("home");show(k)}
  const RENDER={sh_unit:unitView,sh_piece:pieceView,sh_vend:vendView,sh_crew:crewView,sh_safe:safeView,sh_parts:partsView,sh_delay:delayView,sh_set:setView,sh_status:statusView,sh_send:sendForm,sh_vform:vformView,sh_crane:()=>CED?craneView():craneList(),sh_fork:()=>FED?forkView():forkList(),sh_rig:rigView,sh_em:emView};
  M.sh_status={t:"Status",f:[],sum:()=>""};M.sh_vform={t:"Vendor Form",f:[],sum:()=>""};M.sh_crane={t:"Crane Inspection",f:[],sum:()=>""};M.sh_fork={t:"Forklift Inspection",f:[],sum:()=>""};M.sh_rig={t:"Rigging Log",f:[],sum:()=>""};M.sh_em={t:"Emergency Info",f:[],sum:()=>""};M.sh_send={t:"Vendor",f:[],sum:()=>""};
- const ALLOWED=new Set(["home","jsa","fme","fm_case",...Object.keys(RENDER)]);
+ const ALLOWED=new Set(["home","jsa","fme","fm_case","sync",...Object.keys(RENDER)]);
  const _mo=mod;mod=function(k){if(RENDER[k])return RENDER[k]();return _mo.apply(this,arguments)};
  const _sh=show;show=function(v){if(!ALLOWED.has(v))v="home";if(v==="sh_parts"&&cur!=="sh_unit"&&cur!=="sh_parts")UID="";const r=_sh.call(this,v);try{$("#fab").hidden=true;document.querySelector("header").hidden=v==="home"}catch(e){}return r};
  home=function(){syncU();vSeed();vpSeed();homeShop()};
@@ -7117,6 +7143,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  function pull(){if(!LINK)return;const d=fdb();DB.people=(d.people||[]).concat(d.pplOther||[]).map(p=>Object.assign({},p));DB.pplOther=[];resplit()}
  function push(){if(!LINK)return;const d=fdb();d.people=ALL().map(p=>Object.assign({},p));d.pplOther=[];d.empWipe56=1;try{FIELDSET("tp-db-v1",JSON.stringify(d))}catch(e){alert("Could not save the employee list: "+(e&&e.message||e))}}
  const save=()=>{sv();push();try{if(window.SHOPCREWSYNC)SHOPCREWSYNC()}catch(e){}};
+ if(SHOP&&!DEMO)window.SHOPPPLPUSH=push;
  /* v56.2: the one-time employee wipe is removed. Real entries are only ever deleted inside the app. */
  pull();
  /* v56.4: Project Manager, Technical Director and Technical Advisor are on both shifts, always */
@@ -7128,9 +7155,9 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  window.SHOPCREWSYNC=function(){if(!SHOP||!DB.shop)return;try{const sh=DB.shop;if(!Array.isArray(sh.crew))sh.crew=[];let ch=false;const key=n=>String(n||"").toLowerCase();
   /* Shop-only names join Employees */
   sh.crew.forEach(c=>{if(!c||!c.title||c.fromEmp)return;if(!ALL().some(p=>key(p.title)===key(c.title))){const cls=T2C(c.trade)||r2c(c.role);DB.people.push({title:c.title,cls,role:roleOf(cls),phone:c.phone||"",local:"",shift:c.shift||"",note:"",appYr:"",pin:""});ch=true}c.fromEmp=1;ch=true});
-  const byN=new Map(sh.crew.map(c=>[key(c.title),c]));const out=[];
+  const byN=new Map();sh.crew.slice().sort((a,b)=>String(a.id)<String(b.id)?-1:String(a.id)>String(b.id)?1:0).forEach(c=>{const k=key(c.title);if(!byN.has(k))byN.set(k,c)});const out=[];
   ALL().forEach(p=>{let c=byN.get(key(p.title));const cls=clsOf(p);
-   if(!c){c={id:"cr"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:p.title,trade:C2T[cls]||"",role:roleOf(cls),phone:p.phone||"",shift:p.shift||"Day",fromEmp:1};ch=true}
+   if(!c){c={id:"crz-"+key(p.title).replace(/[^a-z0-9]+/g,"-"),title:p.title,trade:C2T[cls]||"",role:roleOf(cls),phone:p.phone||"",shift:p.shift||"Day",fromEmp:1};ch=true}
    else{const want={title:p.title,phone:p.phone||c.phone||"",shift:p.shift||c.shift||"Day"};if(!c.trade&&C2T[cls])want.trade=C2T[cls];Object.keys(want).forEach(k=>{if(c[k]!==want[k]){c[k]=want[k];ch=true}});c.fromEmp=1}
    out.push(c)});
   if(out.length!==sh.crew.length)ch=true;sh.crew=out;if(ch){sv();push()}}catch(e){}};
@@ -7237,7 +7264,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  const rawDel=k=>{try{Storage.prototype.removeItem.call(localStorage,k)}catch(e){}};
  const PEND="tp-mwipe-pending";
  const CATS=[["demos","Demos","Field and Shop demo data"],["emp","Employees and supervisors","The master Employees list, Shop crew and every job's crew list. Afterward you set up the Project Manager again."],["jobs","Jobs and tasks","Jobs, units, tasks, hours, JSAs, LOTO, Needs and orders, rentals, daily reports, Quick Start job info, Shop units and parts"],["photos","Photos","All photos and scanned documents"],["sends","Vendor sends","Field vendor shipments and Shop vendor sends"],["cloud","Live Sync cloud","Empties the shared cloud so linked phones and iPads empty out too"]];
- const syncOn=()=>!!rawGet("tp-sync-cfg");
+ const fieldSyncOn=()=>!!rawGet("tp-sync-cfg");const shopSyncOn=()=>!window.TPDEMO&&!!rawGet("tp-shop-tp-sync-cfg");const syncOn=()=>fieldSyncOn()||shopSyncOn();
  const st=document.createElement("style");st.textContent=`#mwBox{margin-top:18px;border-top:1px solid var(--line);padding-top:12px;text-align:left}#mwBox .mwW{background:#b3342b;color:#fff;border-radius:10px;padding:10px 12px;margin:8px 0;font-size:15px}#mwBox .mwW b{color:#fff}#mwBox .mwC{display:flex;gap:10px;align-items:flex-start;margin:8px 0;font-size:16px;color:inherit}#mwBox .mwC input{width:24px;height:24px;flex:none;margin-top:2px}#mwBox .mwC small{display:block;opacity:.75;font-size:13px}#mwBox .mwAll{font-weight:800;border-bottom:1px solid var(--line);padding-bottom:8px}#stopW #mwBox{color:#fff;max-width:560px;width:100%}#mwOv{position:fixed;inset:0;z-index:10100;background:#0e1517;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font:600 20px system-ui,sans-serif;text-align:center;padding:20px}`;document.head.appendChild(st);
  const panel=()=>`<div id="mwBox"><div class="row"><button type="button" class="danger" data-mw="open" style="width:100%">Wipe&hellip;</button></div></div>`;
  const form=()=>`<b>Wipe: choose what to erase</b><label class="mwC mwAll"><input type="checkbox" id="mwAllC"><span>Select all (full start-over)<small>Erases everything, like a fresh install${syncOn()?", and takes this iPad off Live Sync":""}</small></span></label>`+
@@ -7274,7 +7301,13 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   if(S.demos){rawKeys().filter(k=>/^tp-demo-(shop|field)-/.test(k)).forEach(rawDel)}}
  async function run(S){
   const ticked=CATS.filter(([k])=>k!=="cloud"||syncOn()).every(([k])=>S[k]);
-  if(S.cloud&&syncOn()){
+  if(S.cloud&&window.SHOPMODE&&shopSyncOn()&&!window.SHOPCLOUDDONE){
+   overlay("Connecting to Shop Live Sync to erase the Shop cloud&hellip;<small style='font-weight:400;font-size:15px'>This can take up to 30 seconds.</small>");
+   const ok=await waitSync(30000);let err="";
+   if(ok){try{overlay("Erasing the Shop cloud&hellip;");await syncWipe();window.SHOPCLOUDDONE=1}catch(e){err=(e&&e.message)||String(e)}}else err="Shop Live Sync could not connect (no internet?).";
+   if(err){window.MWS=S;overlay(`<div>Could not erase the Shop cloud.</div><small style="font-weight:400;font-size:16px;max-width:520px">${E(err)}<br>If you go on without the cloud, other phones and iPads keep their Shop data and it can sync back.</small><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button type="button" data-mw="retry">Try Again</button><button type="button" class="danger" data-mw="local">Erase This iPad Only</button><button type="button" data-mw="stop">Cancel</button></div>`);return}
+  }
+  if(S.cloud&&fieldSyncOn()){
    if(window.SHOPMODE||window.TPDEMO){try{sessionStorage.setItem(PEND,JSON.stringify(S));sessionStorage.removeItem("tp-demo");sessionStorage.setItem("tp-side","field");sessionStorage.removeItem("tp-me")}catch(e){}overlay("Switching to Field to erase the cloud&hellip;");location.reload();return}
    overlay("Connecting to Live Sync to erase the cloud&hellip;<small style='font-weight:400;font-size:15px'>This can take up to 30 seconds.</small>");
    const ok=await waitSync(30000);let err="";
@@ -7286,7 +7319,8 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   WIPING=true;wipeLocal(S);await closeIdb();
   if(S.photos)await delDB("tp-photos");
   if(S.demos)await delDB("tp-photos-demo");
-  if(S.cloud&&syncOn())await delDB("tp-sync");
+  if(S.cloud&&fieldSyncOn())await delDB("tp-sync");
+  if(S.cloud&&shopSyncOn()&&window.SHOPMODE)await delDB("tp-sync-shop");
   finish()}
  document.addEventListener("click",e=>{const b=e.target.closest("button[data-mw]");if(!b)return;e.preventDefault();e.stopImmediatePropagation();const k=b.dataset.mw,box=b.closest("#mwBox");
   if(k==="open"&&box){box.innerHTML=form();return}
@@ -7663,6 +7697,101 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  function scan(){Object.keys(IDS).forEach(id=>{const i=document.getElementById(id);if(i&&i.hasAttribute("capture"))hook(i,IDS[id])});
   document.querySelectorAll('input[type=file][data-sr="pph"][capture]').forEach(i=>hook(i,"Upload Photos of This Piece"))}
  new MutationObserver(scan).observe(document.body,{childList:true,subtree:true});scan();
+})();
+
+
+/* ===== v59.0 Live Sync codes stay on their own side: the Shop always uses a shop- site, and a Shop code never joins Field ===== */
+(function(){
+ const _sc=window.syncConnect;if(!_sc)return;
+ const SH=!!window.SHOPMODE&&!window.TPDEMO;
+ const slug=s=>String(s||"").trim().toLowerCase().replace(/[^a-z0-9-]+/g,"-").replace(/^-+|-+$/g,"");
+ window.syncConnect=function(code,pw,isFirst,fresh){let c=code;
+  if(typeof c==="string"){let t=window.JOINPARSE?JOINPARSE(c):c;try{c=JSON.parse(t)}catch(e){return _sc.call(this,code,pw,isFirst,fresh)}}
+  if(c&&typeof c==="object"&&c.site){const isShop=/^shop-/.test(c.site);
+   /* Shop sites always start with shop-, so a Field site name or code becomes that site's own Shop copy and never touches Field */
+   if(SH&&!isShop)c=Object.assign({},c,{site:"shop-"+slug(c.site)});
+   if(!SH&&isShop)return Promise.reject(new Error("That setup code is for the Shop side. Switch to Shop and connect there, or get the Field setup code from Live Sync in Supervisor Setup."))}
+  return _sc.call(this,c,pw,isFirst,fresh)};
+})();
+
+/* ===== v59.0 Shop phone version: the Project Manager gets everything phone-sized, Site Supervisors get a short menu,
+   and the Technical Director gets the same short menu read-only ===== */
+(function(){
+ if(!window.SHOPMODE)return;
+ const E=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const mode=()=>{try{return localStorage.getItem("tp-mode")||"auto"}catch(e){return "auto"}};
+ const narrow=()=>matchMedia("(max-width: 600px)").matches;
+ const me=()=>{try{return (typeof ME!=="undefined"&&ME)||null}catch(e){return null}};
+ window.SHPHONE=()=>!!me()&&(mode()==="phone"||(mode()==="auto"&&narrow()));
+ const SHORT=["Supervisor","Site Supervisor","Shop Supervisor"];
+ const tier=()=>{const m=me();if(!m||!SHPHONE())return "";if(m.role==="Technical Director")return "ro";if(SHORT.includes(m.role))return "short";return "pm"};
+ window.SHPTIER=tier;
+ /* the short menu inside a job */
+ const KEEP={rcv:"Receiving",pcs:"Pieces & Shipping",prog:"Task Progress",photos:"Photos",qc:"Hold Points & QC",vend:"Vendor Send-Outs",parts:"Parts & Needs"};
+ const ORDER=["rcv","pcs","prog","photos","qc","vend","parts"];
+ const st=document.createElement("style");st.textContent=`
+body.shphone #hlpB{width:46px!important;height:46px!important;min-height:46px!important;min-width:46px!important;font-size:22px!important;opacity:.85}
+body.shphone #mod textarea,body.shphone #mod input,body.shphone #mod select{max-width:100%;box-sizing:border-box}
+body.shphone #mod table{display:block;max-width:100%;overflow-x:auto}
+body.shphone #mod img{max-width:100%}
+body.shshort .qbig{display:none!important}
+body.shro #mod input:disabled,body.shro #mod textarea:disabled,body.shro dialog input:disabled,body.shro dialog textarea:disabled{opacity:.75}
+.shpRo{margin:8px 16px;padding:8px 12px;border-radius:10px;background:#3a4a7a;color:#fff;font-weight:700;font-size:14px}
+#shpToast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:10090;background:#222;color:#fff;padding:10px 16px;border-radius:12px;font-weight:700;font-size:15px;box-shadow:0 4px 14px rgba(0,0,0,.4);max-width:90vw;text-align:center}
+.shpSync{display:flex!important;align-items:center;gap:8px;justify-content:center}`;document.head.appendChild(st);
+ function toast(t){let d=document.getElementById("shpToast");if(!d){d=document.createElement("div");d.id="shpToast";d.setAttribute("role","status");document.body.appendChild(d)}d.textContent=t;clearTimeout(toast.t);toast.t=setTimeout(()=>d.remove(),2600)}
+ const ROMSG="Read-only: the Technical Director view can look but not change anything.";
+ const chip=()=>{try{return window.SYNCCHIP?SYNCCHIP():""}catch(e){return ""}};
+ const DEFS=v=>{v=String(v||"").trim().toLowerCase().replace(/[^a-z0-9-]+/g,"-").replace(/^shop-?/,"");return (!v||v==="site"||v==="houston-shop")?"shop-houston":"shop-"+v};
+ function tidy(){const t=tier(),B=document.body;if(!B)return;
+  B.classList.toggle("shphone",!!t);B.classList.toggle("shshort",t==="short"||t==="ro");B.classList.toggle("shro",t==="ro");window.SYNCRO=t==="ro";
+  /* Live Sync is reachable from Shop Settings on every device */
+  try{if(cur==="sh_set"&&!document.getElementById("shpSyncSet")){const mh=document.querySelector("#mod .mh");const html=`<div id="shpSyncSet" style="padding:8px 16px"><button type="button" class="shpSync" data-shp="sync" style="width:100%;min-height:52px">Live Sync: share the Shop with phones and other iPads ${chip()}</button></div>`;if(mh)mh.insertAdjacentHTML("afterend",html);else document.getElementById("mod").insertAdjacentHTML("afterbegin",html)}}catch(e){}
+  /* the Live Sync screen on the Shop side */
+  try{if(cur==="sync"&&!document.getElementById("shpSyncNote")){const m=document.getElementById("mod");m.insertAdjacentHTML("afterbegin",`<div id="shpSyncNote" class="hint" style="padding:8px 16px 0">Shop Live Sync is separate from Field Live Sync. Shop site names start with <b>shop-</b> so the two never mix. It can use the same Firebase project as Field.</div>`);
+    const s=document.getElementById("syS");if(s&&!/^shop-/.test(s.value))s.value=DEFS(s.value)}}catch(e){}
+  /* the sign-in Connect form: the Shop's site name */
+  try{const k=document.getElementById("lkS");if(k&&!k.dataset.shp){k.dataset.shp="1";if(!/^shop-/.test(k.value))k.value=DEFS(k.value)}}catch(e){}
+  if(!t)return;
+  const SH=document.getElementById("shopHome")||document.getElementById("home");
+  /* Live Sync button on the phone home */
+  try{const q=document.querySelector("#home .qmenu");if(q&&!q.querySelector('[data-shp="sync"]'))q.insertAdjacentHTML("beforeend",`<button type="button" class="shpSync" data-shp="sync">Live Sync ${chip()}</button>`)}catch(e){}
+  if(t==="short"||t==="ro"){
+   document.querySelectorAll(".qlinks").forEach(q=>{if(q.dataset.shp)return;q.dataset.shp="1";[...q.querySelectorAll("[data-qk]")].forEach(b=>{const k=b.dataset.qk;if(!(k in KEEP))b.remove();else b.textContent=KEEP[k]});ORDER.forEach(k=>{const b=q.querySelector(`[data-qk="${k}"]`);if(b)q.appendChild(b)})});
+   document.querySelectorAll('#home [data-sh="newu"],#home [data-qk="sh_ros"],#home [data-shgo="sh_set"],#home [data-shgo="sh_safe"]').forEach(b=>b.remove());
+   const jp=document.getElementById("jpF");if(jp&&jp.closest("label"))jp.closest("label").remove()}
+  if(t==="ro"){
+   ["#mod","#home"].forEach(sel=>{const h=document.querySelector(sel);if(h&&!h.hidden&&h.getClientRects().length&&!h.querySelector(".shpRo")&&cur!=="sync")h.insertAdjacentHTML("afterbegin",`<div class="shpRo">Read-only view (Technical Director)</div>`)});
+   if(cur!=="sync")document.querySelectorAll("#mod input,#mod textarea,dialog[open] input,dialog[open] textarea,#home input[type=file],#home input[type=checkbox]").forEach(i=>{if(i.disabled||i.dataset.shpk)return;if(i.closest("#lock,#tpView,#hlpP"))return;if(i.type==="search"||/search/i.test(i.placeholder||"")||i.id==="hsQ")return;i.disabled=true;i.dataset.shpk="1"});
+   /* buttons that change things are hidden; viewing, printing and reports stay */
+   if(cur!=="sync")document.querySelectorAll("#mod button,#home button,dialog[open] button,#mod label,dialog[open] label").forEach(b=>{if(b.dataset.shph||b.closest("#lock,#tpView,#hlpP"))return;if(DENY.test((b.textContent||"").trim())||(b.tagName==="LABEL"&&b.querySelector("input[type=file]"))){b.style.display="none";b.dataset.shph="1"}})}}
+ let pend=0;const later=()=>{if(pend)return;pend=requestAnimationFrame(()=>{pend=0;try{tidy()}catch(e){}})};
+ new MutationObserver(later).observe(document.documentElement,{childList:true,subtree:true});addEventListener("resize",later);later();
+ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('[data-shp="sync"]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();try{show("sync")}catch(x){}},true);
+ /* ---------- read-only for the Technical Director on the phone ---------- */
+ const DENY=/^\s*(\+|add\b|new\b|save|delete|remove|sign\b|sign-|mark|start day|wrap up|receive|upload|scan|attach|edit|clear|release|approve|reject|complete|finish|set up|take|capture|load|move|rename|import|log |record|apply|use typed|draw)/i;
+ let lastUser=0;
+ document.addEventListener("click",e=>{if(!window.SYNCRO)return;lastUser=Date.now();const b=e.target.closest&&e.target.closest("button,label,[role=button]");if(!b||cur==="sync")return;if(b.closest("#lock,#tpView,#hlpP,header,#shSide"))return;
+  if(!b.closest("#mod,#home,dialog"))return;const tx=(b.textContent||"").trim();
+  if(DENY.test(tx)||(b.tagName==="LABEL"&&b.querySelector("input[type=file]"))){e.preventDefault();e.stopImmediatePropagation();toast(ROMSG)}},true);
+ document.addEventListener("change",()=>{if(window.SYNCRO)lastUser=Date.now()},true);
+ /* the backstop: nothing the Technical Director's phone does is saved. If a screen tries, the job snaps back to the saved copy. */
+ const P=Storage.prototype,_set=P.setItem,_get=P.getItem;let REV=false,revT=0;
+ function revert(){revT=0;REV=true;try{const d=JSON.parse(_get.call(localStorage,"tp-db-v1")||"{}");Object.keys(DB).forEach(k=>delete DB[k]);Object.assign(DB,d);
+   const u=JSON.parse(_get.call(localStorage,"turbine-tracker-v1")||"[]");if(Array.isArray(u)&&Array.isArray(U)){U.length=0;u.forEach(x=>U.push(x))}
+   if(Date.now()-lastUser<2500)toast(ROMSG);
+   try{if(!document.querySelector("dialog[open]")){if(cur==="home")home();else show(cur)}}catch(e){}}catch(e){}
+  setTimeout(()=>{REV=false},300)}
+ P.setItem=function(k,v){if(this===localStorage&&window.SYNCRO&&(k==="tp-db-v1"||k==="turbine-tracker-v1")){if(REV)return;let same=false;try{same=_get.call(localStorage,k)===String(v)}catch(e){}if(same)return;if(!revT)revT=setTimeout(revert,60);return}return _set.call(this,k,v)};
+ if(typeof window.sigPad==="function"){const _sp=window.sigPad;window.sigPad=function(){if(window.SYNCRO)return toast(ROMSG);return _sp.apply(this,arguments)};Object.assign(window.sigPad,_sp)}
+ if(typeof window.TPSCAN==="function"){const _ts=window.TPSCAN;window.TPSCAN=function(){if(window.SYNCRO)return toast(ROMSG);return _ts.apply(this,arguments)}}
+ try{const _pp=pPut;pPut=async function(id,v){if(window.SYNCRO){toast(ROMSG);return}return _pp(id,v)}}catch(e){}
+ /* ---------- Live Sync: the Shop's employee list stays the same master list ---------- */
+ const _sa=window.SYNCAFTER;window.SYNCAFTER=function(){try{_sa&&_sa()}catch(e){}try{window.SHOPPPLPUSH&&SHOPPPLPUSH()}catch(e){}
+  /* the same vendor added on two devices before they synced: keep one (the oldest id), the same choice on every device */
+  try{const sh=DB.shop;if(sh&&Array.isArray(sh.vendors)){const seen={},out=[];sh.vendors.slice().sort((a,b)=>String(a.id)<String(b.id)?-1:String(a.id)>String(b.id)?1:0).forEach(v=>{const k=String(v&&v.name||"").trim().toLowerCase();if(k&&seen[k])return;if(k)seen[k]=1;out.push(v)});if(out.length<sh.vendors.length)sh.vendors=sh.vendors.filter(v=>out.includes(v))}}catch(e){}};
+ /* sign-in: where to get the Shop setup code */
+ new MutationObserver(()=>{const h=document.querySelector("#lkB .hint");if(h&&/Supervisor Setup/.test(h.textContent))h.textContent="Get the Shop setup code from the Project Manager's iPad: Shop, Settings, Live Sync. A Field setup code won't work here."}).observe(document.body,{childList:true,subtree:true});
 })();
 
 (function(){if(!/^https?:$/.test(location.protocol))return;
