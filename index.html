@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA; v57.0: LOTO checked task by task, all-stop when anyone is on a LOTO task without LOTO; v58.0: Shop 6B Major Inspection: QC Checklist, GT inspection forms, Risk Assessment; v58.1: TurbinePros logo and branding on the inspection forms, checklist and risk register; v58.2: saved documents open inside the app on the iPad; v58.3: receiving on Shop and Field, printable receiving reports; v58.4: saved signatures picked at every sign-off; v58.5: attach scanned or uploaded documents to tasks; v58.6: upload receiving photos from the photo album or Files; v58.7: Daily Report photos continue onto extra pages instead of running off the page; v58.8: Daily Report photo X removes the photo, report photos shown whole; v59.0: Shop phone version (PM full, Site Supervisor short menu, Technical Director read-only) and Shop Live Sync; v59.1: crew groups, group 1 at the top of every crew list; v59.2: data sheets and QC Checklist print through a PDF, Risk Assessment removed)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA; v57.0: LOTO checked task by task, all-stop when anyone is on a LOTO task without LOTO; v58.0: Shop 6B Major Inspection: QC Checklist, GT inspection forms, Risk Assessment; v58.1: TurbinePros logo and branding on the inspection forms, checklist and risk register; v58.2: saved documents open inside the app on the iPad; v58.3: receiving on Shop and Field, printable receiving reports; v58.4: saved signatures picked at every sign-off; v58.5: attach scanned or uploaded documents to tasks; v58.6: upload receiving photos from the photo album or Files; v58.7: Daily Report photos continue onto extra pages instead of running off the page; v58.8: Daily Report photo X removes the photo, report photos shown whole; v59.0: Shop phone version (PM full, Site Supervisor short menu, Technical Director read-only) and Shop Live Sync; v59.1: crew groups, group 1 at the top of every crew list; v59.2: data sheets and QC Checklist print through a PDF, Risk Assessment removed; v59.3: Forms: every report as a blank form or filled from the job, tap to type, save a copy or print)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -5852,6 +5852,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  function go(k){if(k==="home")return show("home");show(k)}
  const RENDER={sh_unit:unitView,sh_piece:pieceView,sh_vend:vendView,sh_crew:crewView,sh_safe:safeView,sh_parts:partsView,sh_delay:delayView,sh_set:setView,sh_status:statusView,sh_send:sendForm,sh_vform:vformView,sh_crane:()=>CED?craneView():craneList(),sh_fork:()=>FED?forkView():forkList(),sh_rig:rigView,sh_em:emView};
  M.sh_status={t:"Status",f:[],sum:()=>""};M.sh_vform={t:"Vendor Form",f:[],sum:()=>""};M.sh_crane={t:"Crane Inspection",f:[],sum:()=>""};M.sh_fork={t:"Forklift Inspection",f:[],sum:()=>""};M.sh_rig={t:"Rigging Log",f:[],sum:()=>""};M.sh_em={t:"Emergency Info",f:[],sum:()=>""};M.sh_send={t:"Vendor",f:[],sum:()=>""};
+ RENDER.sh_forms=()=>{if(window.TPFORMSVIEW)TPFORMSVIEW()};M.sh_forms={t:"Forms",f:[],sum:()=>""};
  const ALLOWED=new Set(["home","jsa","fme","fm_case","sync",...Object.keys(RENDER)]);
  const _mo=mod;mod=function(k){if(RENDER[k])return RENDER[k]();return _mo.apply(this,arguments)};
  const _sh=show;show=function(v){if(!ALLOWED.has(v))v="home";if(v==="sh_parts"&&cur!=="sh_unit"&&cur!=="sh_parts")UID="";const r=_sh.call(this,v);try{$("#fab").hidden=true;document.querySelector("header").hidden=v==="home"}catch(e){}return r};
@@ -5992,8 +5993,8 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  /* ===================== v53 ===================== */
  const MS=[["rcv","Received"],["dis","Disassembly complete"],["insp","Inspection & discovery complete"],["reas","Reassembly complete"],["rpt","Final report"],["ship","Shipped / storage"]];
  const UF=[["job","Job number"],["unitNo","Unit (e.g. Unit 1)"],["cust","Customer"],["origin","Origin (shipped from)"],["model","Model"],["tser","Turbine serial"],["gser","Generator serial"],["dRec","Date received","date"],["dTgt","Target ship date","date"],["dShip","Actual ship date","date"]];
- const LINKS=[["prog","Progress & task cards"],["qc","QC Checklist"],["gtf","Inspection Forms"],["pcs","Pieces"],["rcv","Receiving"],["crew","Crew & timesheet"],["jsa","JSAs"],["vend","Vendors"],["parts","Parts"],["photos","Photos"],["finds","Findings"],["delay","Delays"],["hseq","HSEQ & FME"],["plan","Past days"],["status","Customer status"],["info","Unit info"]];
- const LROUTE={prog:"sh_tc",qc:"sh_qc",gtf:"sh_gtl",risk:"sh_risk",pcs:"sh_unit",rcv:"sh_rcv",crew:"sh_uc",jsa:"sh_uj",vend:"sh_uv",parts:"sh_parts",photos:"sh_uph",finds:"sh_uf",delay:"sh_ud",hseq:"sh_uh",plan:"sh_up",status:"sh_status",info:"sh_ui"};
+ const LINKS=[["prog","Progress & task cards"],["qc","QC Checklist"],["gtf","Inspection Forms"],["forms","Forms"],["pcs","Pieces"],["rcv","Receiving"],["crew","Crew & timesheet"],["jsa","JSAs"],["vend","Vendors"],["parts","Parts"],["photos","Photos"],["finds","Findings"],["delay","Delays"],["hseq","HSEQ & FME"],["plan","Past days"],["status","Customer status"],["info","Unit info"]];
+ const LROUTE={prog:"sh_tc",qc:"sh_qc",gtf:"sh_gtl",forms:"sh_forms",risk:"sh_risk",pcs:"sh_unit",rcv:"sh_rcv",crew:"sh_uc",jsa:"sh_uj",vend:"sh_uv",parts:"sh_parts",photos:"sh_uph",finds:"sh_uf",delay:"sh_ud",hseq:"sh_uh",plan:"sh_up",status:"sh_status",info:"sh_ui"};
  const uName=u=>[nv(u.job),nv(u.unitNo)].filter(Boolean).join(" ")||u.name||"Unit";
  function fixU(u){if(!Array.isArray(u.steps))u.steps=[];if(!u.ms||typeof u.ms!=="object")u.ms={};if(!Array.isArray(u.docs))u.docs=[];if(!Array.isArray(u.pieces))u.pieces=[];if(!Array.isArray(u.tpl))u.tpl=[];if(nv(u.job)||nv(u.unitNo))u.name=uName(u);return u}
  const UNITS=()=>{const s=S(),o=s.set.uord||[];s.units.forEach(fixU);return s.units.slice().sort((a,b)=>{const ia=o.indexOf(a.id),ib=o.indexOf(b.id);return (ia<0?1e6:ia)-(ib<0?1e6:ib)})};
@@ -7883,6 +7884,185 @@ body.shro #mod input:disabled,body.shro #mod textarea:disabled,body.shro dialog 
    const P=pages.map((cv,i)=>{const g=cv.getContext("2d");g.fillStyle="#444";g.font="13px Arial";g.fillText("V = Verify · W = Witness · H = Hold Point · TurbinePros · Printed "+today,M,PH-M+8);g.textAlign="right";g.fillText("Page "+(i+1)+" of "+pages.length,PW-M,PH-M+8);g.textAlign="left";return {d:cv.toDataURL("image/jpeg",.85),w:PW,h:PH,land:true}});
    TPBUSY();await TPPRINTPDF(P,"TurbinePros_QC_Checklist_"+name+"_"+today)}
   catch(e){TPBUSY();alert("Could not make the QC Checklist printout: "+(e&&e.message||e))}};
+})();
+
+
+/* ===== v59.3 Forms: every printable report as a blank form or filled from the job. Tap any part of the form to type into it,
+   then save a PDF copy to the job or print it. The job's own records are never changed from here. ===== */
+(function(){
+ const E=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const SHOPS=!!window.SHOPMODE;const W=ms=>new Promise(r=>setTimeout(r,ms));
+ const $1=s=>document.querySelector(s),click=s=>{const e=$1(s);if(!e)throw new Error("missing "+s);e.click()};
+ const tday=()=>{try{return tdy()}catch(e){return new Date().toISOString().slice(0,10)}};
+ /* ---------- blank copies of the data: words and lists emptied, ids and the shape kept ---------- */
+ const KEEP=new Set(["id","u","sid","akey","k","shift","st","status","kind","closed","final","cls","role"]);
+ function blank(v,key){if(Array.isArray(v))return [];if(v&&typeof v==="object"){const o={};Object.keys(v).forEach(k=>o[k]=KEEP.has(k)&&(v[k]===null||typeof v[k]!=="object")?v[k]:blank(v[k],k));return o}if(typeof v==="string")return "";if(typeof v==="number")return "";return v}
+ const blankRec=(r,keep)=>{const o=blank(r);(keep||[]).forEach(k=>{if(r&&k in r)o[k]=r[k]&&typeof r[k]==="object"?blank(r[k]):r[k]});if(r&&r.id)o.id=r.id;return o};
+ /* run a printout against a blank copy of everything. Nothing is saved while it runs, and the real data comes back afterwards. */
+ let SWAP=null;
+ const P=Storage.prototype,_set=P.setItem;
+ P.setItem=function(k,v){if(SWAP&&this===localStorage&&(k==="tp-db-v1"||k==="turbine-tracker-v1"))return;return _set.call(this,k,v)};
+ function swapIn(prep){const keep={};Object.keys(DB).forEach(k=>keep[k]=DB[k]);const keepU=U.slice();SWAP={keep,keepU,ro:window.SYNCRO,ccs:window.SHOPCREWSYNC};window.SYNCRO=true;if(window.SHOPCREWSYNC)window.SHOPCREWSYNC=function(){};
+  const b=blank(keep);Object.keys(DB).forEach(k=>delete DB[k]);Object.assign(DB,b);if(!SHOPS)U.length=0;
+  ["home","homeBy","homeFolders","phoneLay","favs","wx"].forEach(k=>{if(k in keep)DB[k]=keep[k]});
+  if(keep.dsrs){DB.dsrs=blank(keep.dsrs);try{DB.dsrs.setup.date=keep.dsrs.setup.date;DB.dsrs.setup.shift=keep.dsrs.setup.shift}catch(e){}}
+  try{if(prep)prep(keep)}catch(e){}}
+ function swapOut(){if(!SWAP)return;const {keep,keepU,ro,ccs}=SWAP;if(ccs)window.SHOPCREWSYNC=ccs;Object.keys(DB).forEach(k=>delete DB[k]);Object.assign(DB,keep);U.length=0;keepU.forEach(x=>U.push(x));window.SYNCRO=ro;SWAP=null}
+ /* the current shop unit, kept but emptied, so screens that need a unit still open */
+ const shopUnitBlank=keep=>{try{const sh=keep.shop||{},id=sessionStorage.getItem("tp-job")||"",u=(sh.units||[]).find(x=>x.id===id)||(sh.units||[])[0];DB.shop=blank(sh);DB.shop.set=sh.set||{};DB.shop.units=u?[Object.assign(blankRec(u),{steps:[],pieces:[],docs:[],ms:{},tpl:[]})]:[];DB.shop.time={};DB.shop.days={};DB.shop.vendors=[];return DB.shop.units[0]}catch(e){return null}};
+ /* ---------- run one of the app's printouts and keep its pages ---------- */
+ async function capture(run){const pre=document.getElementById("tpView");let html="";
+  const hideRp=()=>{try{$("#rptw").hidden=true;$("#rptb").innerHTML="";$("#pgsty").textContent=""}catch(e){}};hideRp();
+  hookRpt();CAP=true;try{await run()}finally{setTimeout(()=>{CAP=false},4000)}
+  for(let i=0;i<60;i++){await W(150);const w=$1("#rptw");if(w&&!w.hidden&&$("#rptb").children.length){await W(400);break}}
+  try{const b=$("#rptb");b.querySelectorAll("img[data-p]").forEach(async i=>{});html=b.innerHTML;if(typeof fillImgs==="function"){await fillImgs();html=b.innerHTML}}catch(e){}
+  const land=/landscape/.test(($("#pgsty")||{}).textContent||"");CAP=false;hideRp();try{if(typeof PASTV!=="undefined"&&PASTV)pastBack()}catch(e){}
+  document.querySelectorAll("dialog[open]").forEach(d=>{if(d.id!=="dFrm"&&d.id!=="dFrmE")try{d.close()}catch(e){}});
+  return {html,land}}
+ let CAP=false;
+ function docHTML(D){const LGO=(typeof LOGO==="string"&&LOGO)||"";const hd=`<div style="display:flex;align-items:center;gap:16px;border-bottom:3px solid #111;padding-bottom:6px;margin-bottom:12px">${LGO?`<img src="${LGO}" alt="" style="height:.5in">`:""}<div><div style="font:700 20px Arial">${E(D.title)}</div><div style="font:13px Arial;color:#333">${E(D.sub||"")}</div></div></div>`;
+  const pages=[[]];D.ops.forEach(op=>{if(op.t==="brk")pages.push([]);else pages[pages.length-1].push(op)});
+  const td="border:1px solid #999;padding:4px 6px;vertical-align:top;font:12px Arial";
+  const one=op=>{if(op.t==="h")return `<div style="font:700 15px Arial;color:#a3283c;border-bottom:1px solid #a3283c;margin:12px 0 6px">${E(op.text)}</div>`;
+   if(op.t==="p")return `<p style="font:${op.b?"700 ":""}13px Arial;margin:4px 0;white-space:pre-wrap">${E(op.text)}</p>`;
+   if(op.t==="gap")return `<div style="height:${(op.h||10)*0.6}px"></div>`;
+   if(op.t==="kv"){const n=op.cols||2,rows=[];for(let i=0;i<op.rows.length;i+=n)rows.push(op.rows.slice(i,i+n));return `<table style="width:100%;border-collapse:collapse;margin:4px 0">${rows.map(r=>`<tr>${r.map(([k,v])=>`<td style="font:700 12px Arial;color:#555;padding:3px 6px;width:${Math.round(18/n*2)}%">${E(k)}</td><td style="font:13px Arial;padding:3px 6px">${E(v)}</td>`).join("")}</tr>`).join("")}</table>`}
+   if(op.t==="table")return `<table style="width:100%;border-collapse:collapse;margin:4px 0 10px"><tr>${op.head.map((h,i)=>`<th style="${td};background:#e3e3e3;font-weight:700;width:${Math.round((op.w&&op.w[i]||0)*100)}%;text-align:left">${E(h)}</th>`).join("")}</tr>${op.rows.map((r,ri)=>`<tr${op.tint&&op.tint[ri]?` style="background:${op.tint[ri]}"`:""}>${r.map(v=>`<td style="${td}">${E(v)}</td>`).join("")}</tr>`).join("")}</table>`;
+   if(op.t==="img")return (op.cap?`<div style="font:700 12px Arial;color:#555;margin-top:6px">${E(op.cap)}</div>`:"")+`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:4px 0">${op.ids.map(id=>/^(data|blob):/.test(id)?`<img src="${id}" alt="" style="width:100%;height:1.3in;object-fit:contain;border:1px solid #bbb">`:`<img data-p="${E(id)}" alt="" style="width:100%;height:1.3in;object-fit:contain;border:1px solid #bbb">`).join("")}</div>`;
+   if(op.t==="sig")return `<div style="font:700 12px Arial;color:#555;margin-top:8px">${E(op.label||"Signature")}</div><div style="height:.7in;width:3.6in;border-bottom:1px solid #111">${op.id?(/^(data|blob):/.test(op.id)?`<img src="${op.id}" alt="" style="height:100%">`:`<img data-p="${E(op.id)}" alt="" style="height:100%">`):""}</div>`;return ""};
+  return pages.map(L=>`<div class="pg" style="height:auto;min-height:11in;padding:.45in .5in">${hd}${L.map(one).join("")}</div>`).join("")}
+ const hookRpt=()=>{if(!window.TPREPORT||TPREPORT.__f)return;const _run=TPREPORT.run;TPREPORT.run=async function(D,name,save){if(!CAP)return _run.apply(this,arguments);$("#pgsty").textContent="";$("#rptb").innerHTML=docHTML(D);$("#rptw").hidden=false;return []};TPREPORT.__f=1};hookRpt();setTimeout(hookRpt,0);
+ /* a table that says "none" becomes empty lines to write on */
+ function linesForNone(root){root.querySelectorAll("td[colspan]").forEach(td=>{const t=(td.textContent||"").trim();if(!/^(none|no |nothing|—|-$)/i.test(t)||t.length>80)return;const tr=td.closest("tr");if(!tr)return;const n=+td.getAttribute("colspan")||1;let h="";for(let i=0;i<8;i++)h+="<tr>"+Array.from({length:n},()=>`<td style="${E(td.getAttribute("style")||"")}">&nbsp;</td>`).join("")+"</tr>";tr.insertAdjacentHTML("afterend",h);tr.remove()})}
+ /* ---------- the forms ---------- */
+ const go=async k=>{show(k);await W(500)};
+ const shopUnit=()=>{try{const id=sessionStorage.getItem("tp-job");return DB.shop&&(DB.shop.units||[]).find(u=>u.id===id)}catch(e){return null}};
+ const needUnit=async()=>{const id=sessionStorage.getItem("tp-job");if(!id||!shopUnit())throw new Error("Pick the unit at the top of Forms first.");show("home");await W(500);const q=$1('.qpk[data-qu="'+id+'"]');if(q){q.click();await W(900)}};
+ const need=(sel,msg)=>{const e=$1(sel);if(!e)throw new Error(msg);e.click()};
+ const dsrPast=()=>{PASTV={dsrs:DB.dsrs};DLISTS.forEach(k=>PASTV[k]=DB[k])};
+ const F=[
+  /* both sides */
+  {id:"dsr_f",side:"field",t:"Daily Status Report",d:"FORM.XXX.2004.8",run:async()=>{await go("dsr");dsrPast();click('[data-ds="preview"]')}},
+  {id:"dsr_s",side:"shop",unit:1,t:"Daily Status Report",d:"FORM.XXX.2004.8, for this unit",run:async()=>{await needUnit();await go("sh_dsr");await W(400);need('[data-qa="dsrprev"]',"The Daily Report could not open for this unit.")}},
+  {id:"jsa_f",side:"field",t:"Daily JSA",d:"Pre-Task Planning Work Sheet",run:async(bl)=>{await go("jsa");if(bl||!$1('[data-j="prev"]')){const n=$1('[data-j="new"]');if(n){n.click();await W(900)}}document.querySelectorAll("#mod details").forEach(d=>d.open=true);click('[data-j="prev"]')}},
+  {id:"jsa_s",side:"shop",unit:1,t:"Daily JSA",d:"Pre-Task Planning Work Sheet, for this unit",run:async(bl)=>{await needUnit();await go("sh_uj");const o=$1('[data-qa="ujo"]');if(!bl&&!o)throw new Error("No JSA for this unit yet. Start one in Start Day.");if(o&&!bl){o.click();await W(900)}else{await go("sh_sd");const d=$1('[data-qa="sds"][data-qi="2"]');if(d){d.click();await W(800)}const b=[...document.querySelectorAll("#mod button")].find(x=>/JSA/i.test(x.textContent)&&/start|new|make|open|fill/i.test(x.textContent));if(b){b.click();await W(1200)}}need('[data-j="prev"]',"No JSA yet today.")}},
+  {id:"rcv_f",side:"field",t:"Receiving Report",d:"One delivery: BOL, condition, damage and signatures",prep:k=>{const o=(k.orders||[]).find(x=>(x.rec||[]).length);DB.orders=[o?Object.assign(blankRec(o),{rec:[blankRec(o.rec[0])]}):{id:"bo",kind:"vend",desc:"",rec:[{id:"br",date:""}]}]},run:async()=>{let id="";for(const o of DB.orders||[])for(const r of o.rec||[]){id=r.id;break}if(!id)throw new Error("No deliveries yet.");TPFIELDRCV.run(id)}},
+  {id:"rcv_s",side:"shop",unit:1,t:"Receiving Report",d:"One truckload against this unit",prep:k=>{const u=shopUnitBlank(k),r=((k.shop||{}).rcpts||[]).find(x=>!u||x.unitId===u.id);DB.shop.rcpts=r?[Object.assign(blankRec(r,["unitId"]),{pcs:{},pieces:[],pages:[],photos:[]})]:(u?[{id:"brc",unitId:u.id,date:"",pcs:{},pieces:[],pages:[],photos:[]}]:[])},run:async()=>{await needUnit();await go("sh_rcv");need('[data-rc="rpt"]',"No shipments received for this unit yet.")}},
+  {id:"rlog_f",side:"field",t:"Receiving Log",d:"Every delivery in a date range",run:async()=>{await go("fm_rcv");click('[data-rr="log"]');await W(600);const f=$1("#rlF");if(f)f.value="2026-01-01";click("#rlGo")}},
+  {id:"rlog_s",side:"shop",unit:1,t:"Receiving Log",d:"Every truckload for this unit",run:async()=>{await needUnit();await go("sh_rcv");click('[data-rc="log"]');await W(600);const g=$1("#rlGo");if(g)g.click()}},
+  /* field */
+  {id:"job",side:"field",t:"Job Report",d:"Hours against expected, every task",prep:k=>{const j=(k.jobs||[])[0];DB.jobs=j?[blankRec(j,["main"])]:[]},run:async()=>{await go("jobs");let b=$1('[data-jb="print"]');if(!b){const o=$1('#mod [data-jb="open"],#mod [data-jb="det"],#mod .rec button');if(o){o.click();await W(800)}}click('[data-jb="print"]')}},
+  {id:"hours",side:"field",t:"Hours by Person",d:"Weekly hours, day and night shift",run:async()=>{await go("tasks");const r=$1('[data-tk="report"]');if(r){r.click();await W(700)}click('[data-tk="hprint"]')}},
+  {id:"time",side:"field",t:"Time Tracker",d:"Hours by unit against expected",run:async()=>{await go("costs");click('[data-tm="print"]')}},
+  {id:"sstat",side:"field",t:"To-Date Status",d:"Open actions, milestones, orders and requests",run:async()=>{await go("sstat");click('[data-ss="print"]')}},
+  {id:"delay",side:"field",t:"Delay Report",d:"Delays and hours lost by shift",run:async()=>{await go("delay");const b=[...document.querySelectorAll("#mod button")].find(x=>/print|report/i.test(x.textContent));if(!b)throw new Error("No delay report button.");b.click()}},
+  {id:"tools",side:"field",t:"Damaged Tooling Report",d:"Damaged tools by owner and status",run:async()=>{await go("tools");click('[data-tl="print"]')}},
+  {id:"loto",side:"field",t:"LOTO Register",d:"Permits on file and the lock register",run:async()=>{await go("loto");click('[data-lo="print"]')}},
+  {id:"fme1",side:"field",t:"FME Classification (TP FME 1)",d:"FME area classification",prep:k=>{const a=(k.fmea||[])[0];DB.fmea=a?[blankRec(a,["lvl","cls"])]:[{id:"bfa",lvl:"FMEA1"}]},run:async()=>{await go("fme");const a=(DB.fmea||[])[0];if(!a)throw new Error("No FME areas yet.");fmeArea(a.id);await W(500);click('[data-fm="p1"]')}},
+  {id:"fme6",side:"field",t:"FME Close Out (TP-FME-6)",d:"FME area close-out",prep:k=>{const a=(k.fmea||[]).find(x=>x.closed||x.co||x.close)||(k.fmea||[])[0];DB.fmea=a?[Object.assign(blankRec(a,["lvl","cls","closed","co","close","st"]))]:[]},run:async()=>{await go("fme");for(const a of DB.fmea||[]){fmeArea(a.id);await W(350);const b=$1('[data-fm="p6"]');if(b){b.click();return}}throw new Error("No closed-out FME area yet.")}},
+  {id:"co",side:"field",t:"Customer Closeout Form",d:"TurbinePros customer closeout format",prep:k=>{const c=(k.closeouts||[])[0];DB.closeouts=c?[blankRec(c)]:[]},run:async()=>{await go("fme");const t=$1('[data-fm="tab"][data-v="co"]');if(t){t.click();await W(600)}click('[data-co="print"]')}},
+  {id:"task",side:"field",t:"Task Sheet and Walking Cards",d:"Task assignment and a safety time-out card per person",prep:k=>{const t=(k.tasks||[])[0];DB.tasks=t?[blankRec(t,["job","unit"])]:[]},run:async()=>{const t=(DB.tasks||[]).find(x=>x.st!=="Done")||(DB.tasks||[])[0];if(!t)throw new Error("No tasks yet.");taskDetail(t.id);await W(700);click('[data-td="tprint"]')}},
+  {id:"site",side:"field",t:"Site Info Sheet",d:"Job, site, contacts and emergency info",run:async()=>{await go("qs");click('[data-qs="print"]')}},
+  /* shop */
+  {id:"rsum",side:"shop",unit:1,t:"Unit Receiving Summary",d:"Every piece with received / expected status",run:async()=>{await needUnit();await go("sh_rcv");click('[data-rc="sum"]')}},
+  {id:"sday",side:"shop",unit:1,t:"Start Day Print Set",d:"JSA, walking cards and task sheets",prep:k=>{const u=shopUnitBlank(k);if(!u)return;const d=tday();DB.shop.crew=[{id:"bc1",title:"",role:"",shift:"Day"}];DB.shop.time={[d]:{bc1:{h:10,in:"",out:"",jobs:[{u:u.id,h:10}]}}};DB.shop.days={[d]:{[u.id]:{tasks:[{id:"bt1",text:"",crew:["bc1"],done:false}],wrap:null}}}},run:async()=>{await needUnit();await go("home");need('[data-qa="print"]',"No tasks for today yet. Plan the day in Start Day first.")}},
+  {id:"uts",side:"shop",unit:1,t:"Weekly Timesheet (unit)",d:"ST, OT and DT per person for this unit",run:async()=>{await needUnit();await go("sh_uc");click('[data-qa="utp"]')}},
+  {id:"wk",side:"shop",t:"Weekly Hours (whole shop crew)",d:"Hours per day for every crew member",run:async()=>{await go("sh_crew");click('[data-sh="payroll"]')}},
+  {id:"stat",side:"shop",unit:1,t:"Customer Status Sheet",d:"Milestones, pieces and parts at vendors",run:async()=>{await needUnit();await go("sh_status");click('[data-sh="stprint"]')}},
+  {id:"crane",side:"shop",t:"Daily Crane Inspection",d:"Operator's overhead crane inspection",prep:k=>{shopUnitBlank(k);DB.shop.crane=[]},run:async()=>{await go("sh_crane");const n=$1('[data-sh="crnew"]');if(n){n.click();await W(700)}click('[data-sh="crprint"]')}},
+  {id:"fork",side:"shop",t:"Daily Forklift Inspection",d:"Forklift / telehandler daily checks",prep:k=>{shopUnitBlank(k);DB.shop.fork=[]},run:async()=>{await go("sh_fork");const n=$1('[data-sh="fknew"]');if(n){n.click();await W(700)}click('[data-sh="fkprint"]')}},
+  {id:"rig",side:"shop",t:"Rigging Inspection Log",d:"Slings, shackles and hoists with inspection dates",run:async()=>{await go("sh_rig");click('[data-sh="rgprint"]')}},
+  {id:"em",side:"shop",t:"Emergency Info Card",d:"Who to call, muster point, hospital",keepQ:1,run:async()=>{await go("sh_em");click('[data-sh="emprint"]')}},
+  {id:"vend",side:"shop",t:"Vendor Request Form",d:"FORM.XXX.0178.1, filled in on its own screen",own:"sh_vform"}];
+ /* the blank copy for shop forms keeps the unit so the screens open */
+ F.forEach(f=>{if(f.side==="shop"&&!f.prep)f.prep=k=>shopUnitBlank(k)});
+ /* ---------- the editor ---------- */
+ const st=document.createElement("style");st.textContent=`#dFrm{position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:#5c6366;display:flex;flex-direction:column}#dFrm::backdrop{background:#5c6366}#dFrm:not([open]){display:none}
+#dFrm .fb{flex:none;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));background:#a3283c;color:#fff}
+#dFrm .fb b{flex:1;min-width:140px;font-size:16px;color:#fff}#dFrm .fb small{flex-basis:100%;color:#fff;opacity:.9;font-size:13px}
+#dFrm .fb button{min-height:44px;padding:0 14px;border-radius:10px;font-weight:800;font-size:15px;border:0;background:#fff;color:#a3283c}#dFrm .fb .x{background:rgba(255,255,255,.2);color:#fff}
+#dFrm .fs{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 0}
+#frmPages{transform-origin:top left}#frmPages .pg,#frmPages .pgl{margin:0 auto 14px!important;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+#frmPages td,#frmPages th,#frmPages li,#frmPages p,#frmPages div,#frmPages span{cursor:text}
+#frmPages .fEd{background:rgba(255,236,140,.55)!important;outline:1px dashed #c9a300}
+#frmPages .fHot{outline:2px solid #1f6f6b;outline-offset:-2px}
+#dFrmE .dlg textarea{width:100%;min-height:140px;font-size:17px}#dFrmE .ckr{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}`;document.head.appendChild(st);
+ const dl=document.createElement("dialog");dl.id="dFrm";dl.innerHTML=`<div class="fb"><b id="frmT"></b><button type="button" data-fr="save">Save Copy to Job</button><button type="button" data-fr="print">Print / Share PDF</button><button type="button" class="x" data-fr="x">Close</button><small>Tap any box, line or blank space on the form to type in it.</small></div><div class="fs" id="frmS"><div id="frmPages"></div></div>`;document.body.appendChild(dl);
+ const de=document.createElement("dialog");de.id="dFrmE";de.innerHTML=`<div class="dlg"><h2 style="margin-top:0">Type in this box</h2><div class="ckr" id="frmCk"></div><textarea id="frmTx"></textarea><div class="row"><button type="button" data-fe="clr">Clear</button><button type="button" data-fe="x">Cancel</button><button type="button" class="pri" data-fe="ok">Done</button></div></div>`;document.body.appendChild(de);
+ let CUR=null,TGT=null,DIRTY=false;
+ function fit(){const P=$("#frmPages"),S=$("#frmS");P.style.transform="";const w=P.scrollWidth||816;const k=Math.min(1,(S.clientWidth-16)/w);P.style.transform=`scale(${k})`;P.style.width=w+"px";P.style.marginLeft=Math.max(8,(S.clientWidth-w*k)/2)+"px";P.style.height=(P.scrollHeight*k)+"px"}
+ addEventListener("resize",()=>{if(dl.open)fit()});
+ function openEditor(o){CUR=o;DIRTY=false;$("#frmT").textContent=o.title;const P=$("#frmPages");P.innerHTML=o.html;if(o.blank)linesForNone(P);
+  P.querySelectorAll("[contenteditable]").forEach(x=>x.removeAttribute("contenteditable"));
+  P.querySelectorAll("img[data-p]").forEach(async i=>{if(i.src&&!/^about/.test(i.src))return;try{const v=await pGet(i.dataset.p);if(v)i.src=typeof v==="string"?v:URL.createObjectURL(v)}catch(e){}});
+  if(o.land){P.querySelectorAll(".pg").forEach(p=>p.classList.add("pgl"))}
+  try{dl.showModal()}catch(e){dl.setAttribute("open","")}requestAnimationFrame(fit);setTimeout(fit,400)}
+ const pick=t=>{if(!t||!t.closest||t.closest("img"))return null;let e=t.closest("td,th,li");if(e&&$("#frmPages").contains(e))return e;e=t;while(e&&e!==$("#frmPages")){if(!e.querySelector("table,div,p,ul,ol,li,td")&&(e.matches("div,p,span,small,b,u,h1,h2,h3,h4,label")))return e;e=e.parentElement}return null};
+ $("#frmPages").addEventListener("click",e=>{const t=pick(e.target);if(!t)return;e.preventDefault();TGT=t;document.querySelectorAll("#frmPages .fHot").forEach(x=>x.classList.remove("fHot"));t.classList.add("fHot");
+  const txt=t.innerText.replace(/ /g," ").replace(/\s+$/,"");$("#frmTx").value=txt;
+  const ck=[...txt.matchAll(/[☐☒]\s*([^☐☒\n]{0,30})/g)];$("#frmCk").innerHTML=ck.length?ck.map((m,i)=>`<button type="button" class="chip${m[0][0]==="☒"?" on":""}" data-fk="${i}">${m[0][0]==="☒"?"☒":"☐"} ${E(m[1].trim()||"Box "+(i+1))}</button>`).join(""):"";
+  try{de.showModal()}catch(x){}setTimeout(()=>{const a=$("#frmTx");a.focus();try{a.setSelectionRange(a.value.length,a.value.length)}catch(x){}},60)});
+ de.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.fk!==undefined){const a=$("#frmTx");let n=-1;a.value=a.value.replace(/[☐☒]/g,m=>{n++;return n===+b.dataset.fk?(m==="☐"?"☒":"☐"):m});b.classList.toggle("on");b.textContent=(b.classList.contains("on")?"☒":"☐")+b.textContent.slice(1);return}
+  const k=b.dataset.fe;if(k==="clr"){$("#frmTx").value="";return}if(k==="x"){de.close();if(TGT)TGT.classList.remove("fHot");return}
+  if(k==="ok"&&TGT){const v=$("#frmTx").value;TGT.textContent="";v.split("\n").forEach((l,i)=>{if(i)TGT.appendChild(document.createElement("br"));TGT.appendChild(document.createTextNode(l||(i?"":" ")))});if(!v)TGT.innerHTML="&nbsp;";TGT.classList.add("fEd");TGT.classList.remove("fHot");DIRTY=true;de.close();requestAnimationFrame(fit)}});
+ /* ---------- drawing the pages for the PDF (text, lines, fills and photos, as on screen) ---------- */
+ async function raster(){const src=$("#frmPages");const host=document.createElement("div");host.style.cssText="position:fixed;left:-20000px;top:0;width:auto;z-index:-1;background:#fff";host.innerHTML=src.innerHTML;document.body.appendChild(host);
+  host.querySelectorAll(".fEd,.fHot").forEach(x=>x.classList.remove("fEd","fHot"));host.querySelectorAll(".pg,.pgl").forEach(p=>{p.style.margin="0";p.style.boxShadow="none"});
+  await Promise.all([...host.querySelectorAll("img")].map(i=>i.complete?0:new Promise(r=>{i.onload=i.onerror=r;setTimeout(r,4000)})));
+  const out=[];const S=2;
+  for(const pg of host.querySelectorAll(".pg,.pgl")){const R=pg.getBoundingClientRect(),pageH=pg.classList.contains("pgl")?R.width*8.5/11:R.width*11/8.5;
+   const totalH=Math.max(R.height,pageH),n=Math.max(1,Math.round(totalH/pageH-0.08));
+   const c=document.createElement("canvas");c.width=Math.round(R.width*S);c.height=Math.round(pageH*n*S);const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.scale(S,S);x.translate(-R.left,-R.top);
+   const els=[pg,...pg.querySelectorAll("*")];
+   for(const el of els){const cs=getComputedStyle(el);if(cs.display==="none"||cs.visibility==="hidden")continue;const r=el.getBoundingClientRect();if(!r.width&&!r.height)continue;
+    const bg=cs.backgroundColor;if(bg&&!/rgba\(0, 0, 0, 0\)|transparent/.test(bg)&&el!==pg){x.fillStyle=bg;x.fillRect(r.left,r.top,r.width,r.height)}
+    [["Top",r.left,r.top,r.width,0],["Bottom",r.left,r.bottom,r.width,0],["Left",r.left,r.top,0,r.height],["Right",r.right,r.top,0,r.height]].forEach(([s,X,Y,w,h])=>{const bw=parseFloat(cs["border"+s+"Width"])||0;if(!bw||cs["border"+s+"Style"]==="none")return;x.fillStyle=cs["border"+s+"Color"];if(w)x.fillRect(X,s==="Bottom"?Y-bw:Y,w,bw);else x.fillRect(s==="Right"?X-bw:X,Y,bw,h)});
+    if(el.tagName==="IMG"&&el.naturalWidth){const fitc=cs.objectFit;let dx=r.left,dy=r.top,dw=r.width,dh=r.height;if(fitc==="contain"){const k=Math.min(r.width/el.naturalWidth,r.height/el.naturalHeight);dw=el.naturalWidth*k;dh=el.naturalHeight*k;dx=r.left+(r.width-dw)/2;dy=r.top+(r.height-dh)/2}try{x.drawImage(el,dx,dy,dw,dh)}catch(e){}continue}
+    for(const nd of el.childNodes){if(nd.nodeType!==3||!nd.nodeValue.trim())continue;x.font=`${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;x.fillStyle=cs.color;x.textBaseline="alphabetic";const fs=parseFloat(cs.fontSize)||12;
+     const re=/\S+/g;let m;const rg=document.createRange();const ul=/underline/.test(cs.textDecorationLine||cs.textDecoration||"");
+     while((m=re.exec(nd.nodeValue))){rg.setStart(nd,m.index);rg.setEnd(nd,m.index+m[0].length);const rs=rg.getClientRects();if(!rs.length)continue;const q=rs[0];const y=q.top+(q.height+fs*0.72)/2;x.fillText(m[0],q.left,y);if(ul)x.fillRect(q.left,y+1.5,q.width+3,Math.max(1,fs/14))}}}
+   for(let i=0;i<n;i++){const pc=document.createElement("canvas");pc.width=c.width;pc.height=Math.round(pageH*S);pc.getContext("2d").drawImage(c,0,-i*pageH*S);out.push({d:pc.toDataURL("image/jpeg",.85),w:pc.width,h:pc.height})}}
+  host.remove();return out}
+ const fname=()=>(CUR.title+"_"+(CUR.job||"")+"_"+tday()).replace(/[^\w\-]+/g,"_").replace(/_+/g,"_");
+ async function saveCopy(btn){btn.disabled=true;const o=btn.textContent;btn.textContent="Saving…";try{const P=await raster();const blob=mkPDF(P),id=(SHOPS?"ud":"dc")+Date.now().toString(36)+Math.random().toString(36).slice(2,6);await pPut(id,blob);const nm=fname()+".pdf",when=new Date().toLocaleString([],{month:"numeric",day:"numeric",year:"2-digit",hour:"numeric",minute:"2-digit"});
+   if(CUR.side==="shop"){const u=shopUnit();if(!u)throw new Error("Open the unit first to save into it.");(u.docs=u.docs||[]).push({id,name:nm,at:when,form:CUR.id});sv();alert("Saved in "+(u.job||u.name||"the unit")+": Unit info, Unit documents.")}
+   else{DOCS().push({id,title:CUR.title+(CUR.blank?" (blank)":""),cat:"Form",unit:"",date:tday(),who:(ME&&ME.title)||"",pages:P.length,name:nm,type:"application/pdf",size:blob.size,form:CUR.id});sv();alert("Saved in Documents as \""+CUR.title+"\".")}
+   DIRTY=false}catch(e){alert("Could not save the copy: "+(e&&e.message||e))}btn.disabled=false;btn.textContent=o}
+ async function printIt(btn){btn.disabled=true;const o=btn.textContent;btn.textContent="Preparing…";try{const P=await raster();await TPPRINTPDF(P,fname())}catch(e){alert("Could not make the PDF: "+(e&&e.message||e))}btn.disabled=false;btn.textContent=o}
+ dl.addEventListener("click",e=>{const b=e.target.closest("[data-fr]");if(!b)return;const k=b.dataset.fr;if(k==="x"){if(DIRTY&&!confirm("Close without saving a copy? What you typed is not kept."))return;dl.close();return}if(k==="save")return saveCopy(b);if(k==="print")return printIt(b)});
+ dl.addEventListener("cancel",e=>{e.preventDefault()});
+ /* ---------- open a form ---------- */
+ async function openForm(id,isBlank){const f=F.find(x=>x.id===id);if(!f)return;if(f.own){show(f.own);return}
+  const back=cur;TPBUSY("Preparing "+f.t+"…");let r={html:""},err="";
+  try{if(isBlank)swapIn(f.prep);r=await capture(()=>f.run(isBlank))}catch(e){err=(e&&e.message)||String(e)}
+  finally{if(isBlank)swapOut();try{show(back)}catch(e){}TPBUSY()}
+  if(err||!r.html){alert(err||"That form could not be made right now.");return}
+  const u=shopUnit();openEditor({id:f.id,side:f.side,title:f.t,blank:!!isBlank,html:r.html,land:r.land,job:f.side==="shop"?(u?[u.job,u.unitNo].filter(Boolean).join(" "):""):((DB.dsrs&&DB.dsrs.setup&&DB.dsrs.setup.jobNo)||"")})}
+ window.TPFORMS={list:F,open:openForm};
+ /* ---------- the Forms screen ---------- */
+ const CSS2=document.createElement("style");CSS2.textContent=`.frmL .rec{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.frmL .rec .nm{flex:1;min-width:200px}.frmL .rec .nm b{display:block}.frmL .rec button{min-height:44px}`;document.head.appendChild(CSS2);
+ function view(){const M0=$("#mod");const sideF=F.filter(f=>f.side===(SHOPS?"shop":"field"));const u=SHOPS?shopUnit():null;
+  const units=SHOPS?((DB.shop&&DB.shop.units)||[]):[];
+  M0.innerHTML=`<div class="mh"><h2>Forms</h2></div><div style="padding:0 16px"><div class="hint">Every form the app prints. <b>Blank</b> gives an empty form. <b>Fill from job</b> fills it with this job's information as it stands now. Tap any part of a form to type in it, then save a copy to the job or print it. Your job records are not changed.</div>
+   ${SHOPS?`<label>Job for "Fill from job"<select id="frmU"><option value="">Pick a unit</option>${units.map(x=>`<option value="${E(x.id)}"${u&&u.id===x.id?" selected":""}>${E([x.job,x.unitNo].filter(Boolean).join(" ")||x.name||"Unit")}</option>`).join("")}</select></label>`:`<div class="hint">Fill from job uses the working job: <b>${E((DB.dsrs&&DB.dsrs.setup&&DB.dsrs.setup.jobNo)||"")}</b></div>`}
+   <div class="frmL">${sideF.map(f=>`<div class="rec"><div class="nm"><b>${E(f.t)}</b><small>${E(f.d)}</small></div>${f.own?`<button type="button" class="pri" data-frm="own" data-id="${f.id}">Open Form</button>`:`<button type="button" data-frm="blank" data-id="${f.id}">Blank</button><button type="button" class="pri" data-frm="job" data-id="${f.id}">Fill from Job</button>`}</div>`).join("")}</div><div style="height:40px"></div></div>`}
+ window.TPFORMSVIEW=view;
+ document.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("[data-frm]");if(!b)return;e.preventDefault();e.stopImmediatePropagation();const f=F.find(x=>x.id===b.dataset.id);
+  if(b.dataset.frm==="own")return show(f.own);
+  if(f&&f.unit&&!shopUnit()&&b.dataset.frm==="job")return alert("Pick the unit at the top first.");
+  if(f&&f.unit&&!shopUnit()&&b.dataset.frm==="blank"){const L=(DB.shop&&DB.shop.units)||[];if(!L.length)return alert("Add a unit first. Blank unit forms open from a unit.");try{sessionStorage.setItem("tp-job",L[0].id)}catch(x){}}
+  openForm(b.dataset.id,b.dataset.frm==="blank")},true);
+ document.addEventListener("change",e=>{if(e.target&&e.target.id==="frmU"){try{sessionStorage.setItem("tp-job",e.target.value)}catch(x){}view()}},true);
+ /* ---------- where Forms lives ---------- */
+ if(!SHOPS){try{M.forms={t:"Forms",f:[],sum:()=>""};if(typeof ICON==="object")ICON.forms='<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h7M9 8h3"/>';if(typeof TL!=="undefined"&&!TL.some(t=>t[0]==="forms"))TL.push(["forms","Forms","Blank and job-filled forms"])}catch(e){}
+  const _m=mod;mod=function(k){if(k==="forms")return view();return _m.apply(this,arguments)};
+  /* in More, and on each job */
+  const addMore=()=>{try{const mm=document.querySelector("#dMore .more");if(mm&&!mm.querySelector('[data-k="forms"]')){const x=document.createElement("button");x.dataset.k="forms";x.textContent="Forms";mm.insertBefore(x,mm.firstChild)}}catch(e){}};addMore();setTimeout(addMore,1500);
+  new MutationObserver(()=>{document.querySelectorAll('#mod [data-jb="print"]').forEach(p=>{if(p.parentNode&&!p.parentNode.querySelector('[data-frmgo]')){const b=document.createElement("button");b.type="button";b.dataset.frmgo="1";b.textContent="Forms";p.after(b)}})}).observe(document.getElementById("mod"),{childList:true,subtree:true});
+  document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-frmgo]");if(!b)return;e.preventDefault();e.stopImmediatePropagation();show("forms")},true)}
+ else{new MutationObserver(()=>{const q=document.querySelector("#home .qmenu");if(q&&!q.querySelector('[data-frmgo]'))q.insertAdjacentHTML("beforeend",`<button type="button" data-frmgo="1">Forms</button>`)}).observe(document.body,{childList:true,subtree:true});
+  document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-frmgo]");if(!b)return;e.preventDefault();e.stopImmediatePropagation();show("sh_forms")},true)}
 })();
 
 (function(){if(!/^https?:$/.test(location.protocol))return;
