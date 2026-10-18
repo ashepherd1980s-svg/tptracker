@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA; v57.0: LOTO checked task by task, all-stop when anyone is on a LOTO task without LOTO; v58.0: Shop 6B Major Inspection: QC Checklist, GT inspection forms, Risk Assessment; v58.1: TurbinePros logo and branding on the inspection forms, checklist and risk register; v58.2: saved documents open inside the app on the iPad; v58.3: receiving on Shop and Field, printable receiving reports; v58.4: saved signatures picked at every sign-off; v58.5: attach scanned or uploaded documents to tasks; v58.6: upload receiving photos from the photo album or Files; v58.7: Daily Report photos continue onto extra pages instead of running off the page; v58.8: Daily Report photo X removes the photo, report photos shown whole; v59.0: Shop phone version (PM full, Site Supervisor short menu, Technical Director read-only) and Shop Live Sync; v59.1: crew groups, group 1 at the top of every crew list)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA; v57.0: LOTO checked task by task, all-stop when anyone is on a LOTO task without LOTO; v58.0: Shop 6B Major Inspection: QC Checklist, GT inspection forms, Risk Assessment; v58.1: TurbinePros logo and branding on the inspection forms, checklist and risk register; v58.2: saved documents open inside the app on the iPad; v58.3: receiving on Shop and Field, printable receiving reports; v58.4: saved signatures picked at every sign-off; v58.5: attach scanned or uploaded documents to tasks; v58.6: upload receiving photos from the photo album or Files; v58.7: Daily Report photos continue onto extra pages instead of running off the page; v58.8: Daily Report photo X removes the photo, report photos shown whole; v59.0: Shop phone version (PM full, Site Supervisor short menu, Technical Director read-only) and Shop Live Sync; v59.1: crew groups, group 1 at the top of every crew list; v59.2: data sheets and QC Checklist print through a PDF, Risk Assessment removed)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -5992,7 +5992,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  /* ===================== v53 ===================== */
  const MS=[["rcv","Received"],["dis","Disassembly complete"],["insp","Inspection & discovery complete"],["reas","Reassembly complete"],["rpt","Final report"],["ship","Shipped / storage"]];
  const UF=[["job","Job number"],["unitNo","Unit (e.g. Unit 1)"],["cust","Customer"],["origin","Origin (shipped from)"],["model","Model"],["tser","Turbine serial"],["gser","Generator serial"],["dRec","Date received","date"],["dTgt","Target ship date","date"],["dShip","Actual ship date","date"]];
- const LINKS=[["prog","Progress & task cards"],["qc","QC Checklist"],["gtf","Inspection Forms"],["risk","Risk Assessment"],["pcs","Pieces"],["rcv","Receiving"],["crew","Crew & timesheet"],["jsa","JSAs"],["vend","Vendors"],["parts","Parts"],["photos","Photos"],["finds","Findings"],["delay","Delays"],["hseq","HSEQ & FME"],["plan","Past days"],["status","Customer status"],["info","Unit info"]];
+ const LINKS=[["prog","Progress & task cards"],["qc","QC Checklist"],["gtf","Inspection Forms"],["pcs","Pieces"],["rcv","Receiving"],["crew","Crew & timesheet"],["jsa","JSAs"],["vend","Vendors"],["parts","Parts"],["photos","Photos"],["finds","Findings"],["delay","Delays"],["hseq","HSEQ & FME"],["plan","Past days"],["status","Customer status"],["info","Unit info"]];
  const LROUTE={prog:"sh_tc",qc:"sh_qc",gtf:"sh_gtl",risk:"sh_risk",pcs:"sh_unit",rcv:"sh_rcv",crew:"sh_uc",jsa:"sh_uj",vend:"sh_uv",parts:"sh_parts",photos:"sh_uph",finds:"sh_uf",delay:"sh_ud",hseq:"sh_uh",plan:"sh_up",status:"sh_status",info:"sh_ui"};
  const uName=u=>[nv(u.job),nv(u.unitNo)].filter(Boolean).join(" ")||u.name||"Unit";
  function fixU(u){if(!Array.isArray(u.steps))u.steps=[];if(!u.ms||typeof u.ms!=="object")u.ms={};if(!Array.isArray(u.docs))u.docs=[];if(!Array.isArray(u.pieces))u.pieces=[];if(!Array.isArray(u.tpl))u.tpl=[];if(nv(u.job)||nv(u.unitNo))u.name=uName(u);return u}
@@ -6468,7 +6468,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   $("#rptb").innerHTML=pages.map((P,n)=>`<div class="pgl" style="padding:.4in .4in"><div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #000;padding-bottom:4px;margin-bottom:6px"><span style="display:flex;align-items:center;gap:12px"><img src="${LG()}" alt="TurbinePros" style="height:.45in"><b style="font-size:16px">6B Outage Risk Assessment · ${E(uName(u))}</b></span><span>${E(GTE.today())} · page ${n+1} of ${pages.length}</span></div>
    <table style="width:100%;border-collapse:collapse;font-size:10px"><tr>${["Activity","P","I","Score","Abatement action","Red. P","Red. I","Score","Status","Owner"].map(x=>`<th style="${td};background:#ddd">${x}</th>`).join("")}</tr>${P.map(([s,a,r,sc,rs])=>`<tr><td style="${td}"><small>${E(s)}</small><br>${E(a)}</td><td style="${td}">${E(r.p||"")}</td><td style="${td}">${E(r.i||"")}</td><td style="${td};background:${col[rcls(sc)]};font-weight:700;text-align:center">${sc||""}</td><td style="${td}">${E(r.ab||"")}</td><td style="${td}">${E(r.rp||"")}</td><td style="${td}">${E(r.ri||"")}</td><td style="${td};background:${col[rcls(rs)]};font-weight:700;text-align:center">${rs||""}</td><td style="${td}">${r.st==="C"?"Closed":r.st==="O"?"Open":""}</td><td style="${td}">${E(r.ow||"")}</td></tr>`).join("")}</table></div>`).join("");
   RPOWN=true;$("#rptw").hidden=false}
- async function qcPrint(u){const m=MIX(u),SIM={};for(const g of Object.values(m.sig))if(g&&g.sid){try{const v=await pGet(g.sid);if(v)SIM[g.sid]=typeof v==="string"?v:URL.createObjectURL(v)}catch(e){}}const td="border:1px solid #444;padding:3px 5px;vertical-align:top",rows=[];let sec="";
+ async function qcPrint(u){if(window.TPQCPRINT)return TPQCPRINT({u,m:MIX(u),QC:QC6B,WHO,sigTxt,name:uName(u)});const m=MIX(u),SIM={};for(const g of Object.values(m.sig))if(g&&g.sid){try{const v=await pGet(g.sid);if(v)SIM[g.sid]=typeof v==="string"?v:URL.createObjectURL(v)}catch(e){}}const td="border:1px solid #444;padding:3px 5px;vertical-align:top",rows=[];let sec="";
   QC6B.forEach((o,i)=>{if(o.s){rows.push({s:o.s});return}rows.push({o,i})});
   const pages=[];let cur2=[],n=0;rows.forEach(r=>{const h=r.s?1.4:1+(String(r.o.a).length>60?0.6:0);if(n+h>30&&cur2.length){pages.push(cur2);cur2=[];n=0}cur2.push(r);n+=h});if(cur2.length)pages.push(cur2);
   const cell=(o,i,k)=>{const lv=(o.l||[])[k];if(!lv)return `<td style="${td}"></td>`;const g=m.sig[i+"_"+k];return `<td style="${td};text-align:center${lv==="H"?";background:#f6d5d1":""}"><b>${lv}</b><br>${g&&g.sid&&SIM[g.sid]?`<img src="${SIM[g.sid]}" alt="" style="height:30px;max-width:110px;display:block;margin:2px auto">`:""}${g?E(sigTxt(g)):""}</td>`};
@@ -6599,7 +6599,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   try{const P=await allPages();const blob=mkPDF(P),id=uidS("ud");await pPut(id,blob);const nm=("TurbinePros_"+code+"_"+ftitle(code)+"_"+uName(u)+"_"+GTE.today()).replace(/[^\w\-]+/g,"_")+".pdf";fixU(u);u.docs.push({id,name:nm,at:nowTxt(),gt:code});
    rec.docs=(rec.docs||[]).concat([id]);rec.at=nowTxt();rec.by=ME_();MIX(u).f[key]=rec;sv();btn.textContent="✓ Saved";alert(code+" saved as a PDF in "+uName(u)+" → Unit info → Unit documents.")}
   catch(e){alert("Could not save the PDF: "+(e.message||e))}finally{btn.disabled=false;setTimeout(()=>{if(btn.isConnected)btn.textContent="Save PDF"},1500)}}
- async function printForm(){keep();const P=await allPages();$("#pgsty").textContent=P.some(p=>p.land)?"@page{size:letter landscape}":"";$("#rptb").innerHTML=P.map(p=>`<div class="${p.land?"pgl":"pg"}" style="padding:0"><img src="${p.d}" alt="" style="width:100%;height:100%;display:block"></div>`).join("");RPOWN=true;$("#rptw").hidden=false;fv().hidden=true}
+ async function printForm(){keep();if(window.TPPRINTPDF){try{TPBUSY("Preparing the printout…");const P=await allPages();TPBUSY();const {u,code}=CUR;await TPPRINTPDF(P,"TurbinePros_"+code+"_"+ftitle(code)+"_"+uName(u)+"_"+GTE.today())}catch(e){TPBUSY();alert("Could not make the printout: "+(e&&e.message||e))}return}const P=await allPages();$("#pgsty").textContent=P.some(p=>p.land)?"@page{size:letter landscape}":"";$("#rptb").innerHTML=P.map(p=>`<div class="${p.land?"pgl":"pg"}" style="padding:0"><img src="${p.d}" alt="" style="width:100%;height:100%;display:block"></div>`).join("");RPOWN=true;$("#rptw").hidden=false;fv().hidden=true}
  /* close the print preview back to where we were */
  document.addEventListener("click",e=>{if(!RPOWN)return;if(e.target.closest&&e.target.closest("#rpX")){e.preventDefault();e.stopImmediatePropagation();RPOWN=false;$("#rptw").hidden=true;$("#rptb").innerHTML="";$("#pgsty").textContent="";if(CUR)fv().hidden=false}},true);
  /* events */
@@ -6620,7 +6620,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  MD.addEventListener("change",e=>{const t=e.target;if(cur==="sh_qc"&&t.id==="miQF"){QF=t.value;return qcView()}if(cur==="sh_risk"&&t.id==="miRF"){RF=t.value;return rkView()}
   if(cur==="sh_risk"&&t.dataset.rk&&t.tagName==="SELECT"){const r=t.closest("[data-ri]"),u=JU()||unitOf(UID);if(!r||!u)return;rkSet(u,+r.dataset.ri,t.dataset.rk,t.value);const y=scrollY;rkView();scrollTo(0,y)}});
  /* routes */
- [["sh_qc",qcView,"QC Checklist"],["sh_gtl",flView,"Inspection Forms"],["sh_risk",rkView,"Risk Assessment"]].forEach(([k,f,t])=>{RENDER[k]=f;M[k]={t,f:[],sum:()=>""};ALLOWED.add(k)});
+ [["sh_qc",qcView,"QC Checklist"],["sh_gtl",flView,"Inspection Forms"]].forEach(([k,f,t])=>{RENDER[k]=f;M[k]={t,f:[],sum:()=>""};ALLOWED.add(k)});
  window.TPMI={openForm,loadForms,QC6B,RISK6B,FLIST,close:closeForm,paint:async()=>CUR&&await allPages()};
  })();
 
@@ -7837,6 +7837,52 @@ body.shro #mod input:disabled,body.shro #mod textarea:disabled,body.shro dialog 
  setTimeout(()=>{try{GRPAPPLY();if(window.SHOPMODE&&window.SHOPCREWSYNC)SHOPCREWSYNC()}catch(e){}},0);
  const _sa=window.SYNCAFTER;window.SYNCAFTER=function(){try{GRPAPPLY()}catch(e){}try{_sa&&_sa()}catch(e){}try{if(window.SHOPMODE&&window.SHOPCREWSYNC)SHOPCREWSYNC()}catch(e){}};
  window.GRPARRANGE=()=>{if(!sup())return alert("Only supervisors arrange the crew order.");draw();dl.showModal()};
+})();
+
+
+/* ===== v59.2 Printing data sheets and the QC Checklist: the pages are drawn as a PDF and opened in the app's viewer.
+   On the iPad, Share / Save there opens the share sheet, which has Print. On a computer, Open in New Tab shows the PDF with the browser's Print. ===== */
+(function(){
+ const E=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const LG=()=>{try{if(typeof LOGO==="string"&&LOGO)return LOGO}catch(e){}return (document.querySelector("img.logo")||{}).src||""};
+ const loadImg=src=>new Promise(res=>{if(!src)return res(null);const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src});
+ const st=document.createElement("style");st.textContent=`#tpBusy{position:fixed;inset:0;z-index:10095;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px}#tpBusy div{background:#fff;color:#111;border-radius:14px;padding:18px 22px;font-weight:800;font-size:18px;max-width:420px;text-align:center}`;document.head.appendChild(st);
+ window.TPBUSY=function(msg){let d=document.getElementById("tpBusy");if(!msg){if(d)d.remove();return}if(!d){d=document.createElement("div");d.id="tpBusy";d.setAttribute("role","status");d.innerHTML="<div></div>";document.body.appendChild(d)}d.firstChild.textContent=msg};
+ const safe=n=>String(n||"TurbinePros").replace(/[^\w\-]+/g,"_").replace(/_+/g,"_").slice(0,120);
+ /* pages ({d,w,h}) -> one PDF -> the viewer */
+ window.TPPRINTPDF=async function(P,name){if(!P||!P.length)throw new Error("There is nothing to print.");const blob=mkPDF(P);await TPVIEW(blob,safe(name)+".pdf");
+  try{const b=document.querySelector("#tpView .vb");if(b&&!b.querySelector(".prHint")){const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);b.insertAdjacentHTML("beforeend",`<span class="prHint" style="flex-basis:100%;color:#fff;font-size:14px;font-weight:600">${ios?"To print: tap Share / Save, then Print.":"To print: Open in New Tab, then use the browser's Print."}</span>`)}}catch(e){}};
+ /* the QC Checklist, drawn landscape so every column fits */
+ const DPI=150,PW=11*DPI,PH=8.5*DPI,M=0.4*DPI,FOOT=40;
+ window.TPQCPRINT=async function(o){const {m,QC,WHO,sigTxt,name}=o;TPBUSY("Preparing the QC Checklist…");
+  try{const lg=await loadImg(LG());const SIM={};for(const g of Object.values(m.sig||{}))if(g&&g.sid&&!SIM[g.sid]){try{const v=await pGet(g.sid);if(v)SIM[g.sid]=await loadImg(typeof v==="string"?v:URL.createObjectURL(v))}catch(e){}}
+   const W=PW-2*M,cols=[0.34,0.15,0.23,0.093,0.093,0.094].map(f=>f*W),head=["Activity","Reference","Quality comments",...WHO],pad=6;
+   const pages=[];let c,x,y;const today=new Date().toLocaleDateString();
+   const wrap=(t,w,font)=>{x.font=font;const out=[];String(t==null?"":t).split("\n").forEach(par=>{let L="";par.split(/\s+/).forEach(wd=>{const tt=L?L+" "+wd:wd;if(x.measureText(tt).width>w&&L){out.push(L);L=wd}else L=tt});out.push(L)});return out};
+   const drawHead=()=>{const HL=head.map((h,i)=>wrap(h,cols[i]-2*pad,"bold 15px Arial")),hh=Math.max(...HL.map(l=>l.length))*18+14;x.fillStyle="#dddddd";x.fillRect(M,y,W,hh);x.strokeStyle="#444";x.lineWidth=1;x.strokeRect(M,y,W,hh);let cx=M;HL.forEach((L,i)=>{x.fillStyle="#111";x.font="bold 15px Arial";L.forEach((l,n)=>x.fillText(l,cx+pad,y+20+n*18));if(i){x.beginPath();x.moveTo(cx,y);x.lineTo(cx,y+hh);x.stroke()}cx+=cols[i]});y+=hh};
+   const page=()=>{if(c)pages.push(c);c=document.createElement("canvas");c.width=PW;c.height=PH;x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,PW,PH);
+    let tx=M;if(lg){const lh=60,lw=lg.width*lh/lg.height;x.drawImage(lg,M,M-6,lw,lh);tx=M+lw+18}x.fillStyle="#111";x.font="bold 26px Arial";x.fillText("6B Major Inspection QC Checklist · "+name,tx,M+34);
+    x.strokeStyle="#111";x.lineWidth=3;x.beginPath();x.moveTo(M,M+64);x.lineTo(PW-M,M+64);x.stroke();y=M+76;drawHead()};
+   page();
+   QC.forEach((r,i)=>{
+    if(r.s){const h=30;if(y+h>PH-M-FOOT){page()}x.fillStyle="#e6e6e6";x.fillRect(M,y,W,h);x.strokeStyle="#444";x.strokeRect(M,y,W,h);x.fillStyle="#111";x.font="bold 15px Arial";x.fillText(String(r.s),M+pad,y+20);y+=h;return}
+    const bold=(r.l||[]).some(Boolean),f1=(bold?"bold ":"")+"14px Arial";
+    const L=[wrap(r.a,cols[0]-2*pad-(bold?0:10),f1),wrap(r.r,cols[1]-2*pad,"13px Arial"),wrap(r.q,cols[2]-2*pad,"13px Arial")];
+    const sg=[0,1,2].map(k=>{const lv=(r.l||[])[k];if(!lv)return null;const g=(m.sig||{})[i+"_"+k];return {lv,g,im:g&&g.sid?SIM[g.sid]:null,t:g?wrap(sigTxt(g),cols[3+k]-2*pad,"12px Arial"):[]}});
+    const hS=Math.max(0,...sg.map(s=>s?18+(s.im?34:0)+s.t.length*15:0));
+    const h=Math.max(28,Math.max(...L.map(l=>l.length))*18+10,hS+8);
+    if(y+h>PH-M-FOOT)page();
+    x.strokeStyle="#666";x.lineWidth=1;let cx=M;
+    for(let k=0;k<6;k++){const w=cols[k];if(k>=3&&sg[k-3]&&sg[k-3].lv==="H"){x.fillStyle="#f6d5d1";x.fillRect(cx,y,w,h)}x.strokeRect(cx,y,w,h);
+     x.fillStyle="#111";
+     if(k<3){x.font=k===0?f1:"13px Arial";L[k].forEach((l,n)=>x.fillText(l,cx+pad+(k===0&&!bold?10:0),y+18+n*18))}
+     else{const s=sg[k-3];if(s){x.textAlign="center";x.font="bold 15px Arial";x.fillText(s.lv,cx+w/2,y+18);let yy=y+22;if(s.im){const ih=30,iw=Math.min(w-8,s.im.width*ih/s.im.height);x.drawImage(s.im,cx+(w-iw)/2,yy,iw,ih);yy+=34}x.font="12px Arial";s.t.forEach((l,n)=>x.fillText(l,cx+w/2,yy+12+n*15));x.textAlign="left"}}
+     cx+=w}
+    y+=h});
+   pages.push(c);
+   const P=pages.map((cv,i)=>{const g=cv.getContext("2d");g.fillStyle="#444";g.font="13px Arial";g.fillText("V = Verify · W = Witness · H = Hold Point · TurbinePros · Printed "+today,M,PH-M+8);g.textAlign="right";g.fillText("Page "+(i+1)+" of "+pages.length,PW-M,PH-M+8);g.textAlign="left";return {d:cv.toDataURL("image/jpeg",.85),w:PW,h:PH,land:true}});
+   TPBUSY();await TPPRINTPDF(P,"TurbinePros_QC_Checklist_"+name+"_"+today)}
+  catch(e){TPBUSY();alert("Could not make the QC Checklist printout: "+(e&&e.message||e))}};
 })();
 
 (function(){if(!/^https?:$/.test(location.protocol))return;
