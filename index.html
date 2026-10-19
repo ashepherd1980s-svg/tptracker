@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA; v57.0: LOTO checked task by task, all-stop when anyone is on a LOTO task without LOTO; v58.0: Shop 6B Major Inspection: QC Checklist, GT inspection forms, Risk Assessment; v58.1: TurbinePros logo and branding on the inspection forms, checklist and risk register; v58.2: saved documents open inside the app on the iPad; v58.3: receiving on Shop and Field, printable receiving reports; v58.4: saved signatures picked at every sign-off; v58.5: attach scanned or uploaded documents to tasks; v58.6: upload receiving photos from the photo album or Files; v58.7: Daily Report photos continue onto extra pages instead of running off the page; v58.8: Daily Report photo X removes the photo, report photos shown whole; v59.0: Shop phone version (PM full, Site Supervisor short menu, Technical Director read-only) and Shop Live Sync; v59.1: crew groups, group 1 at the top of every crew list; v59.2: data sheets and QC Checklist print through a PDF, Risk Assessment removed; v59.3: Forms: every report as a blank form or filled from the job, tap to type, save a copy or print; v59.4: Shop phone main screen tidied: Load Job Packet on one line, even status boxes, help button in the top bar; v59.5: supervisors and the PM can edit a received shipment or delivery after it is saved, Shop and Field)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA; v57.0: LOTO checked task by task, all-stop when anyone is on a LOTO task without LOTO; v58.0: Shop 6B Major Inspection: QC Checklist, GT inspection forms, Risk Assessment; v58.1: TurbinePros logo and branding on the inspection forms, checklist and risk register; v58.2: saved documents open inside the app on the iPad; v58.3: receiving on Shop and Field, printable receiving reports; v58.4: saved signatures picked at every sign-off; v58.5: attach scanned or uploaded documents to tasks; v58.6: upload receiving photos from the photo album or Files; v58.7: Daily Report photos continue onto extra pages instead of running off the page; v58.8: Daily Report photo X removes the photo, report photos shown whole; v59.0: Shop phone version (PM full, Site Supervisor short menu, Technical Director read-only) and Shop Live Sync; v59.1: crew groups, group 1 at the top of every crew list; v59.2: data sheets and QC Checklist print through a PDF, Risk Assessment removed; v59.3: Forms: every report as a blank form or filled from the job, tap to type, save a copy or print; v59.4: Shop phone main screen tidied: Load Job Packet on one line, even status boxes, help button in the top bar; v59.5: supervisors and the PM can edit a received shipment or delivery after it is saved, Shop and Field; v59.6: BOL scanner (finds the page edges, straightens and cleans it), the scanned BOL pages print behind the Receiving Report, and piece names can be corrected on received and outgoing shipments)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -4080,8 +4080,8 @@ window.EMLINE=()=>{const q=QSD(),p=[],pr=EMPRIMARY();p.push("Emergency: "+(pr.se
   const find=id=>all().find(a=>a.r.id===id);
   const saveDoc=a=>async(blob,name,pages)=>{const id="d"+Date.now().toString(36)+"rr";await pPut(id,blob);const d=(a&&a.r.date)||tdy();
    DOCS().push(Object.assign({id,title:a?"Receiving Report - "+(a.vend||a.what)+(a.r.bolNo?" BOL "+a.r.bolNo:""):"Receiving Log",cat:"Receiving Report",unit:a?a.unit:"",date:d,who:me(),pages,name,type:"application/pdf",size:blob.size,note:""},a&&a.o?{ord:a.o.id}:a&&a.x?{rent:a.x.id}:{}));sv()};
-  function oneDoc(a){const r=a.r,D=TPREPORT.Doc({title:"Receiving Report",sub:(a.vend?a.vend+" · ":"")+fmt(r.date)});
-   D.h("Delivery");D.kv([["Date received",fmt(r.date)],["Received by",r.by||""],["Shift",r.shift||""],["Type",a.kind],["From",a.vend||"—"],["Item",a.what],["PO / ref",a.po||""],["Unit",a.unit||""],["Quantity",String(r.qty)+(a.of?" of "+a.of+" ordered":"")],["Delivery",r.partial?"Partial":"Full"],["Condition",r.cond||""],["BOL / slip #",r.bolNo||"—"],["Carrier",r.carrier||"—"],["Driver",r.driver||"—"],["BOL scan",r.bol?"Saved in Documents":"none"]]);
+  function oneDoc(a){const r=a.r,D=TPREPORT.Doc({title:"Receiving Report",sub:(a.vend?a.vend+" · ":"")+fmt(r.date)});if(r.bol)D.bolAtt={id:r.bol,label:[r.bolNo?"BOL "+r.bolNo:"BOL",a.vend||a.what||"",a.unit||"","received "+fmt(r.date)].filter(Boolean).join(" · ")};
+   D.h("Delivery");D.kv([["Date received",fmt(r.date)],["Received by",r.by||""],["Shift",r.shift||""],["Type",a.kind],["From",a.vend||"—"],["Item",a.what],["PO / ref",a.po||""],["Unit",a.unit||""],["Quantity",String(r.qty)+(a.of?" of "+a.of+" ordered":"")],["Delivery",r.partial?"Partial":"Full"],["Condition",r.cond||""],["BOL / slip #",r.bolNo||"—"],["Carrier",r.carrier||"—"],["Driver",r.driver||"—"],["BOL scan",r.bol?"Attached behind this report":"none"]]);
    if(r.dmg){D.h("Damage");D.p(r.dmgNote||"Damaged");D.p(r.dmgOk?"Reviewed by the supervisor.":"Not reviewed yet.",true)}
    if(r.note){D.h("Notes");D.p(r.note)}
    const dph=r.dmgPh||[],oth=(r.photos||[]).filter(id=>!dph.includes(id));if(dph.length){D.h("Damage photos");D.img(dph)}if(oth.length){D.h("Photos");D.img(oth)}
@@ -5648,7 +5648,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  /* vendor send form */
  let SF=null;
  function sendForm(){const s=SF,V=S().vendors,u=unitOf(s.unitId),p=pieceOf(u,s.pieceId);
-  MD.innerHTML=head(s.id?"Edit Vendor Send":"Send to Vendor","sh_piece")+`<div id="shp"><small style="color:var(--mute)">${E(u?u.name:"")} &middot; ${E(p?p.name:"")}</small>
+  MD.innerHTML=head(s.id?"Edit Vendor Send":"Send to Vendor","sh_piece")+`<div id="shp"><small style="color:var(--mute)">${E(u?u.name:"")}</small>${p?`<label>Piece name<input id="sfPn" value="${E(p.name)}"></label>`:""}
   <label>Vendor<select id="sfV"><option value="">Pick a vendor...</option>${V.slice().sort((a,c)=>a.name.localeCompare(c.name)).map(v=>`<option value="${v.id}"${v.id===s.vendorId?" selected":""}>${E(v.name)}${v.pending?" (Pending approval)":""}${v.svc?" — "+E(v.svc):""}</option>`).join("")}<option value="new">+ New vendor</option></select></label>
   <div id="sfNew" ${s.vendorId==="new"?"":"hidden"} class="rec"><label>Vendor name<input id="nvN"></label><label>Contact name<input id="nvC" data-vct="1"></label><label>Phone<input id="nvP" inputmode="tel"></label><label>Email<input id="nvE" inputmode="email"></label><div class="row"><button type="button" data-sh="vct">Pick from Contacts</button></div></div>
   <label>What is going out<input id="sfW" value="${E(s.what||"")}" placeholder="Whole piece, or the part (e.g. stage 1 buckets)"></label>
@@ -5972,6 +5972,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   if(k==="vadd"){const n=nv($("#nvN").value);if(!n)return alert("Type the vendor name.");s.vendors.push({id:uidS("vd"),name:n,contact:nv($("#nvC").value),phone:nv($("#nvP").value),email:nv($("#nvE").value)});sv();return vendView()}
   if(k==="sfsave"){readSF();const x=SF;if(x.vendorId==="new"){const n=nv($("#nvN").value);if(!n)return alert("Type the vendor name.");const v={id:uidS("vd"),name:n,contact:nv($("#nvC").value),phone:nv($("#nvP").value),email:nv($("#nvE").value)};s.vendors.push(v);x.vendorId=v.id}
    if(!x.vendorId)return alert("Pick the vendor.");if(!x.due&&!confirm("No due-back date. Save anyway? It won't be flagged when late."))return;
+   {const pn=$("#sfPn"),n=pn?nv(pn.value):"",p=pieceOf(unitOf(x.unitId),x.pieceId);if(n&&p&&p.name!==n){p.name=n;(s.rcpts||[]).forEach(r=>(r.pieces||[]).forEach(y=>{if(y.pid===p.id)y.name=n}))}}
    if(x.id){const i=s.sends.findIndex(y=>y.id===x.id);if(i>=0)s.sends[i]=x}else{x.id=uidS("vs");s.sends.push(x)}sv();SF=null;return go("sh_piece")}
   if(k==="ptadd"){const d=nv($("#ptD").value);if(!d)return alert("Describe the part.");const uid=UID||($("#ptU")||{}).value;if(!uid)return alert("Create a unit first.");s.parts.push({id:uidS("pt"),unitId:uid,pieceId:"",desc:d,pn:nv($("#ptN").value),qty:nv($("#ptQ").value)||"1",st:"Needed",bo:false});sv();return partsView()}
   if(k==="cradd"){const n=nv($("#crN").value);if(!n)return alert("Type the name.");if(s.crew.some(y=>y.title.toLowerCase()===n.toLowerCase()))return alert(n+" is already on the crew.");s.crew.push({id:uidS("cr"),title:n,role:$("#crR").value,phone:nv($("#crP").value),shift:CS});sv();return crewView()}
@@ -6673,7 +6674,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   F.innerHTML=`<h2>${R.edit?"Edit Shipment":"Receive a Shipment"}</h2><div class="hint">${E(uName(u))}. ${R.edit?"Change anything below, then tap Save Changes.":"Tick every piece that came on this truck."}</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><label>Date received<input type="date" id="srD" value="${E(R.date)}"></label><label>Received by<input id="srBy" list="srByL" value="${E(R.by)}"><datalist id="srByL">${names().map(n=>`<option value="${E(n)}">`).join("")}</datalist></label>
   <label>BOL / packing slip #<input id="srB" value="${E(R.bolNo)}"></label><label>Carrier<input id="srC" value="${E(R.carrier)}"></label></div>
-  <h3 style="margin:12px 0 4px">Pieces on this truck</h3>${exp.length?exp.map(p=>{const x=R.pcs[p.id]||{};return `<div class="srPc${x.on?" on":""}${x.on&&x.cond!=="Good"?" dmg":""}"><label class="hd"><input type="checkbox" data-sr="pc" data-pid="${p.id}"${x.on?" checked":""}><span>${E(p.name)}</span></label>${x.on?`<div class="bd"><label>Condition<select data-sr="cond" data-pid="${p.id}">${CONDS.map(c=>`<option${c===x.cond?" selected":""}>${c}</option>`).join("")}</select></label>${x.cond!=="Good"?`<label>What's wrong<textarea data-sr="dmg" data-pid="${p.id}" rows="2" placeholder="Required">${E(x.dmg||"")}</textarea></label>`:""}<label class="lnk" style="cursor:pointer;display:block;margin:6px 0">Photos of this piece (${(x.photos||[]).length})<input type="file" data-sr="pph" data-pid="${p.id}" accept="image/*" capture="environment" multiple hidden></label><div>${(x.photos||[]).map(id=>`<span class="srTh"><img class="th" data-p="${id}" alt="Photo"><button type="button" data-sr="rmph" data-v="${id}" data-pid="${p.id}" aria-label="Remove photo">x</button></span>`).join("")}</div></div>`:""}</div>`}).join(""):`<div class="hint">Every piece on this unit is already received. Add one below if something extra came.</div>`}
+  <h3 style="margin:12px 0 4px">Pieces on this truck</h3>${exp.length?exp.map(p=>{const x=R.pcs[p.id]||{};return `<div class="srPc${x.on?" on":""}${x.on&&x.cond!=="Good"?" dmg":""}"><label class="hd"><input type="checkbox" data-sr="pc" data-pid="${p.id}"${x.on?" checked":""}><span>${E(p.name)}</span></label>${x.on?`<div class="bd"><label>Piece name<input data-sr="pname" data-pid="${p.id}" value="${E(x.name!=null?x.name:p.name)}"></label><label>Condition<select data-sr="cond" data-pid="${p.id}">${CONDS.map(c=>`<option${c===x.cond?" selected":""}>${c}</option>`).join("")}</select></label>${x.cond!=="Good"?`<label>What's wrong<textarea data-sr="dmg" data-pid="${p.id}" rows="2" placeholder="Required">${E(x.dmg||"")}</textarea></label>`:""}<label class="lnk" style="cursor:pointer;display:block;margin:6px 0">Photos of this piece (${(x.photos||[]).length})<input type="file" data-sr="pph" data-pid="${p.id}" accept="image/*" capture="environment" multiple hidden></label><div>${(x.photos||[]).map(id=>`<span class="srTh"><img class="th" data-p="${id}" alt="Photo"><button type="button" data-sr="rmph" data-v="${id}" data-pid="${p.id}" aria-label="Remove photo">x</button></span>`).join("")}</div></div>`:""}</div>`}).join(""):`<div class="hint">Every piece on this unit is already received. Add one below if something extra came.</div>`}
   <div class="shRow"><input id="srNew" placeholder="Piece not on the list"><button type="button" data-sr="addpc">Add Piece</button></div>
   <h3 style="margin:12px 0 4px">BOL pages</h3><div class="hint">Take a photo of each page. They save as one PDF in Unit documents.</div><div class="chips" style="flex-wrap:wrap">${R.pages.map((p,i)=>`<span style="position:relative"><img class="th" src="${p.d}" alt=""><button type="button" data-sr="rmpg" data-v="${i}" style="position:absolute;top:2px;right:8px;min-height:26px;padding:0 8px">x</button></span>`).join("")||"<small>No pages yet.</small>"}</div><label class="lnk" style="cursor:pointer;display:block;margin:6px 0">+ Scan BOL Page<input type="file" id="srPg" accept="image/*" capture="environment" multiple hidden></label>
   <h3 style="margin:12px 0 4px">Photos of the load</h3><label class="lnk" style="cursor:pointer;display:block;margin:6px 0">Take Load Photos (${R.photos.length})<input type="file" id="srPh" accept="image/*" capture="environment" multiple hidden></label><div>${R.photos.map(id=>`<span class="srTh"><img class="th" data-p="${id}" alt="Photo"><button type="button" data-sr="rmph" data-v="${id}" aria-label="Remove photo">x</button></span>`).join("")}</div>
@@ -6681,7 +6682,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   <div class="row"><button type="button" data-sr="rsign">${R.rsig?"Received-by Signed (redo)":"Sign as Received By"}</button></div>${R.rsig?`<img src="${R.rsig}" alt="Received by signature" style="max-width:240px;border:1px solid var(--line);border-radius:8px;background:#fff">`:""}
   <label>Notes<textarea id="srN" rows="2">${E(R.note)}</textarea></label>
   <div class="row" style="position:sticky;bottom:0;background:var(--card);padding:10px 0"><button type="button" data-sr="x">Cancel</button><button type="button" class="pri" data-sr="save">${R.edit?"Save Changes":"Save Receipt"}</button></div>`;
-  const keep=()=>{const g=i=>{const e=$("#"+i);return e?e.value:""};R.date=g("srD")||R.date;R.by=g("srBy");R.bolNo=g("srB");R.carrier=g("srC");R.driver=g("srDr");R.note=g("srN");F.querySelectorAll("[data-sr=dmg]").forEach(t=>{(R.pcs[t.dataset.pid]||{}).dmg=t.value})};
+  const keep=()=>{const g=i=>{const e=$("#"+i);return e?e.value:""};R.date=g("srD")||R.date;R.by=g("srBy");R.bolNo=g("srB");R.carrier=g("srC");R.driver=g("srDr");R.note=g("srN");F.querySelectorAll("[data-sr=dmg]").forEach(t=>{(R.pcs[t.dataset.pid]||{}).dmg=t.value});F.querySelectorAll("[data-sr=pname]").forEach(t=>{(R.pcs[t.dataset.pid]||{}).name=t.value})};
   F.oninput=keep;
   F.onchange=async e=>{const t=e.target;keep();const k=t.dataset.sr,pid=t.dataset.pid;
    if(k==="pc"){if(t.checked)R.pcs[pid]=Object.assign({cond:"Good",dmg:"",photos:[]},R.pcs[pid]||{},{on:true});else if(R.pcs[pid])R.pcs[pid].on=false;return draw()}
@@ -6702,6 +6703,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  async function save(){const R=SR,u=unitOf(R.unitId);if(!u)return;const on=Object.entries(R.pcs).filter(([,x])=>x.on);
   if(!on.length)return alert("Tick at least one piece that arrived.");if(!nv(R.by))return alert("Enter who received it.");
   for(const [pid,x] of on)if(x.cond!=="Good"&&!nv(x.dmg)){const p=pieceOf(u,pid);return alert("Say what's wrong with "+(p?p.name:"the piece")+".")}
+  on.forEach(([pid,x])=>{const n=nv(x.name),p=pieceOf(u,pid);if(!n||!p||p.name===n)return;p.name=n;RC().forEach(r=>(r.pieces||[]).forEach(y=>{if(y.pid===pid)y.name=n}))});
   if(R.edit)return saveEdit(R,u,on);
   const r={id:uidS("rc"),unitId:u.id,date:R.date||today(),ts:Date.now(),by:nv(R.by),bolNo:nv(R.bolNo),carrier:nv(R.carrier),driver:nv(R.driver),note:nv(R.note),photos:R.photos.slice(),pieces:[]};
   if(R.sig){const sid=uidS("sg");await pPut(sid,R.sig);r.sig=sid}if(R.rsig){const sid=uidS("sg");await pPut(sid,R.rsig);r.rsig=sid}
@@ -6713,8 +6715,8 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   try{RENDER[cur]&&RENDER[cur]()}catch(e){}}
  /* ---------- reports ---------- */
  const saveTo=u=>async(blob,name)=>{const id=uidS("ud");await pPut(id,blob);fixU(u);u.docs.push({id,name,at:nowTxt(),rpt:1});sv()};
- function shipDoc(u,r){const D=TPREPORT.Doc({title:"Receiving Report",sub:uName(u)+" · "+fmt(r.date)});
-  D.h("Delivery");D.kv([["Unit",uName(u)],["Customer",nv(u.cust)],["Date received",fmt(r.date)],["Received by",r.by],["BOL / slip #",r.bolNo||"—"],["Carrier",r.carrier||"—"],["Driver",r.driver||"—"],["Pieces",String(r.pieces.length)],["BOL scan",r.bolDoc?(r.bolPages||"")+" page PDF in Unit documents":"none"]]);
+ function shipDoc(u,r){const D=TPREPORT.Doc({title:"Receiving Report",sub:uName(u)+" · "+fmt(r.date)});if(r.bolDoc)D.bolAtt={id:r.bolDoc,label:[r.bolNo?"BOL "+r.bolNo:"BOL",uName(u),"received "+fmt(r.date)].join(" · ")};
+  D.h("Delivery");D.kv([["Unit",uName(u)],["Customer",nv(u.cust)],["Date received",fmt(r.date)],["Received by",r.by],["BOL / slip #",r.bolNo||"—"],["Carrier",r.carrier||"—"],["Driver",r.driver||"—"],["Pieces",String(r.pieces.length)],["BOL scan",r.bolDoc?"Attached behind this report"+(r.bolPages?" ("+r.bolPages+" page"+(r.bolPages==1?"":"s")+")":""):"none"]]);
   D.h("Pieces received");D.table(["Piece","Condition","Notes"],r.pieces.map(p=>[p.name,p.cond,p.dmg||""]),[.38,.18,.44],r.pieces.map(p=>p.cond!=="Good"?"#f6d5d1":""));
   if(r.note){D.h("Notes");D.p(r.note)}
   const bad=r.pieces.filter(p=>p.cond!=="Good"&&(p.photos||[]).length);if(bad.length){D.h("Damage photos");bad.forEach(p=>D.img(p.photos,p.name+": "+p.cond))}
@@ -7608,7 +7610,14 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  function preview(P){$("#pgsty").textContent="";$("#rptb").innerHTML=P.map(p=>`<div class="pg" style="padding:0"><img src="${p.d}" alt="" style="width:100%;height:100%;display:block"></div>`).join("");OWN=true;$("#rptw").hidden=false;try{window.scrollTo(0,0)}catch(e){}}
  document.addEventListener("click",e=>{if(!OWN)return;if(e.target.closest&&e.target.closest("#rpX")){e.preventDefault();e.stopImmediatePropagation();OWN=false;$("#rptw").hidden=true;$("#rptb").innerHTML=""}},true);
  /* make the pages, save a PDF copy through save(blob,name), then show the print preview */
+ async function bolPages(att){if(!att||!att.id||!window.TPPDFPAGES)return [];const L=await TPPDFPAGES(att.id),n=L.length,out=[];
+  for(let i=0;i<n;i++){const p=L[i];const im=await new Promise(res=>{const x=new Image();x.onload=()=>res(x);x.onerror=()=>res(null);x.src=p.d});if(!im)continue;
+   const w=im.naturalWidth,h=im.naturalHeight,band=Math.max(40,Math.round(w*0.04)),c=document.createElement("canvas");c.width=w;c.height=h+band;const g=c.getContext("2d");
+   g.fillStyle="#fff";g.fillRect(0,0,w,h+band);g.drawImage(im,0,band,w,h);g.fillStyle="#111";g.font="bold "+Math.round(band*0.5)+"px Arial";g.textBaseline="middle";
+   g.fillText(att.label+" \u00b7 BOL page "+(i+1)+" of "+n,Math.round(band*0.4),Math.round(band/2));g.strokeStyle="#999";g.lineWidth=2;g.beginPath();g.moveTo(0,band-1);g.lineTo(w,band-1);g.stroke();
+   out.push({d:c.toDataURL("image/jpeg",.85),w,h:h+band})}return out}
  async function run(D,name,save){let P;try{P=await D.render()}catch(e){alert("Could not build the report: "+(e.message||e));return}
+  if(D.bolAtt){try{P=P.concat(await bolPages(D.bolAtt))}catch(e){}}
   if(save){try{await save(mkPDF(P),name.replace(/[^\w\-]+/g,"_")+".pdf",P.length)}catch(e){alert("The report printed, but a PDF copy could not be saved: "+(e.message||e))}}
   preview(P);return P}
  window.TPREPORT={Doc,run,preview};
@@ -8116,6 +8125,89 @@ body.shphone #wxBar .m{min-width:0;overflow:hidden;text-overflow:ellipsis;white-
   const b=new Uint8Array(await x.arrayBuffer());let s="";for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode.apply(null,b.subarray(i,i+8192));
   const out=[],re=/\/Width (\d+) \/Height (\d+) [^>]*\/Filter \/DCTDecode \/Length (\d+) >>\nstream\n/g;let m;while((m=re.exec(s))){const at=m.index+m[0].length;out.push({d:"data:image/jpeg;base64,"+btoa(s.slice(at,at+(+m[3]))),w:+m[1],h:+m[2]})}return out}catch(e){return []}};
 })();
+
+/* ===== v59.6 BOL page scanner. Every BOL page photo (camera or upload) opens a scan screen: the app finds the paper's edges,
+   the corners can be dragged to fit, and the page comes out flat, straight and cleaned up like a scanned document. ===== */
+(function(){
+ const IDS=["srPg","rvPg"];
+ const dl=document.createElement("dialog");dl.id="dPgScan";dl.innerHTML='<div class="dlg" id="psB"></div>';document.body.appendChild(dl);
+ const st=document.createElement("style");st.textContent=`#dPgScan{width:min(96vw,980px);max-width:96vw}#psB>*{flex-shrink:0}#psB{overflow-y:auto}#psB h2{margin:0 0 4px}#psB .wrap{position:relative;margin:8px auto;touch-action:none;user-select:none;-webkit-user-select:none}#psB canvas{display:block;width:100%;height:100%;border-radius:8px}#psB #psC{background:#222}#psB canvas.ov{position:absolute;inset:0;background:transparent}#psB .psbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}#psB .psbar button{min-height:52px;font-size:16px}`;document.head.appendChild(st);
+ const load=f=>new Promise(res=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src=u});
+ /* the photo, no larger than needed */
+ function srcCanvas(im){const k=Math.min(1,2400/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement("canvas");c.width=Math.round(im.naturalWidth*k);c.height=Math.round(im.naturalHeight*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);return c}
+ /* find the paper: the biggest bright area, then its four corners */
+ function detect(c){const k=Math.min(1,480/Math.max(c.width,c.height)),w=Math.max(8,Math.round(c.width*k)),h=Math.max(8,Math.round(c.height*k)),s=document.createElement("canvas");s.width=w;s.height=h;const g=s.getContext("2d");g.drawImage(c,0,0,w,h);
+  const d=g.getImageData(0,0,w,h).data,n=w*h,Y=new Uint8Array(n),hist=new Array(256).fill(0);for(let i=0;i<n;i++){const v=(d[i*4]*.299+d[i*4+1]*.587+d[i*4+2]*.114)|0;Y[i]=v;hist[v]++}
+  let sum=0;for(let i=0;i<256;i++)sum+=i*hist[i];let sB=0,wB=0,best=0,t=128;for(let i=0;i<256;i++){wB+=hist[i];if(!wB)continue;const wF=n-wB;if(!wF)break;sB+=i*hist[i];const mB=sB/wB,mF=(sum-sB)/wF,v=wB*wF*(mB-mF)*(mB-mF);if(v>best){best=v;t=i}}
+  const lab=new Int32Array(n).fill(-1),q=new Int32Array(n);let bestL=-1,bestN=0,id=0;
+  for(let i=0;i<n;i++){if(lab[i]!==-1||Y[i]<=t)continue;let h0=0,h1=0;q[h1++]=i;lab[i]=id;let cnt=0;while(h0<h1){const p=q[h0++];cnt++;const x=p%w,y=(p/w)|0;
+    if(x>0&&lab[p-1]===-1&&Y[p-1]>t){lab[p-1]=id;q[h1++]=p-1}if(x<w-1&&lab[p+1]===-1&&Y[p+1]>t){lab[p+1]=id;q[h1++]=p+1}if(y>0&&lab[p-w]===-1&&Y[p-w]>t){lab[p-w]=id;q[h1++]=p-w}if(y<h-1&&lab[p+w]===-1&&Y[p+w]>t){lab[p+w]=id;q[h1++]=p+w}}
+   if(cnt>bestN){bestN=cnt;bestL=id}id++}
+  const inset=()=>{const a=.06;return [[a,a],[1-a,a],[1-a,1-a],[a,1-a]].map(([x,y])=>[x*c.width,y*c.height])};
+  if(bestL<0||bestN<n*.15||bestN>n*.97)return inset();
+  let tl=[0,0,1e9],tr=[0,0,-1e9],br=[0,0,-1e9],bl=[0,0,1e9];
+  for(let i=0;i<n;i++){if(lab[i]!==bestL)continue;const x=i%w,y=(i/w)|0,s1=x+y,s2=x-y;if(s1<tl[2])tl=[x,y,s1];if(s1>br[2])br=[x,y,s1];if(s2>tr[2])tr=[x,y,s2];if(s2<bl[2])bl=[x,y,s2]}
+  const f=1/k;return [tl,tr,br,bl].map(p=>[Math.min(c.width,(p[0]+.5)*f),Math.min(c.height,(p[1]+.5)*f)])}
+ /* the homography that maps the flat page (0..W, 0..H) onto the four corners in the photo */
+ function homog(Q,W,H){const S=[[0,0],[W,0],[W,H],[0,H]],A=[],B=[];
+  for(let i=0;i<4;i++){const [u,v]=S[i],[x,y]=Q[i];A.push([u,v,1,0,0,0,-u*x,-v*x]);B.push(x);A.push([0,0,0,u,v,1,-u*y,-v*y]);B.push(y)}
+  for(let c=0;c<8;c++){let p=c;for(let r=c+1;r<8;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;[A[c],A[p]]=[A[p],A[c]];[B[c],B[p]]=[B[p],B[c]];const d=A[c][c]||1e-12;
+   for(let r=0;r<8;r++){if(r===c)continue;const f=A[r][c]/d;if(!f)continue;for(let k=c;k<8;k++)A[r][k]-=f*A[c][k];B[r]-=f*B[c]}}
+  return B.map((b,i)=>b/(A[i][i]||1e-12))}
+ const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+ /* flatten, straighten and clean the page */
+ function process(c,Q,rot,clean){let W=Math.max(dist(Q[0],Q[1]),dist(Q[3],Q[2])),H=Math.max(dist(Q[0],Q[3]),dist(Q[1],Q[2]));const k=Math.min(1,1700/Math.max(W,H));W=Math.max(50,Math.round(W*k));H=Math.max(50,Math.round(H*k));
+  const h=homog(Q,W,H),sw=c.width,sh=c.height,sd=c.getContext("2d").getImageData(0,0,sw,sh).data,o=document.createElement("canvas");o.width=W;o.height=H;const og=o.getContext("2d"),od=og.createImageData(W,H),D=od.data;
+  for(let v=0;v<H;v++)for(let u=0;u<W;u++){const z=h[6]*u+h[7]*v+1,x=(h[0]*u+h[1]*v+h[2])/z,y=(h[3]*u+h[4]*v+h[5])/z,j=(v*W+u)*4;
+   if(x<0||y<0||x>sw-1||y>sh-1){D[j]=D[j+1]=D[j+2]=255;D[j+3]=255;continue}
+   const x0=x|0,y0=y|0,x1=Math.min(sw-1,x0+1),y1=Math.min(sh-1,y0+1),fx=x-x0,fy=y-y0,i00=(y0*sw+x0)*4,i10=(y0*sw+x1)*4,i01=(y1*sw+x0)*4,i11=(y1*sw+x1)*4;
+   for(let ch=0;ch<3;ch++){const a=sd[i00+ch]*(1-fx)+sd[i10+ch]*fx,b=sd[i01+ch]*(1-fx)+sd[i11+ch]*fx;D[j+ch]=a*(1-fy)+b*fy}D[j+3]=255}
+  og.putImageData(od,0,0);
+  if(clean){/* even out the paper: divide by a blurred copy, so shadows and yellow light go white and the print stays dark */
+   const bw=Math.max(4,Math.round(W/24)),bh=Math.max(4,Math.round(H/24)),s1=document.createElement("canvas");s1.width=bw;s1.height=bh;const g1=s1.getContext("2d");g1.imageSmoothingEnabled=true;g1.drawImage(o,0,0,bw,bh);
+   const s2=document.createElement("canvas");s2.width=W;s2.height=H;const g2=s2.getContext("2d");g2.imageSmoothingEnabled=true;g2.drawImage(s1,0,0,W,H);const bg=g2.getImageData(0,0,W,H).data,P=og.getImageData(0,0,W,H),p=P.data;
+   for(let i=0;i<p.length;i+=4){const y=p[i]*.299+p[i+1]*.587+p[i+2]*.114,b=Math.max(40,bg[i]*.299+bg[i+1]*.587+bg[i+2]*.114);let r=y/b;r=r>=.92?1:r<.35?0:(r-.35)/.57;const g=Math.round(255*Math.pow(r,1.6));p[i]=p[i+1]=p[i+2]=g}
+   og.putImageData(P,0,0)}
+  if(rot%4){const r=rot%4,t=document.createElement("canvas");t.width=r%2?H:W;t.height=r%2?W:H;const tg=t.getContext("2d");tg.translate(t.width/2,t.height/2);tg.rotate(r*Math.PI/2);tg.drawImage(o,-W/2,-H/2);return t}
+  return o}
+ /* the scan screen for one photo; resolves with a canvas, "skip", or null when cancelled */
+ function screen(c,label){return new Promise(res=>{const B=$("#psB");let Q=detect(c),rot=0,clean=true,drag=-1;
+  const maxW=Math.min(innerWidth*.9,940),maxH=Math.max(220,innerHeight-430),k=Math.min(maxW/c.width,maxH/c.height),dw=Math.round(c.width*k),dh=Math.round(c.height*k);
+  B.innerHTML=`<h2>Scan BOL Page</h2><div class="hint">${label} Drag the corners onto the corners of the paper, then tap Use This Page.</div>
+   <div class="psbar"><button type="button" data-ps="x">Cancel</button><button type="button" data-ps="skip">Skip This Photo</button><button type="button" class="pri" data-ps="ok">Use This Page</button></div>
+   <div class="wrap" style="width:${dw}px;height:${dh}px"><canvas id="psC" width="${dw}" height="${dh}"></canvas><canvas class="ov" id="psO" width="${dw}" height="${dh}"></canvas></div>
+   <div class="row" style="flex-wrap:wrap"><button type="button" data-ps="all">Use Whole Photo</button><button type="button" data-ps="auto">Find Edges Again</button><button type="button" data-ps="rot">Rotate (${rot*90}&deg;)</button><label class="chk" style="color:inherit;margin-left:4px"><input type="checkbox" id="psCl" checked><span>Clean up (document look)</span></label></div>`;
+  $("#psC").getContext("2d").drawImage(c,0,0,dw,dh);const O=$("#psO"),g=O.getContext("2d");
+  const paint=()=>{g.clearRect(0,0,dw,dh);g.fillStyle="rgba(0,0,0,.35)";g.beginPath();g.rect(0,0,dw,dh);g.moveTo(Q[0][0]*k,Q[0][1]*k);for(let i=3;i>=0;i--)g.lineTo(Q[i][0]*k,Q[i][1]*k);g.closePath();g.fill("evenodd");
+   g.strokeStyle="#4cc2b8";g.lineWidth=3;g.beginPath();Q.forEach((p,i)=>i?g.lineTo(p[0]*k,p[1]*k):g.moveTo(p[0]*k,p[1]*k));g.closePath();g.stroke();
+   Q.forEach(p=>{g.beginPath();g.arc(p[0]*k,p[1]*k,16,0,7);g.fillStyle="rgba(76,194,184,.35)";g.fill();g.lineWidth=3;g.strokeStyle="#fff";g.stroke()})};
+  paint();
+  const pos=e=>{const r=O.getBoundingClientRect();return [(e.clientX-r.left)*(dw/r.width)/k,(e.clientY-r.top)*(dh/r.height)/k]};
+  O.onpointerdown=e=>{const p=pos(e);let bi=-1,bd=1e9;Q.forEach((q,i)=>{const d=dist(q,p)*k;if(d<bd){bd=d;bi=i}});if(bd<60){drag=bi;O.setPointerCapture(e.pointerId);e.preventDefault()}};
+  O.onpointermove=e=>{if(drag<0)return;const p=pos(e);Q[drag]=[Math.max(0,Math.min(c.width,p[0])),Math.max(0,Math.min(c.height,p[1]))];paint();e.preventDefault()};
+  O.onpointerup=O.onpointercancel=()=>{drag=-1};
+  const end=v=>{B.onclick=null;dl.oncancel=null;res(v)};
+  dl.oncancel=e=>{e.preventDefault();end(null)};
+  B.onclick=e=>{const b=e.target.closest("[data-ps]");if(!b)return;const a=b.dataset.ps;
+   if(a==="all"){Q=[[0,0],[c.width,0],[c.width,c.height],[0,c.height]];return paint()}
+   if(a==="auto"){Q=detect(c);return paint()}
+   if(a==="rot"){rot=(rot+1)%4;b.innerHTML="Rotate ("+rot*90+"&deg;)";return}
+   if(a==="x")return end(null);if(a==="skip")return end("skip");
+   if(a==="ok"){clean=$("#psCl").checked;b.disabled=true;b.textContent="Working…";setTimeout(()=>{let out=null;try{out=process(c,Q,rot,clean)}catch(err){alert("Could not process the page: "+(err&&err.message||err))}end(out)},30)}};
+  if(!dl.open)dl.showModal()})}
+ const toFile=(cv,i)=>new Promise(res=>cv.toBlob(b=>res(b?new File([b],"bol_page_"+(i+1)+".jpg",{type:"image/jpeg"}):null),"image/jpeg",.9));
+ /* run every chosen photo through the scan screen, then hand the finished pages to the form as if they were the photos */
+ window.TPPAGESCAN=async function(files){const out=[],L=[...files];
+  for(let i=0;i<L.length;i++){const im=await load(L[i]);if(!im)continue;const c=srcCanvas(im);const r=await screen(c,L.length>1?"Photo "+(i+1)+" of "+L.length+".":"");
+   if(r===null){if(dl.open)dl.close();return null}if(r==="skip")continue;const f=await toFile(r,i);if(f)out.push(f)}
+  if(dl.open)dl.close();return out};
+ document.addEventListener("change",async e=>{const t=e.target;if(!t||!IDS.includes(t.id)||t.dataset.psDone==="1"||!t.files||!t.files.length)return;e.stopImmediatePropagation();
+  const files=[...t.files];let res=null;try{res=await TPPAGESCAN(files)}catch(err){res=files}
+  if(!res||!res.length){try{t.value=""}catch(x){}return}
+  try{const dt=new DataTransfer();res.forEach(f=>dt.items.add(f));t.files=dt.files}catch(err){}
+  t.dataset.psDone="1";try{t.dispatchEvent(new Event("change",{bubbles:true}))}finally{t.dataset.psDone=""}},true);
+})();
+
 (function(){if(!/^https?:$/.test(location.protocol))return;
  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
  try{if("serviceWorker" in navigator){var had=!!navigator.serviceWorker.controller,rl=false;
