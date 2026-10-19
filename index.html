@@ -276,7 +276,7 @@ header{position:sticky;top:0;z-index:6;background:var(--bg);-webkit-backdrop-fil
 <dialog id="dEdit"><form method="dialog" class="dlg" id="eForm"></form></dialog>
 <nav id="tab" aria-label="Main"><button id="tabMore"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/></svg>More</button></nav>
 <button id="fab" aria-label="Add" hidden>+</button>
-<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA; v57.0: LOTO checked task by task, all-stop when anyone is on a LOTO task without LOTO; v58.0: Shop 6B Major Inspection: QC Checklist, GT inspection forms, Risk Assessment; v58.1: TurbinePros logo and branding on the inspection forms, checklist and risk register; v58.2: saved documents open inside the app on the iPad; v58.3: receiving on Shop and Field, printable receiving reports; v58.4: saved signatures picked at every sign-off; v58.5: attach scanned or uploaded documents to tasks; v58.6: upload receiving photos from the photo album or Files; v58.7: Daily Report photos continue onto extra pages instead of running off the page; v58.8: Daily Report photo X removes the photo, report photos shown whole; v59.0: Shop phone version (PM full, Site Supervisor short menu, Technical Director read-only) and Shop Live Sync; v59.1: crew groups, group 1 at the top of every crew list; v59.2: data sheets and QC Checklist print through a PDF, Risk Assessment removed; v59.3: Forms: every report as a blank form or filled from the job, tap to type, save a copy or print; v59.4: Shop phone main screen tidied: Load Job Packet on one line, even status boxes, help button in the top bar; v59.5: supervisors and the PM can edit a received shipment or delivery after it is saved, Shop and Field; v59.6: BOL scanner (finds the page edges, straightens and cleans it), the scanned BOL pages print behind the Receiving Report, and piece names can be corrected on received and outgoing shipments)</div><div class="more">
+<dialog id="dMore"><div class="dlg"><h2>More</h2><div class="hint" id="appVer">App version: Oct 12, 2026 &middot; Deck review: shift glance, one receiving flow, simpler task cards, night-shift report date, cloud reset (v53: job packets, Start Day, walking cards; v54: task photos, Shop Daily Report; v55: LOTO STOP WORK lock, LOTO blocks on JSA and task clocks, Needs, Jobs in Progress; v56: Employees master list, Job Employees, PM sign-in; v56.1: Shop crew comes from Employees; v56.2: no automatic employee wipe; v56.3: PIN-protected edit and delete on vendor sends; v56.4: PM, TD and TA sign in on both shifts; v56.5: Project Manager recovery on sign-in; v56.6: Wipe on the sign-in screen; v56.7: choose what to wipe; v56.8: ? help on every screen, works offline; v56.9: LOTO gate follows the JSA; v57.0: LOTO checked task by task, all-stop when anyone is on a LOTO task without LOTO; v58.0: Shop 6B Major Inspection: QC Checklist, GT inspection forms, Risk Assessment; v58.1: TurbinePros logo and branding on the inspection forms, checklist and risk register; v58.2: saved documents open inside the app on the iPad; v58.3: receiving on Shop and Field, printable receiving reports; v58.4: saved signatures picked at every sign-off; v58.5: attach scanned or uploaded documents to tasks; v58.6: upload receiving photos from the photo album or Files; v58.7: Daily Report photos continue onto extra pages instead of running off the page; v58.8: Daily Report photo X removes the photo, report photos shown whole; v59.0: Shop phone version (PM full, Site Supervisor short menu, Technical Director read-only) and Shop Live Sync; v59.1: crew groups, group 1 at the top of every crew list; v59.2: data sheets and QC Checklist print through a PDF, Risk Assessment removed; v59.3: Forms: every report as a blank form or filled from the job, tap to type, save a copy or print; v59.4: Shop phone main screen tidied: Load Job Packet on one line, even status boxes, help button in the top bar; v59.5: supervisors and the PM can edit a received shipment or delivery after it is saved, Shop and Field; v59.6: BOL scanner (finds the page edges, straightens and cleans it), the scanned BOL pages print behind the Receiving Report, and piece names can be corrected on received and outgoing shipments; v59.7: Rentals: check-in, off-rent call and return, in every Shop job folder, on the Shop home and sidebar, and on the Field side)</div><div class="more">
 <button data-k="qtools">Quick Tools</button><button data-k="rent">Rentals</button><button data-k="status">Live Status Report</button><button data-k="sstat">To-Date Status</button><button data-k="vend">Vendors & Orders</button><button data-k="shop">Expendable Requests</button><button data-k="people">Employee & Supervision Entry</button><button data-k="data">Data Entry Tools</button><button data-k="jsa">Daily JSA</button><button data-k="costs">Time Tracker</button><button data-k="dsr">Daily Status Report</button><button data-k="reset">Factory Reset</button><button data-k="home">Home Screen</button>
 <button id="exp">Export Backup</button><button id="imp">Import Backup</button><input type="file" id="impF" accept=".json,application/json" hidden>
 <button id="closeM">Close</button></div></div></dialog>
@@ -5866,7 +5866,9 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  function go(k){if(k==="home")return show("home");show(k)}
  const RENDER={sh_unit:unitView,sh_piece:pieceView,sh_vend:vendView,sh_crew:crewView,sh_safe:safeView,sh_parts:partsView,sh_delay:delayView,sh_set:setView,sh_status:statusView,sh_send:sendForm,sh_vform:vformView,sh_crane:()=>CED?craneView():craneList(),sh_fork:()=>FED?forkView():forkList(),sh_rig:rigView,sh_em:emView};
  M.sh_status={t:"Status",f:[],sum:()=>""};M.sh_vform={t:"Vendor Form",f:[],sum:()=>""};M.sh_crane={t:"Crane Inspection",f:[],sum:()=>""};M.sh_fork={t:"Forklift Inspection",f:[],sum:()=>""};M.sh_rig={t:"Rigging Log",f:[],sum:()=>""};M.sh_em={t:"Emergency Info",f:[],sum:()=>""};M.sh_send={t:"Vendor",f:[],sum:()=>""};
- RENDER.sh_forms=()=>{if(window.TPFORMSVIEW)TPFORMSVIEW()};M.sh_forms={t:"Forms",f:[],sum:()=>""};
+ RENDER.sh_forms=()=>{if(window.TPFORMSVIEW)TPFORMSVIEW()};
+ RENDER.sh_rent=()=>{if(window.TPRENT){const u=(typeof JU==="function"&&JU())||unitOf(UID);TPRENT.view({all:!u,unitId:u?u.id:"",f:"on",q:"",job:""})}};M.sh_rent={t:"Rentals",f:[],sum:()=>""};
+ RENDER.sh_rentall=()=>{if(window.TPRENT)TPRENT.view({all:true,unitId:"",f:"on",q:"",job:""})};M.sh_rentall={t:"Rentals",f:[],sum:()=>""};M.sh_forms={t:"Forms",f:[],sum:()=>""};
  const ALLOWED=new Set(["home","jsa","fme","fm_case","sync",...Object.keys(RENDER)]);
  const _mo=mod;mod=function(k){if(RENDER[k])return RENDER[k]();return _mo.apply(this,arguments)};
  const _sh=show;show=function(v){if(!ALLOWED.has(v))v="home";if(v==="sh_parts"&&cur!=="sh_unit"&&cur!=="sh_parts")UID="";const r=_sh.call(this,v);try{$("#fab").hidden=true;document.querySelector("header").hidden=v==="home"}catch(e){}return r};
@@ -6008,8 +6010,8 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  /* ===================== v53 ===================== */
  const MS=[["rcv","Received"],["dis","Disassembly complete"],["insp","Inspection & discovery complete"],["reas","Reassembly complete"],["rpt","Final report"],["ship","Shipped / storage"]];
  const UF=[["job","Job number"],["unitNo","Unit (e.g. Unit 1)"],["cust","Customer"],["origin","Origin (shipped from)"],["model","Model"],["tser","Turbine serial"],["gser","Generator serial"],["dRec","Date received","date"],["dTgt","Target ship date","date"],["dShip","Actual ship date","date"]];
- const LINKS=[["prog","Progress & task cards"],["qc","QC Checklist"],["gtf","Inspection Forms"],["forms","Forms"],["pcs","Pieces"],["rcv","Receiving"],["crew","Crew & timesheet"],["jsa","JSAs"],["vend","Vendors"],["parts","Parts"],["photos","Photos"],["finds","Findings"],["delay","Delays"],["hseq","HSEQ & FME"],["plan","Past days"],["status","Customer status"],["info","Unit info"]];
- const LROUTE={prog:"sh_tc",qc:"sh_qc",gtf:"sh_gtl",forms:"sh_forms",risk:"sh_risk",pcs:"sh_unit",rcv:"sh_rcv",crew:"sh_uc",jsa:"sh_uj",vend:"sh_uv",parts:"sh_parts",photos:"sh_uph",finds:"sh_uf",delay:"sh_ud",hseq:"sh_uh",plan:"sh_up",status:"sh_status",info:"sh_ui"};
+ const LINKS=[["prog","Progress & task cards"],["qc","QC Checklist"],["gtf","Inspection Forms"],["forms","Forms"],["pcs","Pieces"],["rcv","Receiving"],["crew","Crew & timesheet"],["jsa","JSAs"],["vend","Vendors"],["parts","Parts"],["rent","Rentals"],["photos","Photos"],["finds","Findings"],["delay","Delays"],["hseq","HSEQ & FME"],["plan","Past days"],["status","Customer status"],["info","Unit info"]];
+ const LROUTE={prog:"sh_tc",qc:"sh_qc",gtf:"sh_gtl",forms:"sh_forms",risk:"sh_risk",pcs:"sh_unit",rcv:"sh_rcv",crew:"sh_uc",jsa:"sh_uj",vend:"sh_uv",parts:"sh_parts",rent:"sh_rent",photos:"sh_uph",finds:"sh_uf",delay:"sh_ud",hseq:"sh_uh",plan:"sh_up",status:"sh_status",info:"sh_ui"};
  const uName=u=>[nv(u.job),nv(u.unitNo)].filter(Boolean).join(" ")||u.name||"Unit";
  function fixU(u){if(!Array.isArray(u.steps))u.steps=[];if(!u.ms||typeof u.ms!=="object")u.ms={};if(!Array.isArray(u.docs))u.docs=[];if(!Array.isArray(u.pieces))u.pieces=[];if(!Array.isArray(u.tpl))u.tpl=[];if(nv(u.job)||nv(u.unitNo))u.name=uName(u);return u}
  const UNITS=()=>{const s=S(),o=s.set.uord||[];s.units.forEach(fixU);return s.units.slice().sort((a,b)=>{const ia=o.indexOf(a.id),ib=o.indexOf(b.id);return (ia<0?1e6:ia)-(ib<0?1e6:ib)})};
@@ -6091,7 +6093,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
    <div class="sep"></div><button type="button" data-qa="leave" style="color:#e0a04e">&larr; Leave Job</button>`;return}
   const us=UNITS();
   d.innerHTML=`<div style="padding:4px 10px 8px;font:800 19px system-ui,sans-serif;color:#e6eded">Shop</div><h4>Job packets<button type="button" data-qa="sbedit">${SBEDIT?"Done":"Edit"}</button></h4><div data-qdrag="uord">${us.map(x=>`<div class="qrow" data-qid="${x.id}">${SBEDIT?`<span class="qhd" aria-label="Drag to reorder">&#8801;</span>`:""}<button type="button" class="fold" data-qa="open" data-qu="${x.id}"><span>${E(uName(x))}<small>${E(nv(x.origin)||curMs(x))}</small></span></button></div>`).join("")}</div>${us.length?"":`<div style="color:#8fa3a5;font-size:14px;padding:6px 12px">No job packets yet.</div>`}
-  <div class="sep"></div><button type="button" data-qa="go" data-qk="sh_ros"${on("sh_ros")}>Crew Roster</button><button type="button" data-qa="go" data-qk="sh_vend"${on("sh_vend")}>Vendors &amp; Request PDFs</button><button type="button" data-qa="go" data-qk="sh_safe"${on("sh_safe")}>Shop Safety</button><button type="button" data-qa="go" data-qk="sh_set"${on("sh_set")}>Settings</button><button type="button" data-qa="go" data-qk="home"${cur==="home"?' class="on"':""}>Home</button>`}
+  <div class="sep"></div><button type="button" data-qa="go" data-qk="sh_ros"${on("sh_ros")}>Crew Roster</button><button type="button" data-qa="go" data-qk="sh_vend"${on("sh_vend")}>Vendors &amp; Request PDFs</button><button type="button" data-qa="go" data-qk="sh_safe"${on("sh_safe")}>Shop Safety</button><button type="button" data-qa="go" data-qk="sh_rentall"${on("sh_rentall")}>Rentals</button><button type="button" data-qa="go" data-qk="sh_set"${on("sh_set")}>Settings</button><button type="button" data-qa="go" data-qk="home"${cur==="home"?' class="on"':""}>Home</button>`}
  setTimeout(()=>{side();dragInit(document.getElementById("shSide"))},0);
  document.addEventListener("click",e=>{const sd=document.getElementById("shSide");if(!sd||!sd.contains(e.target))return;const b=e.target.closest("button[data-qa]");if(!b)return;const a=b.dataset.qa;
   if(a==="sbedit"){SBEDIT=!SBEDIT;return side()}
@@ -6114,7 +6116,7 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
   h.innerHTML=`<div class="shTop">${logo?`<img src="${logo}" alt="TurbinePros">`:""}<h1>Shop</h1><button type="button" data-tpgo="field">Switch to Field</button></div>
   <h2 class="sec" style="padding-left:0">Job packets</h2>${us.map(x=>{const D=DAY(td,x.id),cr=crewOn(td,x.id),js=jsaFor(x,td);return `<button type="button" class="qpk" data-qa="open" data-qu="${x.id}"><b>${E(uName(x))}</b><small>${E([nv(x.cust),nv(x.origin)].filter(Boolean).join(" · ")||"Job packet")}</small><small>${E(curMs(x))}${x.steps.length?" · "+stepsDone(x)+" of "+x.steps.length+" steps":""}</small><div class="qtd"><span${cr.length?' class="ok"':""}>${cr.length} crew today</span><span${D.tasks.length&&D.tasks.every(t=>t.done)?' class="ok"':""}>${D.tasks.filter(t=>t.done).length}/${D.tasks.length} tasks</span><span${js?' class="ok"':""}>JSA ${js?(js.final?"done":"started"):"not started"}</span></div><div class="shBar"><i style="width:${uPct(x)}%"></i></div></button>`}).join("")||`<div class="empty">No job packets yet. Load one below.</div>`}
   ${NEWU?newJobForm():`<div class="row" style="margin:6px 0 0;padding:0"><label style="display:inline-flex;align-items:center;justify-content:center;min-height:56px;padding:0 20px;border-radius:14px;cursor:pointer;font-weight:800;font-size:17px;flex:1;background:linear-gradient(135deg,#4cc2b8,#1f6f6b);color:#06201e">Load Job Packet<input type="file" id="jpF" data-q52="1" accept=".json,application/json" hidden></label><button type="button" data-sh="newu" style="min-height:56px">+ New Job / Unit by hand</button></div>`}
-  <div class="qmenu"><button type="button" data-qa="go" data-qk="sh_ros">Crew Roster (${s.crew.length})</button><button type="button" data-shgo="sh_vend">Vendors</button><button type="button" data-shgo="sh_safe">Shop Safety</button><button type="button" data-shgo="sh_set">Settings</button></div>`;side()};
+  <div class="qmenu"><button type="button" data-qa="go" data-qk="sh_ros">Crew Roster (${s.crew.length})</button><button type="button" data-shgo="sh_vend">Vendors</button><button type="button" data-shgo="sh_safe">Shop Safety</button><button type="button" data-qa="go" data-qk="sh_rentall">Rentals${(()=>{try{const n=((DB.shop&&DB.shop.rent)||[]).filter(r=>window.TPRENT&&TPRENT.flag(r)).length;return n?`<span class="cnt">${n}</span>`:""}catch(e){return ""}})()}</button><button type="button" data-shgo="sh_set">Settings</button></div>`;side()};
  function newJobForm(){return `<div class="rec"><b>New Job / Unit</b><div class="hint">Use this only when there is no job packet file. One job number per unit.</div>
   <label>Job number *<input id="njJ" autocomplete="off" placeholder="e.g. 7572-01"></label><label>Unit *<input id="njU" autocomplete="off" placeholder="e.g. Unit 1"></label><label>Customer<input id="njC" autocomplete="off"></label><label>Origin (shipped from)<input id="njO" autocomplete="off"></label><label>Model<input id="njM" autocomplete="off"></label>
   <div class="row"><button type="button" data-sh="newx">Cancel</button><button type="button" class="pri" data-qa="newjob">Create</button></div></div>`}
@@ -7613,8 +7615,8 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  async function bolPages(att){if(!att||!att.id||!window.TPPDFPAGES)return [];const L=await TPPDFPAGES(att.id),n=L.length,out=[];
   for(let i=0;i<n;i++){const p=L[i];const im=await new Promise(res=>{const x=new Image();x.onload=()=>res(x);x.onerror=()=>res(null);x.src=p.d});if(!im)continue;
    const w=im.naturalWidth,h=im.naturalHeight,band=Math.max(40,Math.round(w*0.04)),c=document.createElement("canvas");c.width=w;c.height=h+band;const g=c.getContext("2d");
-   g.fillStyle="#fff";g.fillRect(0,0,w,h+band);g.drawImage(im,0,band,w,h);g.fillStyle="#111";g.font="bold "+Math.round(band*0.5)+"px Arial";g.textBaseline="middle";
-   g.fillText(att.label+" \u00b7 BOL page "+(i+1)+" of "+n,Math.round(band*0.4),Math.round(band/2));g.strokeStyle="#999";g.lineWidth=2;g.beginPath();g.moveTo(0,band-1);g.lineTo(w,band-1);g.stroke();
+   g.fillStyle="#fff";g.fillRect(0,0,w,h+band);g.drawImage(im,0,band,w,h);g.fillStyle="#111";let fs=Math.round(band*0.5);g.font="bold "+fs+"px Arial";g.textBaseline="middle";{const T=att.label+" \u00b7 "+(att.word||"BOL page")+" "+(i+1)+" of "+n;while(fs>10&&g.measureText(T).width>w-band){fs--;g.font="bold "+fs+"px Arial"}}
+   g.fillText(att.label+" \u00b7 "+(att.word||"BOL page")+" "+(i+1)+" of "+n,Math.round(band*0.4),Math.round(band/2));g.strokeStyle="#999";g.lineWidth=2;g.beginPath();g.moveTo(0,band-1);g.lineTo(w,band-1);g.stroke();
    out.push({d:c.toDataURL("image/jpeg",.85),w,h:h+band})}return out}
  async function run(D,name,save){let P;try{P=await D.render()}catch(e){alert("Could not build the report: "+(e.message||e));return}
   if(D.bolAtt){try{P=P.concat(await bolPages(D.bolAtt))}catch(e){}}
@@ -7774,8 +7776,8 @@ header{top:40px!important}#shPill{display:none!important}`;document.head.appendC
  const tier=()=>{const m=me();if(!m||!SHPHONE())return "";if(m.role==="Technical Director")return "ro";if(SHORT.includes(m.role))return "short";return "pm"};
  window.SHPTIER=tier;
  /* the short menu inside a job */
- const KEEP={rcv:"Receiving",pcs:"Pieces & Shipping",prog:"Task Progress",photos:"Photos",qc:"Hold Points & QC",vend:"Vendor Send-Outs",parts:"Parts & Needs"};
- const ORDER=["rcv","pcs","prog","photos","qc","vend","parts"];
+ const KEEP={rcv:"Receiving",pcs:"Pieces & Shipping",prog:"Task Progress",photos:"Photos",qc:"Hold Points & QC",vend:"Vendor Send-Outs",parts:"Parts & Needs",rent:"Rentals"};
+ const ORDER=["rcv","pcs","prog","photos","qc","vend","parts","rent"];
  const st=document.createElement("style");st.textContent=`
 body.shphone #hlpB{width:46px!important;height:46px!important;min-height:46px!important;min-width:46px!important;font-size:22px!important;opacity:.85}
 body.shphone #mod textarea,body.shphone #mod input,body.shphone #mod select{max-width:100%;box-sizing:border-box}
@@ -8129,7 +8131,7 @@ body.shphone #wxBar .m{min-width:0;overflow:hidden;text-overflow:ellipsis;white-
 /* ===== v59.6 BOL page scanner. Every BOL page photo (camera or upload) opens a scan screen: the app finds the paper's edges,
    the corners can be dragged to fit, and the page comes out flat, straight and cleaned up like a scanned document. ===== */
 (function(){
- const IDS=["srPg","rvPg"];
+ const IDS=["srPg","rvPg","rtInTk","rtInTkU","rtOutTk","rtOutTkU"];
  const dl=document.createElement("dialog");dl.id="dPgScan";dl.innerHTML='<div class="dlg" id="psB"></div>';document.body.appendChild(dl);
  const st=document.createElement("style");st.textContent=`#dPgScan{width:min(96vw,980px);max-width:96vw}#psB>*{flex-shrink:0}#psB{overflow-y:auto}#psB h2{margin:0 0 4px}#psB .wrap{position:relative;margin:8px auto;touch-action:none;user-select:none;-webkit-user-select:none}#psB canvas{display:block;width:100%;height:100%;border-radius:8px}#psB #psC{background:#222}#psB canvas.ov{position:absolute;inset:0;background:transparent}#psB .psbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}#psB .psbar button{min-height:52px;font-size:16px}`;document.head.appendChild(st);
  const load=f=>new Promise(res=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src=u});
@@ -8206,6 +8208,182 @@ body.shphone #wxBar .m{min-width:0;overflow:hidden;text-overflow:ellipsis;white-
   if(!res||!res.length){try{t.value=""}catch(x){}return}
   try{const dt=new DataTransfer();res.forEach(f=>dt.items.add(f));t.files=dt.files}catch(err){}
   t.dataset.psDone="1";try{t.dispatchEvent(new Event("change",{bubbles:true}))}finally{t.dataset.psDone=""}},true);
+})();
+
+
+/* ===== v59.7 Rentals: check-in (receiving), off-rent call, and check-out (return) for rented equipment.
+   Shop: a Rentals tab in every job folder, and Rentals on the Shop home and sidebar for everything (shop-wide rentals too).
+   Field: the Rentals screen now uses the same screens; existing rental records keep everything and gain the new fields. ===== */
+(function(){
+ const E=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const nv=v=>String(v==null?"":v).trim();
+ const SHOP=()=>!!window.SHOPMODE;
+ const ymd=d=>{const z=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())};
+ const today=()=>ymd(new Date());
+ const fmt=d=>{try{return d?new Date(d+"T12:00:00").toLocaleDateString([],{month:"short",day:"numeric",year:"numeric"}):""}catch(e){return d||""}};
+ const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+ const me=()=>{try{return (typeof ME!=="undefined"&&ME&&ME.title)||""}catch(e){return ""}};
+ const sup=()=>{try{return typeof isSup==="function"&&isSup()}catch(e){return false}};
+ const save=()=>{try{sv()}catch(e){}};
+ /* where the records live: Field keeps its existing list; the Shop keeps its own (shared by Shop Live Sync) */
+ const L=()=>{if(SHOP()){DB.shop=DB.shop||{};return DB.shop.rent||(DB.shop.rent=[])}return DB.rent||(DB.rent=[])};
+ const units=()=>SHOP()?((DB.shop&&DB.shop.units)||[]):[];
+ const uNm=u=>u?([u.job,u.unitNo].filter(Boolean).join(" ")||u.name||"Unit"):"";
+ const jobOf=r=>{if(SHOP()){const u=units().find(x=>x.id===r.unitId);return u?uNm(u):"Shop-wide"}return r.unit||"Not on a unit"};
+ const fieldUnits=()=>{try{return (typeof U!=="undefined"&&U||[]).map(u=>u.name).filter(Boolean)}catch(e){return []}};
+ const people=()=>{const s=new Set();((DB.people||[]).concat(DB.pplOther||[])).forEach(p=>p&&p.title&&s.add(p.title));return [...s]};
+ /* days, cost and flags */
+ const dd=(a,b)=>Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5);
+ const endOf=r=>r.dOut||r.offDate||today();
+ const days=r=>r.dIn?Math.max(1,dd(r.dIn,endOf(r))):0;
+ const PER={day:["day",1],week:["week",7],month:["4-week month",28]};
+ const cost=r=>{const rate=parseFloat(String(r.rate||"").replace(/[^0-9.]/g,""));if(!(rate>0)||!r.dIn)return null;const p=PER[r.per||"day"]||PER.day,n=Math.ceil(days(r)/p[1]);return rate*n*Math.max(1,+r.qty||1)};
+ const money=v=>v==null?"":"$"+v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+ const short=r=>r.dOut&&r.qOut!==""&&r.qOut!=null&&+r.qOut<+r.qty?(+r.qty)-(+r.qOut):0;
+ const status=r=>r.dOut?(short(r)?"Returned short":"Returned"):r.offDate?"Called off":"On rent";
+ const flag=r=>{if(r.dOut||r.offDate||!r.dIn)return "";const t=today();if(r.exp&&t>r.exp)return "Past return date by "+dd(r.exp,t)+" day"+(dd(r.exp,t)===1?"":"s");const d=dd(r.dIn,t);if(!r.exp&&d>=28)return "On rent "+d+" days, no return date";return ""};
+ const thumbs=ids=>(ids||[]).map(id=>`<img class="th" data-p="${E(id)}" alt="Photo">`).join("");
+ const loadTh=root=>(root||document).querySelectorAll("img.th[data-p]:not([src])").forEach(i=>pGet(i.dataset.p).then(x=>{if(x)i.src=typeof x==="string"?x:URL.createObjectURL(x)}).catch(()=>{}));
+ const st=document.createElement("style");st.textContent=`.rtCard .tags{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}.rtCard .tg{display:inline-block;padding:2px 8px;border-radius:8px;font-size:12px;font-weight:800;color:#fff;background:#5d686b}.rtCard .tg.on{background:#1f6f6b}.rtCard .tg.off{background:#e0a04e;color:#1b1b1b}.rtCard .tg.fl{background:#d9534f}.rtCard.flag{border-left-color:#d9534f!important}
+ #rtF h3{margin:18px 0 4px;padding-top:10px;border-top:1px solid var(--line)}#rtF .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}#rtF .pgs{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}#rtF .pgs span{position:relative;display:inline-block}#rtF .pgs img{width:84px;height:108px;object-fit:cover;border:1px solid var(--line);border-radius:6px;background:#fff}#rtF .pgs button,#rtF .ph button{position:absolute;top:2px;right:2px;min-height:26px;padding:0 8px}#rtF .ph{display:flex;flex-wrap:wrap;gap:6px}#rtF .ph span{position:relative;display:inline-block}#rtF .sigI{max-width:240px;border:1px solid var(--line);border-radius:8px;background:#fff;display:block;margin:4px 0}
+ #rtF .lnk{cursor:pointer;display:block;margin:6px 0}`;document.head.appendChild(st);
+ const dl=document.createElement("dialog");dl.id="dRent2";dl.innerHTML='<div class="dlg" id="rtF"></div>';document.body.appendChild(dl);
+ /* ---------------- the list ---------------- */
+ let V={unitId:"",all:true,f:"on",q:"",job:""};
+ function view(o){if(o)V=Object.assign({f:V.f||"on",q:"",job:""},o);const M0=$("#mod");if(!M0)return;
+  let all=L().slice();if(SHOP()&&!V.all)all=all.filter(r=>r.unitId===V.unitId);
+  if(V.all&&V.job)all=all.filter(r=>(SHOP()?(V.job==="-"?!r.unitId:r.unitId===V.job):(V.job==="-"?!r.unit:r.unit===V.job)));
+  const on=all.filter(r=>!r.dOut),off=all.filter(r=>!r.dOut&&r.offDate),ret=all.filter(r=>r.dOut),fl=all.filter(r=>flag(r));
+  let S2=V.f==="on"?on:V.f==="off"?off:V.f==="ret"?ret:V.f==="fl"?fl:all;const q=V.q.toLowerCase();
+  if(q)S2=S2.filter(r=>[r.desc,r.vend,r.ref,r.tag,jobOf(r),r.note].join(" ").toLowerCase().includes(q));
+  S2.sort((a,b)=>(!!flag(b))-(!!flag(a))||(b.dIn||"").localeCompare(a.dIn||""));
+  const ctd=on.reduce((a,r)=>a+(cost(r)||0),0);
+  const u=SHOP()&&!V.all?units().find(x=>x.id===V.unitId):null;
+  const chip=(v,l,n)=>`<button type="button" class="chip${V.f===v?" on":""}" data-rt="flt" data-v="${v}">${l} <b>${n}</b></button>`;
+  const jobs=SHOP()?units().map(x=>[x.id,uNm(x)]):fieldUnits().map(n=>[n,n]);
+  M0.innerHTML=`<div class="mh"><h2>Rentals${u?": "+E(uNm(u)):""}</h2><button type="button" class="pri" data-rt="new">Check In Rental</button></div>
+   <div style="padding:0 16px"><div class="hint">Check in rented equipment when it arrives, call it off-rent when you are done with it, and check it out when it goes back. Flagged: past the expected return date, or on rent 28 days or more with no return date.</div>
+   <div class="stats"><span><b>${on.length}</b>on rent</span><span><b>${off.length}</b>called off, awaiting pickup</span><span><b>${fl.length}</b>flagged</span>${ctd?`<span><b>${money(ctd)}</b>est. cost to date (on rent)</span>`:""}</div>
+   <div class="chips" style="flex-wrap:wrap">${chip("on","On Rent",on.length)}${chip("off","Called Off",off.length)}${chip("ret","Returned",ret.length)}${chip("fl","Flagged",fl.length)}${chip("all","All",all.length)}</div>
+   ${V.all?`<label>${SHOP()?"Job":"Unit"}<select id="rtJob"><option value="">All</option><option value="-"${V.job==="-"?" selected":""}>${SHOP()?"Shop-wide (no job)":"Not on a unit"}</option>${jobs.map(([id,n])=>`<option value="${E(id)}"${V.job===id?" selected":""}>${E(n)}</option>`).join("")}</select></label>`:""}
+   <input id="rtQ" type="search" placeholder="Search item, company, agreement or tag" value="${E(V.q)}" autocomplete="off">
+   ${S2.map(card).join("")||`<div class="empty">${V.f==="on"?"Nothing on rent right now.":"Nothing here."} Tap Check In Rental when rented equipment arrives.</div>`}
+   <div class="row" style="flex-wrap:wrap;margin:16px 0 30px"><button type="button" data-rt="log">Rental Log (print)</button><button type="button" data-rt="csv">Export CSV</button></div></div>`;loadTh(M0)}
+ function card(r){const f=flag(r),c=cost(r),s=status(r),d=days(r);
+  return `<div class="rec rtCard${f?" flag":""}"><b>${E(r.desc||"Rental")}${+r.qty>1?" &times; "+E(r.qty):""}</b>
+   <div class="tags"><span class="tg${s==="On rent"?" on":s==="Called off"?" off":""}">${E(s)}</span>${f?`<span class="tg fl">${E(f)}</span>`:""}${short(r)?`<span class="tg fl">${short(r)} not returned</span>`:""}</div>
+   <small>${[r.vend,r.ref?"Agreement "+r.ref:"",r.tag?"Tag "+r.tag:"",jobOf(r)].filter(Boolean).map(E).join(" &middot; ")}</small>
+   <small>${r.dIn?"In "+E(fmt(r.dIn)):"No date in"}${r.exp&&!r.dOut?" &middot; expected back "+E(fmt(r.exp)):""}${r.offDate?" &middot; called off "+E(fmt(r.offDate))+(r.offNo?" (#"+E(r.offNo)+")":""):""}${r.dOut?" &middot; returned "+E(fmt(r.dOut)):""} &middot; ${d} day${d===1?"":"s"} on rent${c!=null?" &middot; est. "+money(c):""}</small>
+   <div>${thumbs((r.inPh||[]).slice(0,3).concat((r.outPh||[]).slice(0,3)))}</div>
+   <div class="row" style="flex-wrap:wrap"><button type="button" class="pri" data-rt="open" data-id="${E(r.id)}">Open</button>${!r.dOut&&!r.offDate?`<button type="button" data-rt="open" data-sec="off" data-id="${E(r.id)}">Call Off Rent</button>`:""}${!r.dOut?`<button type="button" data-rt="open" data-sec="out" data-id="${E(r.id)}">Check Out / Return</button>`:""}<button type="button" data-rt="rin" data-id="${E(r.id)}">Check-In Report</button>${r.dOut?`<button type="button" data-rt="rout" data-id="${E(r.id)}">Return Report</button>`:""}${sup()?`<button type="button" class="danger" data-rt="del" data-id="${E(r.id)}">Delete</button>`:""}</div></div>`}
+ /* ---------------- the form ---------------- */
+ let R=null;
+ const sig=async id=>window.TPDATAURL?TPDATAURL(id):"";
+ async function open(r,sec){const isNew=!r;const v=r?JSON.parse(JSON.stringify(r)):{qty:"1",dIn:today(),by:me(),per:"day",unitId:SHOP()&&!V.all?V.unitId:"",unit:""};
+  R={id:r?r.id:"",v,isNew,inPages:r?await TPPDFPAGES(r.inTk):[],outPages:r?await TPPDFPAGES(r.outTk):[],inSig:r?await sig(r.inSig):"",outSig:r?await sig(r.outSig):"",newPh:{inPh:[],outPh:[]},sec:sec||""};R.inSig0=R.inSig;R.outSig0=R.outSig;R.inP0=R.inPages.length;R.outP0=R.outPages.length;R.inPch=false;R.outPch=false;
+  draw();if(!dl.open)dl.showModal();if(sec)setTimeout(()=>{const h=document.getElementById("rtS_"+sec);if(h)h.scrollIntoView({block:"start"})},60)}
+ const opt=(L2,cur)=>L2.map(([v,l])=>`<option value="${E(v)}"${String(v)===String(cur||"")?" selected":""}>${E(l)}</option>`).join("");
+ function draw(){const v=R.v,F=$("#rtF"),pp=people(),pl=[["",""]].concat(pp.map(n=>[n,n]));
+  const jobSel=SHOP()?`<label>Job<select data-k="unitId">${opt([["","Shop-wide (no job)"]].concat(units().map(u=>[u.id,uNm(u)])),v.unitId)}</select></label>`:`<label>Unit (optional)<select data-k="unit">${opt([["",""]].concat(fieldUnits().map(n=>[n,n])),v.unit)}</select></label>`;
+  const inp=(k,l,t,ph)=>`<label>${l}<input data-k="${k}"${t?` type="${t}"`:""} value="${E(v[k]||"")}"${ph?` placeholder="${E(ph)}"`:""}></label>`;
+  const who=(k,l)=>`<label>${l}<input data-k="${k}" list="rtPpl" value="${E(v[k]||"")}"></label>`;
+  const phs=k=>`<div class="ph">${(v[k]||[]).map(id=>`<span><img class="th" data-p="${E(id)}" alt="Photo"><button type="button" data-rf="rmph" data-g="${k}" data-v="${E(id)}" aria-label="Remove photo">x</button></span>`).join("")}</div><label class="lnk">Take Photos<input type="file" data-ph="${k}" accept="image/*" capture="environment" multiple hidden></label><label class="lnk">Upload Photos<input type="file" data-ph="${k}" accept="image/*" multiple hidden></label>`;
+  const pgs=(k,id,lab)=>`<div class="pgs">${R[k].map((p,i)=>`<span><img src="${p.d}" alt="Page ${i+1}"><button type="button" data-rf="rmpg" data-g="${k}" data-v="${i}" aria-label="Remove page">x</button></span>`).join("")||"<small>No pages yet.</small>"}</div><label class="lnk">+ Scan ${lab} Page<input type="file" id="${id}" accept="image/*" capture="environment" multiple hidden></label><label class="lnk">Upload ${lab} Page<input type="file" id="${id}U" accept="image/*" multiple hidden></label>`;
+  const sigB=(k,lab)=>`<div class="row"><button type="button" data-rf="sign" data-g="${k}">${R[k]?lab+" Signed (redo)":lab+" Signature"}</button></div>${R[k]?`<img class="sigI" src="${R[k]}" alt="${E(lab)} signature">`:""}`;
+  F.innerHTML=`<datalist id="rtPpl">${pp.map(n=>`<option value="${E(n)}">`).join("")}</datalist>
+   <h2>${R.isNew?"Check In Rental":E(v.desc||"Rental")}</h2>${R.isNew?`<div class="hint">Fill in what arrived. Off-rent and return are added later from the same rental.</div>`:`<div class="hint">${E(status(v))} &middot; ${days(v)} day${days(v)===1?"":"s"} on rent${cost(v)!=null?" &middot; est. "+money(cost(v)):""}</div>`}
+   <h3 id="rtS_in" style="border-top:0;padding-top:0">Check-in (receiving)</h3>
+   ${jobSel}
+   ${inp("desc","Item (required)","","e.g. 5,000 lb forklift, light tower, 185 cfm compressor")}
+   <div class="g2">${inp("qty","Quantity","number")}${inp("tag","Serial / asset tag")}</div>
+   <div class="g2">${inp("vend","Rental company","","e.g. Sunbelt Rentals")}${inp("ref","Rental agreement / PO #")}</div>
+   <div class="g2"><label>Rate ($)<input data-k="rate" inputmode="decimal" value="${E(v.rate||"")}" placeholder="e.g. 450"></label><label>Per<select data-k="per">${opt([["day","Day"],["week","Week"],["month","4-week month"]],v.per||"day")}</select></label></div>
+   <div class="g2">${inp("dIn","Date in (required)","date")}${inp("exp","Expected return","date")}</div>
+   ${who("by","Received by")}
+   <label>Condition at check-in<textarea data-k="note" rows="2" placeholder="Scratches, hours meter, fuel level, attachments">${E(v.note||"")}</textarea></label>
+   <b style="font-size:15px">Condition photos</b>${phs("inPh")}
+   <b style="font-size:15px">Delivery ticket</b>${pgs("inPages","rtInTk","Ticket")}
+   ${inp("inDrv","Delivery driver name")}${sigB("inSig","Delivery Driver")}
+   ${R.isNew?"":`<h3 id="rtS_off">Off-rent call</h3><div class="hint">When you call the rental company to stop the rent. Billing normally stops on this date.</div>
+   <div class="g2">${inp("offDate","Date called off","date")}${who("offBy","Called off by")}</div>${inp("offNo","Off-rent / call-off number")}${inp("offTo","Spoke with (rental company)")}
+   <h3 id="rtS_out">Check-out (return)</h3>
+   <div class="g2">${inp("dOut","Date returned","date")}<label>Quantity returned<input data-k="qOut" type="number" min="0" value="${E(v.qOut||"")}" placeholder="${E(v.qty||"")}"></label></div>
+   ${who("rby","Returned by")}
+   <label>Condition at return<textarea data-k="outNote" rows="2">${E(v.outNote||"")}</textarea></label>
+   <b style="font-size:15px">Return photos</b>${phs("outPh")}
+   <b style="font-size:15px">Pickup ticket</b>${pgs("outPages","rtOutTk","Ticket")}
+   ${inp("outDrv","Pickup driver name")}${sigB("outSig","Pickup Driver")}`}
+   <div class="row" style="position:sticky;bottom:0;background:var(--card);padding:10px 0;flex-wrap:wrap"><button type="button" data-rf="x">Cancel</button>${!R.isNew&&!v.dOut?`<button type="button" data-rf="rtoday">Returned Today</button>`:""}<button type="button" class="pri" data-rf="save">${R.isNew?"Check In":"Save"}</button></div>`;
+  loadTh(F)}
+ const keep=()=>{$("#rtF").querySelectorAll("[data-k]").forEach(i=>{R.v[i.dataset.k]=i.value})};
+ dl.addEventListener("input",e=>{if(R&&e.target.dataset&&e.target.dataset.k)R.v[e.target.dataset.k]=e.target.value});
+ dl.addEventListener("change",async e=>{if(!R)return;const t=e.target;keep();
+  if(t.dataset.ph&&t.files.length){for(const f of [...t.files]){const d=await shrink(f);if(!d)continue;const id=uid("rp");await pPut(id,d);(R.v[t.dataset.ph]=R.v[t.dataset.ph]||[]).push(id);R.newPh[t.dataset.ph].push(id)}t.value="";return draw()}
+  const pg={rtInTk:"inPages",rtInTkU:"inPages",rtOutTk:"outPages",rtOutTkU:"outPages"}[t.id];
+  if(pg&&t.files.length){for(const f of [...t.files]){const p=await prepPage(f,true);if(p)R[pg].push(p)}R[pg==="inPages"?"inPch":"outPch"]=true;t.value="";return draw()}});
+ dl.addEventListener("click",async e=>{const b=e.target.closest("button[data-rf]");if(!b||!R)return;keep();const a=b.dataset.rf;
+  if(a==="x"){R=null;return dl.close()}
+  if(a==="rmph"){const g=b.dataset.g;R.v[g]=(R.v[g]||[]).filter(x=>x!==b.dataset.v);return draw()}
+  if(a==="rmpg"){R[b.dataset.g].splice(+b.dataset.v,1);R[b.dataset.g==="inPages"?"inPch":"outPch"]=true;return draw()}
+  if(a==="sign"){const g=b.dataset.g;return sigPad(g==="inSig"?"Delivery driver signature":"Pickup driver signature",d=>{R[g]=d;draw();if(!dl.open)dl.showModal()})}
+  if(a==="rtoday"){R.v.dOut=today();if(!nv(R.v.rby))R.v.rby=me();draw();const h=document.getElementById("rtS_out");if(h)h.scrollIntoView({block:"start"});return}
+  if(a==="save"){b.disabled=true;try{await commit()}catch(x){alert("Could not save: "+(x&&x.message||x))}if(b.isConnected)b.disabled=false}});
+ dl.addEventListener("cancel",()=>{R=null});
+ async function commit(){const v=R.v;v.desc=nv(v.desc);if(!v.desc)return alert("Enter the item.");if(!(+v.qty>0))return alert("Enter the quantity.");if(!v.dIn)return alert("Enter the date in.");
+  if(v.exp&&v.exp<v.dIn)return alert("The expected return date is before the date in.");
+  if(v.offDate&&v.offDate<v.dIn)return alert("The off-rent date is before the date in.");
+  if(v.dOut&&v.dOut<v.dIn)return alert("The return date is before the date in.");
+  if(v.qOut!==""&&v.qOut!=null&&+v.qOut>+v.qty)return alert("Quantity returned is more than the quantity rented.");
+  if(v.dOut&&(v.qOut===""||v.qOut==null))v.qOut=v.qty;
+  if(v.dOut&&+v.qOut<+v.qty&&!confirm((+v.qty-+v.qOut)+" of "+v.qty+" will show as not returned. Save anyway?"))return;
+  ["vend","ref","tag","by","note","inDrv","offBy","offNo","offTo","rby","outNote","outDrv","rate"].forEach(k=>{if(v[k]!=null)v[k]=nv(v[k])});
+  let r=R.id?L().find(x=>x.id===R.id):null;const isNew=!r;if(!r){r={id:uid("rn"),inPh:[],outPh:[],inv:null,log:[]};L().push(r)}
+  /* tickets: a new PDF only when pages changed */
+  for(const [pk,ck,tk,nk] of [["inPages","inPch","inTk","inTkPages"],["outPages","outPch","outTk","outTkPages"]]){if(!R[ck])continue;const old=r[tk];
+   if(R[pk].length){const id=uid("rt");await pPut(id,mkPDF(R[pk]));v[tk]=id;v[nk]=R[pk].length}else{delete v[tk];delete v[nk];v[tk]=null}
+   if(old&&old!==v[tk]){try{pDel(old)}catch(e){}}}
+  for(const [k,s0] of [["inSig","inSig0"],["outSig","outSig0"]]){if(R[k]===R[s0])continue;if(R[k]){const id=uid("sg");await pPut(id,R[k]);v[k]=id}else v[k]=null}
+  const was=r.dOut,wasOff=r.offDate;delete v.log;Object.assign(r,v);r.log=r.log||[];if(SHOP())delete r.unit;
+  r.log.unshift({t:new Date().toLocaleString(),m:(isNew?"Checked in "+r.dIn:!was&&r.dOut?"Returned "+r.dOut+" ("+r.qOut+" of "+r.qty+")":!wasOff&&r.offDate?"Called off rent "+r.offDate+(r.offNo?" #"+r.offNo:""):"Updated")+(me()?" by "+me():"")});
+  save();R=null;dl.close();view()}
+ /* ---------------- printouts ---------------- */
+ function head(D,r){D.kv([["Item",r.desc+(+r.qty>1?" x "+r.qty:"")],["Job",jobOf(r)],["Rental company",r.vend||""],["Agreement / PO #",r.ref||""],["Serial / asset tag",r.tag||""],["Rate",r.rate?money(parseFloat(String(r.rate).replace(/[^0-9.]/g,""))||0)+" per "+(PER[r.per||"day"]||PER.day)[0]:""]])}
+ const saver=r=>{if(SHOP()){const u=units().find(x=>x.id===r.unitId);if(!u)return null;return async(blob,name,pages)=>{const id=uid("ud");await pPut(id,blob);u.docs=u.docs||[];u.docs.push({id,name,at:new Date().toLocaleString(),rpt:1});save()}}
+  return async(blob,name,pages)=>{const id=uid("d");await pPut(id,blob);try{DOCS().push({id,title:name.replace(/_/g," ").replace(/\.pdf$/,""),cat:"Rental Report",unit:r.unit||"",date:today(),who:me(),pages,name,type:"application/pdf",size:blob.size,note:"",rent:r.id});save()}catch(e){}}};
+ function inDoc(r){const D=TPREPORT.Doc({title:"Rental Check-In",sub:r.desc+" · "+fmt(r.dIn)});D.h("Rental");head(D,r);
+  D.h("Check-in");D.kv([["Date in",fmt(r.dIn)],["Expected return",r.exp?fmt(r.exp):"not set"],["Received by",r.by||""],["Delivery driver",r.inDrv||""],["Delivery ticket",r.inTk?"Attached behind this report"+(r.inTkPages?" ("+r.inTkPages+" page"+(r.inTkPages==1?"":"s")+")":""):"none"]]);
+  if(r.note){D.h("Condition at check-in");D.p(r.note)}if((r.inPh||[]).length){D.h("Condition photos");D.img(r.inPh)}
+  D.h("Signatures");if(r.inSig)D.sig(r.inSig,"Delivery driver: "+(r.inDrv||""));D.p("Received by: "+(r.by||""));
+  if(r.inTk)D.bolAtt={id:r.inTk,word:"Delivery ticket page",label:[r.desc,r.vend,r.ref?"Agreement "+r.ref:"","in "+fmt(r.dIn)].filter(Boolean).join(" · ")};return D}
+ function outDoc(r){const D=TPREPORT.Doc({title:"Rental Return",sub:r.desc+" · "+fmt(r.dOut)});D.h("Rental");head(D,r);const c=cost(r);
+  D.h("On rent");D.kv([["Date in",fmt(r.dIn)],["Called off",r.offDate?fmt(r.offDate):"not recorded"],["Off-rent #",r.offNo||""],["Called off by",r.offBy||""],["Spoke with",r.offTo||""],["Date returned",fmt(r.dOut)],["Quantity returned",(r.qOut||r.qty)+" of "+r.qty],["Days on rent",String(days(r))],["Est. rental cost",c!=null?money(c):""]]);
+  D.h("Check-out");D.kv([["Returned by",r.rby||""],["Pickup driver",r.outDrv||""],["Pickup ticket",r.outTk?"Attached behind this report"+(r.outTkPages?" ("+r.outTkPages+" page"+(r.outTkPages==1?"":"s")+")":""):"none"]]);
+  if(r.outNote){D.h("Condition at return");D.p(r.outNote)}if((r.outPh||[]).length){D.h("Return photos");D.img(r.outPh)}
+  D.h("Signatures");if(r.outSig)D.sig(r.outSig,"Pickup driver: "+(r.outDrv||""));D.p("Returned by: "+(r.rby||""));
+  if(r.outTk)D.bolAtt={id:r.outTk,word:"Pickup ticket page",label:[r.desc,r.vend,r.ref?"Agreement "+r.ref:"","returned "+fmt(r.dOut)].filter(Boolean).join(" · ")};return D}
+ function logDoc(list,scope){const D=TPREPORT.Doc({title:"Rental Log",sub:scope+" · "+fmt(today())});const g={};list.forEach(r=>{(g[jobOf(r)]=g[jobOf(r)]||[]).push(r)});let tot=0;
+  Object.keys(g).sort().forEach(j=>{D.h(j);const rows=g[j].sort((a,b)=>(a.dIn||"").localeCompare(b.dIn||"")).map(r=>{const c=cost(r);if(c)tot+=c;return [r.desc+(+r.qty>1?" x"+r.qty:""),r.vend||"",r.ref||"",fmt(r.dIn),r.dOut?fmt(r.dOut):r.offDate?"Called off "+fmt(r.offDate):"",String(days(r)),c!=null?money(c):"",status(r)+(flag(r)?" (flag)":"")]});
+   D.table(["Item","Company","Agreement","In","Out","Days","Est. cost","Status"],rows,[.22,.14,.11,.11,.14,.06,.1,.12],g[j].map(r=>flag(r)?"#f6d5d1":""))});
+  if(!list.length)D.p("No rentals.");if(tot)D.p("Estimated rental cost, all listed: "+money(tot),true);return D}
+ const nm=s=>"TurbinePros_"+String(s).replace(/[^\w\-]+/g,"_");
+ function csv(list){const c=x=>'"'+String(x==null?"":x).replace(/"/g,'""')+'"',rows=[["Item","Qty","Job/Unit","Rental company","Agreement/PO","Serial/tag","Rate","Per","Date in","Expected return","Received by","Called off","Off-rent #","Date returned","Qty returned","Returned by","Days on rent","Est. cost","Status","Flag"]].concat(list.map(r=>[r.desc,r.qty,jobOf(r),r.vend,r.ref,r.tag,r.rate,r.per,r.dIn,r.exp,r.by,r.offDate,r.offNo,r.dOut,r.qOut,r.rby,days(r),cost(r)!=null?cost(r).toFixed(2):"",status(r),flag(r)]));
+  const bl=new Blob([rows.map(x=>x.map(c).join(",")).join("\r\n")],{type:"text/csv"}),a=document.createElement("a");a.href=URL.createObjectURL(bl);a.download="rentals-"+today()+".csv";document.body.appendChild(a);a.click();a.remove()}
+ const curList=()=>{let all=L().slice();if(SHOP()&&!V.all)all=all.filter(r=>r.unitId===V.unitId);if(V.all&&V.job)all=all.filter(r=>SHOP()?(V.job==="-"?!r.unitId:r.unitId===V.job):(V.job==="-"?!r.unit:r.unit===V.job));return all};
+ document.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("#mod [data-rt]");if(!b)return;const a=b.dataset.rt,r=b.dataset.id?L().find(x=>x.id===b.dataset.id):null;
+  if(a==="flt"){V.f=b.dataset.v;return view()}
+  if(a==="new")return open(null);
+  if(a==="open"&&r)return open(r,b.dataset.sec);
+  if(a==="rin"&&r)return TPREPORT.run(inDoc(r),nm("Rental_CheckIn_"+r.desc+"_"+r.dIn),saver(r));
+  if(a==="rout"&&r)return TPREPORT.run(outDoc(r),nm("Rental_Return_"+r.desc+"_"+r.dOut),saver(r));
+  if(a==="log"){const u=SHOP()&&!V.all?units().find(x=>x.id===V.unitId):null;return TPREPORT.run(logDoc(curList(),u?uNm(u):V.job?(V.job==="-"?(SHOP()?"Shop-wide":"Not on a unit"):(SHOP()?uNm(units().find(x=>x.id===V.job)):V.job)):"All rentals"),nm("Rental_Log_"+today()))}
+  if(a==="csv")return csv(curList());
+  if(a==="del"&&r&&sup()){if(!confirm("Delete the rental record for "+r.desc+"? Its photos, tickets and signatures go with it."))return;[...(r.inPh||[]),...(r.outPh||[]),r.inTk,r.outTk,r.inSig,r.outSig].filter(Boolean).forEach(id=>{try{pDel(id)}catch(x){}});if(r.inv&&r.inv.id)try{pDel(r.inv.id)}catch(x){}
+   const A=L(),i=A.indexOf(r);if(i>=0)A.splice(i,1);save();return view()}},true);
+ document.addEventListener("input",e=>{if(e.target&&e.target.id==="rtQ"){V.q=e.target.value;const p=e.target.selectionStart;view();const i=$("#rtQ");if(i){i.focus();try{i.setSelectionRange(p,p)}catch(x){}}}});
+ document.addEventListener("change",e=>{if(e.target&&e.target.id==="rtJob"){V.job=e.target.value;view()}});
+ window.TPRENT={view,open,list:L,flag,cost,days};
+ /* Field: the Rentals screen uses the new screens */
+ if(!SHOP()){try{rentView=function(){view({all:true,unitId:"",f:V.f||"on",q:V.q||"",job:V.job||""})}}catch(e){}}
 })();
 
 (function(){if(!/^https?:$/.test(location.protocol))return;
