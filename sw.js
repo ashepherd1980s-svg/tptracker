@@ -1,16 +1,25 @@
 /* Offline cache. The app page is always fetched fresh when online, so updates show up on the next open. */
-const VERSION = "tp-v60-7";
+const VERSION = "tp-v60-9";
 const FILES = ["./", "./index.html", "./manifest.webmanifest"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => Promise.all(FILES.map(f => fetch(new Request(f, { cache: "reload" })).then(r => { if (r && r.ok) return c.put(f, r); }).catch(() => null)))).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSION && !k.startsWith("tp-manuals")).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   const u = new URL(e.request.url);
   if (u.origin !== location.origin) return;
+  /* the manuals: saved on the device once, then always opened from the device */
+  if (/\/manuals\//.test(u.pathname)) {
+    e.respondWith(caches.open("tp-manuals").then(async c => {
+      const hit = await c.match(e.request, { ignoreSearch: true });
+      if (hit) return hit;
+      try { const r = await fetch(e.request); if (r && r.ok && r.status === 200) c.put(e.request, r.clone()); return r; } catch (x) { return Response.error(); }
+    }));
+    return;
+  }
   const page = e.request.mode === "navigate" || /\/(index\.html)?$/.test(u.pathname);
   if (page) {
     /* network first: newest app when online, saved copy when offline */
