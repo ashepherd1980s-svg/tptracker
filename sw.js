@@ -1,5 +1,5 @@
 /* Offline cache. The app page is always fetched fresh when online, so updates show up on the next open. */
-const VERSION = "tp-v61-0";
+const VERSION = "tp-v61-1";
 const FILES = ["./", "./index.html", "./manifest.webmanifest"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => Promise.all(FILES.map(f => fetch(new Request(f, { cache: "reload" })).then(r => { if (r && r.ok) return c.put(f, r); }).catch(() => null)))).then(() => self.skipWaiting()));
